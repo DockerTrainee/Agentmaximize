@@ -569,12 +569,11 @@ ARCHITECTURE:
 STRICT RULES:
 1. Output ONLY raw HTML fragment. NO <html>, <head>, <body> tags.
 2. Use Semantic HTML5: <main>, <section>, <article>, <aside>, <nav>, <header>.
-3. Implement a "Bento Grid" layout using article tags with modern IDs.
-4. For Charts: use <canvas id="aon-chart-[id]"></canvas> containers.
-5. Accessibility: Include aria-labels and proper role attributes for all modules.
-6. CRITICAL: NEVER use inline 'on*' attributes.
-7. Include a "Loading Sentinel" for every dynamic data module.
-8. Structure for application type: ${route.type}.
+3. Include a "GUIDE" button (id="aon-guide-trigger") in the top nav or header.
+4. Include an "OPERATIONS MODAL" (id="aon-guide-modal") that is hidden by default.
+5. ZERO-PLACEHOLDER POLICY: Do not use "Loading..." or "Coming Soon" in static HTML.
+6. Accessibility: Include aria-labels and proper role attributes for all modules.
+7. Structure for application type: ${route.type}.
 `;
 
     const mockDataPrompt = `
@@ -582,14 +581,14 @@ You are "Data Architect Agent" - you design the JavaScript data layer.
 For this application: "${blueprint.projectName}" (goal: ${goal})
 Data requirements: ${JSON.stringify(blueprint.dataRequirements)}
 
-Define the data architecture. Respond with ONLY a valid JSON object (no markdown):
+Define the data architecture. Respond with ONLY a valid JSON object:
 {
-  "endpoints": [
-    { "id": "endpoint_id", "path": "/live-data/crypto", "method": "GET", "updateInterval": 30, "displayTarget": "aon-data-crypto" }
-  ],
+  "endpoints": [{ "id": "id", "path": "/path" }],
   "mockData": { "key": "value" },
-  "stateVariables": { "variableName": "defaultValue" },
-  "eventHandlers": ["handler_description_1", "handler_description_2"]
+  "operations_manual": [
+    { "feature": "Name", "action": "How to use", "value_prop": "Why it matters" }
+  ],
+  "stateVariables": { "var": "default" }
 }
 Endpoints available: /live-data/crypto, /live-data/news, /search (POST with { query }).
     `;
@@ -625,10 +624,12 @@ ARCHITECTURE:
 
 STRICT RULES:
 - Output ONLY raw JavaScript.
+- POPULATE the UI immediately using the 'mockData' from Data Architect. DO NOT show empty states.
+- HYDRATE the "OPERATIONS MODAL" using the 'operations_manual' data.
+- IMPLEMENT real logic for every tap/click event mentioned in the HTML.
 - Hook into Bento-Grid article IDs.
 - Use 'lucide.createIcons()' for premium iconography.
-- Implement 'Hot State' updates for live data feeds.
-- IMPORTANT: Use RELATIVE paths for all fetch calls (e.g., '/chat', '/live-data'). DO NOT use 'http://localhost:3000'.
+- IMPORTANT: Use RELATIVE paths for all fetch calls (e.g., '/chat', '/live-data').
 `;
 
     const cssAgentPrompt = `
@@ -649,6 +650,7 @@ REQUIREMENTS:
 5. Hover Effects: Interactive cards must scale (1.02) and glow on hover.
 6. Responsive: Mobile-first design that adapts to desktop ultra-wides.
 7. Scrollbars: Use thin, modern, invisible-until-hover gutter styles.
+8. Guide Modal: Provide a stunning, fullscreen or large-centered glassmorphism modal style for '.aon-guide-modal'. Highlight '.guide-feature' cards within it.
 
 OUTPUT: Raw CSS ONLY.
 `;
