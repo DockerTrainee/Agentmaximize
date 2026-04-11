@@ -77,7 +77,7 @@ app.use((err, req, res, next) => {
 
 // Admin Auth Middleware
 const authMiddleware = (req, res, next) => {
-    const adminPassword = process.env.ADMIN_PASSWORD || '1234';
+    const adminPassword = sanitizeEnv(process.env.ADMIN_PASSWORD || '1234');
     const clientPassword = req.headers['x-admin-password'];
     
     if (clientPassword === adminPassword) {
@@ -93,7 +93,8 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 // ─────────────────────────────────────────────────────────────────────────────
 // GEMINI CLIENT
 // ─────────────────────────────────────────────────────────────────────────────
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const sanitizeEnv = (val) => (val || "").split(/[\s\r\n]/)[0].trim();
+const genAI = new GoogleGenerativeAI(sanitizeEnv(process.env.GEMINI_API_KEY));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // REAL-TIME TELEMETRY — Socket.io
@@ -137,7 +138,7 @@ const MODEL_CASCADE = [
  * GitHub Models API Caller (OpenAI Compatible)
  */
 async function callGitHubAI(modelName, prompt, jobId = null) {
-    const token = process.env.GITHUB_TOKEN;
+    const token = sanitizeEnv(process.env.GITHUB_TOKEN);
     if (!token || token === 'your_github_token_here') {
         throw new Error('GITHUB_TOKEN not configured');
     }
