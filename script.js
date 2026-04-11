@@ -24,6 +24,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const socketStatusEl   = document.getElementById('socket-status');
     const diagWS           = document.getElementById('diag-ws');
     const diagAgents       = document.getElementById('diag-agents');
+    
+    // Admin Security
+    const adminLockBtn     = document.getElementById('admin-lock-btn');
+    const adminOverlay     = document.getElementById('admin-overlay');
+    const adminPassInput   = document.getElementById('admin-password-input');
+    const unlockBtn        = document.getElementById('unlock-btn');
+    const closeAdminBtn    = document.getElementById('close-admin-overlay');
+    const lockStatusText   = document.getElementById('lock-status-text');
+    let adminPassword      = localStorage.getItem('nexus_admin_pass') || '';
 
     const navItems = document.querySelectorAll('.nav-item');
 
@@ -308,9 +317,18 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await fetch('/orchestrate', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-admin-password': adminPassword 
+                },
                 body: JSON.stringify({ goal })
             });
+            
+            if (res.status === 401) {
+                showAdminPrompt();
+                throw new Error('Unauthorized: Admin Password Required');
+            }
+            
             const data = await res.json();
             if (!data.success) throw new Error(data.error || 'Failed to start mission');
 
@@ -428,8 +446,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.querySelector('.delete').addEventListener('click', async (e) => {
                     const id = e.currentTarget.getAttribute('data-id');
                     if (confirm('Delete this agent?')) {
-                        await fetch(`/api/agents/${id}`, { method: 'DELETE' });
-                        loadAgentLibrary();
+                        const res = await fetch(`/api/agents/${id}`, { 
+                            method: 'DELETE',
+                            headers: { 'x-admin-password': adminPassword }
+                        });
+                        
+                        if (res.status === 401) {
+                            alert('Unauthorized: Admin Password Required');
+                            showAdminPrompt();
+                        } else {
+                            loadAgentLibrary();
+                        }
                     }
                 });
 
@@ -471,7 +498,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ═══════════════════════════════════════════════════════════════
+    // ADMIN SECURITY LOGIC
+    // ═══════════════════════════════════════════════════════════════
+    function updateLockUI() {
+        if (adminPassword) {
+            adminLockBtn.querySelector('i').setAttribute('data-lucide', 'unlock');
+            lockStatusText.textContent = 'UNLOCKED';
+            adminLockBtn.classList.add('unlocked');
+        } else {
+            adminLockBtn.querySelector('i').setAttribute('data-lucide', 'lock');
+            lockStatusText.textContent = 'LOCKED';
+            adminLockBtn.classList.remove('unlocked');
+        }
+        lucide.createIcons();
+    }
+
+    function showAdminPrompt() {
+        adminOverlay.classList.remove('hidden');
+        adminPassInput.focus();
+    }
+
+    adminLockBtn.addEventListener('click', showAdminPrompt);
+    closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
+
+    unlockBtn.addEventListener('click', () => {
+        const pass = adminPassInput.value.trim();
+        if (!pass) return;
+        adminPassword = pass;
+        localStorage.setItem('nexus_admin_pass', pass);
+        adminOverlay.classList.add('hidden');
+        updateLockUI();
+        addLog(`[SYSTEM] System access key synchronized.`, 'success');
+    });
+
+    adminPassInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') unlockBtn.click();
+    });
+
+    // ═══════════════════════════════════════════════════════════════
     // INIT
     // ═══════════════════════════════════════════════════════════════
+    updateLockUI();
     loadAgentLibrary();
 });

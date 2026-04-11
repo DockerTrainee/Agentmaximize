@@ -91,13 +91,40 @@
                     </button>
                 </div>
                 <div class="header-actions">
+                    <div class="action-chip glass" id="admin-lock-btn" title="Admin Security Lock">
+                        <i data-lucide="lock"></i>
+                        <span id="lock-status-text">LOCKED</span>
+                    </div>
                     <div class="action-chip glass" id="model-indicator">
                         <i data-lucide="cpu"></i>
                         <span>MULTI-AGENT</span>
                     </div>
-                    <div class="user-avatar">R</div>
+                    <div class="user-avatar" id="user-avatar-btn">R</div>
                 </div>
             </header>
+
+            <!-- Admin Password Overlay (Sleek Glassmorphism) -->
+            <div id="admin-overlay" class="nexus-overlay hidden">
+                <div class="overlay-panel glass-heavy" style="max-width: 400px;">
+                    <div class="overlay-header">
+                        <div>
+                            <h2>ADMIN ACCESS</h2>
+                            <p class="overlay-sub">Enter password to unlock system mutations.</p>
+                        </div>
+                        <button class="close-btn" id="close-admin-overlay"><i data-lucide="x"></i></button>
+                    </div>
+                    <div class="overlay-body">
+                        <div class="mission-input-group glass" style="margin-bottom: 1.5rem;">
+                            <div class="mission-icon"><i data-lucide="shield-check"></i></div>
+                            <input type="password" id="admin-password-input" placeholder="ENTER ACCESS KEY..." style="background: none; border: none; outline: none; color: var(--text); flex: 1; padding: 0.5rem;">
+                        </div>
+                        <button id="unlock-btn" class="launch-btn" style="width: 100%;">
+                            <i data-lucide="unlock"></i>
+                            <span>UNLOCK SYSTEM</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <!-- ── VIEW: COMMAND HUB ── -->
             <section class="view-content active" id="view-nexus">

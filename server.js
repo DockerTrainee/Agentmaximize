@@ -75,6 +75,18 @@ app.use((err, req, res, next) => {
     next();
 });
 
+// Admin Auth Middleware
+const authMiddleware = (req, res, next) => {
+    const adminPassword = process.env.ADMIN_PASSWORD || '1234';
+    const clientPassword = req.headers['x-admin-password'];
+    
+    if (clientPassword === adminPassword) {
+        next();
+    } else {
+        res.status(401).json({ success: false, error: 'Unauthorized: Invalid Admin Password' });
+    }
+};
+
 app.use(express.static(__dirname));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
@@ -354,7 +366,7 @@ app.get('/api/agents', async (req, res) => {
     }
 });
 
-app.delete('/api/agents/:id', async (req, res) => {
+app.delete('/api/agents/:id', authMiddleware, async (req, res) => {
     try {
         const db = await fs.readJson(AGENTS_DB_PATH);
         const agent = db.agents.find(a => a.id === req.params.id);
@@ -369,7 +381,7 @@ app.delete('/api/agents/:id', async (req, res) => {
     }
 });
 
-app.post('/api/self-heal', async (req, res) => {
+app.post('/api/self-heal', authMiddleware, async (req, res) => {
     const { jobId, error, code } = req.body;
     if (!jobId || !error) return res.status(400).json({ error: 'Missing jobId or error context' });
     
@@ -406,7 +418,7 @@ async function saveAgentToRegistry(agentData) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ORCHESTRATION API — Returns job ID immediately (non-blocking)
 // ─────────────────────────────────────────────────────────────────────────────
-app.post('/orchestrate', async (req, res) => {
+app.post('/orchestrate', authMiddleware, async (req, res) => {
     const { goal } = req.body;
     if (!process.env.GEMINI_API_KEY) {
         return res.status(500).json({ success: false, error: 'MISSING GEMINI_API_KEY in .env' });
@@ -670,6 +682,7 @@ OUTPUT: Raw CSS ONLY.
             <h2 style="color: var(--error); margin-bottom: 10px;">Neural Instability Detected</h2>
             <p style="color: var(--text-muted); margin-bottom: 20px;">This agent has encountered a runtime error. The Aon Factory can attempt an autonomous repair.</p>
             <div id="error-details" style="font-family: monospace; font-size: 12px; background: #000; padding: 10px; border-radius: 8px; color: #ff9d9d; text-align: left; margin-bottom: 20px; max-height: 150px; overflow: auto;"></div>
+            <input type="password" id="repair-pass" placeholder="Admin Access Key" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: #000; color: white; margin-bottom: 10px; outline: none;">
             <button id="repair-btn" class="heal-btn">Execute Self-Repair</button>
         </div>
     </div>
@@ -680,6 +693,7 @@ OUTPUT: Raw CSS ONLY.
     (async () => {
         const JOB_ID = "${jobId}";
         const repairBtn = document.getElementById('repair-btn');
+        const repairPass = document.getElementById('repair-pass');
         const overlay = document.getElementById('aon-self-heal-overlay');
         const errorView = document.getElementById('error-details');
 
@@ -699,12 +713,18 @@ OUTPUT: Raw CSS ONLY.
         }
 
         repairBtn.onclick = async () => {
+            const pass = repairPass.value;
+            if (!pass) { alert("Admin password required for self-repair."); return; }
+            
             repairBtn.innerText = "Repairing Neural Pathways...";
             repairBtn.disabled = true;
             try {
                 const res = await fetch('/api/self-heal', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-password': pass
+                    },
                     body: JSON.stringify({
                         jobId: JOB_ID,
                         error: { message: errorView.innerText },
