@@ -3,6 +3,29 @@
  * Patterns: Claude Code agentic loop, Anthropic pipeline viz, OpenHands event model
  */
 document.addEventListener('DOMContentLoaded', () => {
+    // ═══════════════════════════════════════════════════════════════
+    // GLOBAL SYSTEM ERROR HANDLERS
+    // ═══════════════════════════════════════════════════════════════
+    window.onerror = function(msg, url, line, col, error) {
+        handleSystemCrash({ message: msg, stack: error?.stack, line, col, source: url });
+        return false;
+    };
+
+    window.onunhandledrejection = function(event) {
+        handleSystemCrash({ message: event.reason?.message || 'Unhandled Rejection', stack: event.reason?.stack });
+    };
+
+    function handleSystemCrash(err) {
+        console.error('[NEXUS CRITICAL FAILURE]:', err);
+        const overlay = document.getElementById('system-crash-overlay');
+        const details = document.getElementById('system-error-details');
+        if (overlay && details) {
+            overlay.classList.remove('hidden');
+            details.innerText = `ERROR: ${err.message}\nLOCATION: ${err.source || 'internal'} (L${err.line}:${err.col})\n\nSTACK:\n${err.stack || 'No stack trace'}`;
+        }
+    }
+
+    // UI Elements
     lucide.createIcons();
 
     // ═══════════════════════════════════════════════════════════════
@@ -33,6 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeAdminBtn    = document.getElementById('close-admin-overlay');
     const lockStatusText   = document.getElementById('lock-status-text');
     let adminPassword      = localStorage.getItem('nexus_admin_pass') || '';
+
+    // Dashboard Repair Elements
+    const systemCrashOverlay = document.getElementById('system-crash-overlay');
+    const repairSystemBtn    = document.getElementById('repair-system-btn');
+    const repairAdminPass    = document.getElementById('repair-admin-pass');
+    const hideCrashBtn       = document.getElementById('hide-crash-overlay');
 
     const navItems = document.querySelectorAll('.nav-item');
 
@@ -536,6 +565,63 @@ document.addEventListener('DOMContentLoaded', () => {
     adminPassInput.addEventListener('keypress', e => {
         if (e.key === 'Enter') unlockBtn.click();
     });
+
+    // ═══════════════════════════════════════════════════════════════
+    // DASHBOARD SELF-HEALING LOGIC
+    // ═══════════════════════════════════════════════════════════════
+    async function repairDashboard() {
+        const pass = repairAdminPass.value.trim() || adminPassword;
+        if (!pass) {
+            alert("Admin Access Key is required for core system repair.");
+            repairAdminPass.focus();
+            return;
+        }
+
+        const details = document.getElementById('system-error-details').innerText;
+        
+        repairSystemBtn.disabled = true;
+        repairSystemBtn.innerHTML = '<i class="pulsing"></i> STABILIZING CORE...';
+        
+        try {
+            const res = await fetch('/api/self-heal-dashboard', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-admin-password': pass
+                },
+                body: JSON.stringify({
+                    error: { message: details }
+                })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                repairSystemBtn.innerHTML = '<i data-lucide="check"></i> CORE REPAIRED. RELOADING...';
+                addLog(`[SYSTEM] Central Nexus patched successfully. Target: ${data.target}`, 'success');
+                setTimeout(() => location.reload(), 3000);
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (e) {
+            repairSystemBtn.disabled = false;
+            repairSystemBtn.innerHTML = '<i data-lucide="wrench"></i> RETRY REPAIR';
+            alert(`REPAIR FAILED: ${e.message}`);
+        }
+        lucide.createIcons();
+    }
+
+    repairSystemBtn.addEventListener('click', repairDashboard);
+    hideCrashBtn.addEventListener('click', () => systemCrashOverlay.classList.add('hidden'));
+
+    const simulateCrashLink = document.getElementById('simulate-crash-link');
+    if (simulateCrashLink) {
+        simulateCrashLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log("[TEST] Triggering simulated crash...");
+            // Force a reference error to test system healing
+            triggerSystemNeuralFailure(); 
+        });
+    }
 
     // ═══════════════════════════════════════════════════════════════
     // INIT

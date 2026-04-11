@@ -329,6 +329,11 @@
                         <div class="diag-value cyan">GEMINI FLASH</div>
                         <div class="diag-sub">4-model cascade fallback</div>
                     </div>
+                    <div class="nexus-card glass diag-card" style="border: 1px dashed rgba(255,0,0,0.3); opacity: 0.6;">
+                        <div class="diag-label">RECOVERY LAB</div>
+                        <a href="#" id="simulate-crash-link" style="color: #ff5555; text-decoration: none; font-weight: 800; font-size: 0.8rem;">[TRIGGER SIMULATED CRASH]</a>
+                        <div class="diag-sub">Click to verify Self-Healing AI.</div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -372,6 +377,37 @@
                         <i data-lucide="x-circle"></i> CLOSE
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════ GLOBAL SYSTEM CRASH OVERLAY ══════════════════ -->
+    <div id="system-crash-overlay" class="nexus-overlay hidden" style="background: rgba(15, 0, 0, 0.95);">
+        <div class="overlay-panel glass-heavy" style="border-color: #ff3333; box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);">
+            <div class="overlay-header">
+                <div>
+                    <h2 style="color: #ff3333; font-weight: 900;"><i data-lucide="alert-triangle"></i> CENTRAL NEXUS INSTABILITY</h2>
+                    <p class="overlay-sub">A critical runtime failure has been detected in the Central Orchestrator.</p>
+                </div>
+            </div>
+            <div class="overlay-body">
+                <div id="system-error-details" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; color: #ff9d9d; margin-bottom: 20px; max-height: 200px; overflow: auto; border: 1px solid rgba(255,0,0,0.2);"></div>
+                
+                <div class="admin-auth-required glass" style="padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                    <p style="font-size: 0.75rem; margin-bottom: 0.8rem; color: var(--text-muted);">ADMIN AUTHENTICATION REQUIRED FOR SYSTEM PATCH</p>
+                    <div class="mission-input-group glass">
+                        <div class="mission-icon"><i data-lucide="shield-check"></i></div>
+                        <input type="password" id="repair-admin-pass" placeholder="ENTER ACCESS KEY..." style="background: none; border: none; outline: none; color: var(--text); flex: 1; padding: 0.5rem;">
+                    </div>
+                </div>
+
+                <div class="overlay-actions">
+                    <button id="repair-system-btn" class="launch-btn" style="background: linear-gradient(135deg, #ff4444, #9d50ff); width: 100%;">
+                        <i data-lucide="wrench"></i> INITIATE EMERGENCY REPAIR
+                    </button>
+                    <button class="action-btn secondary-btn" id="hide-crash-overlay" style="margin-top: 10px; width: 100%;">IGNORE (Risky)</button>
+                </div>
+                <p style="text-align: center; font-size: 0.65rem; color: #ff6666; margin-top: 1rem; opacity: 0.7;">WARNING: This action will rewrite core system files using Neural Synthesis.</p>
             </div>
         </div>
     </div>

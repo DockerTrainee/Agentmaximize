@@ -271,6 +271,56 @@ OUTPUT: Full HTML file content ONLY. No markdown. No explanation.
 }
 
 /**
+ * DASHBOARD REPAIR — The doctor that heals itself.
+ * Analyzes errors in the main orchestrator files and provides patches.
+ */
+async function runDashboardRepair(errorData) {
+    console.log('[DASHBOARD-HEAL] Reading system source files...');
+    
+    // Read the primary dashboard files
+    const indexHTML = await fs.readFile(path.join(__dirname, 'index.html'), 'utf8');
+    const scriptJS = await fs.readFile(path.join(__dirname, 'script.js'), 'utf8');
+    
+    const repairPrompt = `
+You are the "NEXUS SYSTEMS ARCHITECT". The Central Orchestration Dashboard has crashed.
+GOAL: Repair the critical system files to restore stability.
+
+ERROR DATA:
+${JSON.stringify(errorData, null, 2)}
+
+CURRENT INDEX.HTML (first 2000 chars):
+${indexHTML.substring(0, 2000)}
+
+CURRENT SCRIPT.JS (relevant snippet around error if available, otherwise first 3000 chars):
+${scriptJS.substring(0, 3000)}
+
+TASK:
+1. Identify which file is causing the error (index.html, script.js, or style.css).
+2. Provide the COMPLETELY FIXED version of ONLY that specific file.
+3. If it's a script error, focus on syntax, state management, or DOM selectors.
+
+OUTPUT FORMAT:
+Your response must be a valid JSON object:
+{
+  "file": "script.js", // or index.html, style.css
+  "content": "the entire fixed content of the file"
+}
+Only output the JSON. No markdown fences.
+`;
+
+    try {
+        const responseText = await callAI(repairPrompt, 'Plain Text', 'DASHBOARD', 'REPAIR-DASHBOARD');
+        // Clean up possible markdown fences if AI ignores instructions
+        const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(cleanJson);
+    } catch (e) {
+        console.error('[DASHBOARD-HEAL] Repair failed:', e.message);
+        throw e;
+    }
+}
+
+
+/**
  * REFINEMENT ENGINE — Optimizer Agent
  * Takes synthesized code and a QA critique to perform a 'Premium Polish' pass.
  */
@@ -863,6 +913,40 @@ app.get('/live-data/:type', async (req, res) => {
     } catch (e) {
         console.error('[LIVE DATA ERROR]:', e.message);
         res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/self-heal-dashboard', authMiddleware, async (req, res) => {
+    const { error } = req.body;
+    if (!error) return res.status(400).json({ error: 'Missing error context' });
+    
+    console.log(`[DASHBOARD-HEAL] Received critical system failure report: ${error.message}`);
+    
+    try {
+        const repairResult = await runDashboardRepair(error);
+        const { file, content } = repairResult;
+        
+        if (!['index.html', 'script.js', 'style.css', 'server.js'].includes(file)) {
+            throw new Error(`Invalid file target for repair: ${file}`);
+        }
+        
+        // Backup the original file
+        const filePath = path.join(__dirname, file);
+        await fs.copy(filePath, `${filePath}.bak`);
+        
+        // Write the fix
+        await fs.writeFile(filePath, content, 'utf8');
+        
+        console.log(`[DASHBOARD-HEAL] SUCCESSFULLY PATCHED ${file}. System stabilizing.`);
+        
+        res.json({ 
+            success: true, 
+            message: `System stabilized. Patched ${file}. Restarting link...`,
+            target: file 
+        });
+    } catch (e) {
+        console.error('[DASHBOARD-HEAL] Emergency repair failed:', e.message);
+        res.status(500).json({ success: false, error: e.message });
     }
 });
 
