@@ -501,16 +501,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // ADMIN SECURITY LOGIC
     // ═══════════════════════════════════════════════════════════════
     function updateLockUI() {
+        if (!adminLockBtn) return;
+        const icon = adminLockBtn.querySelector('[data-lucide]');
         if (adminPassword) {
-            adminLockBtn.querySelector('i').setAttribute('data-lucide', 'unlock');
+            if (icon) icon.setAttribute('data-lucide', 'unlock');
             lockStatusText.textContent = 'UNLOCKED';
             adminLockBtn.classList.add('unlocked');
         } else {
-            adminLockBtn.querySelector('i').setAttribute('data-lucide', 'lock');
+            if (icon) icon.setAttribute('data-lucide', 'lock');
             lockStatusText.textContent = 'LOCKED';
             adminLockBtn.classList.remove('unlocked');
         }
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     function showAdminPrompt() {
