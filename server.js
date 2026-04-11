@@ -127,12 +127,14 @@ const GITHUB_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions'
 
 const MODEL_CASCADE = [
     "models/gemini-2.0-flash",
+    "models/gemini-1.5-flash-8b",
     "models/gemini-flash-latest",
     "github/gpt-4o",
     "github/meta-llama-3.1-70b-instruct",
-    "models/gemini-1.5-flash-latest",
     "github/gpt-4o-mini"
 ];
+
+const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
 /**
  * GitHub Models API Caller (OpenAI Compatible)
@@ -172,8 +174,9 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
     for (const modelName of MODEL_CASCADE) {
         let attempts = 0;
         const isGithub = modelName.startsWith('github/');
+        const maxAttempts = 3;
         
-        while (attempts < 2) {
+        while (attempts < maxAttempts) {
             try {
                 let text = '';
                 if (isGithub) {
@@ -200,8 +203,9 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
                 const isRateLimit = err.message.includes('429') || err.message.includes('quota') || err.message.includes('rate limit');
                 
                 if (isRateLimit) {
-                    if (jobId) streamLog(jobId, `⚠️ ${modelName} rate limited, retrying...`, 'error');
-                    await new Promise(r => setTimeout(r, 2000));
+                    const backoff = (attempts + 1) * 3000;
+                    if (jobId) streamLog(jobId, `⚠️ ${modelName} rate limited, cooling down ${backoff/1000}s...`, 'error');
+                    await wait(backoff);
                     attempts++;
                 } else {
                     if (jobId) streamLog(jobId, `❌ ${modelName} failed: ${err.message.substring(0, 50)}...`, 'error');
@@ -593,10 +597,9 @@ Define the data architecture. Respond with ONLY a valid JSON object:
 Endpoints available: /live-data/crypto, /live-data/news, /search (POST with { query }).
     `;
 
-    const [structureHTML, dataArchText] = await Promise.all([
-        callAI(htmlAgentPrompt, 'HTML', jobId, 'HTML-AGENT'),
-        callAI(mockDataPrompt, 'JSON', jobId, 'DATA-AGENT')
-    ]);
+    const structureHTML = await callAI(htmlAgentPrompt, 'HTML', jobId, 'HTML-AGENT');
+    await wait(800);
+    const dataArchText = await callAI(mockDataPrompt, 'JSON', jobId, 'DATA-AGENT');
 
     const cleanHTML = stripDocTags(structureHTML);
     let dataArch = {};
@@ -655,10 +658,9 @@ REQUIREMENTS:
 OUTPUT: Raw CSS ONLY.
 `;
 
-    const [coreJS, coreCSS] = await Promise.all([
-        callAI(jsAgentPrompt, 'JS', jobId, 'JS-AGENT'),
-        callAI(cssAgentPrompt, 'CSS', jobId, 'CSS-AGENT')
-    ]);
+    const coreJS = await callAI(jsAgentPrompt, 'JS', jobId, 'JS-AGENT');
+    await wait(1200);
+    const coreCSS = await callAI(cssAgentPrompt, 'CSS', jobId, 'CSS-AGENT');
 
     streamLog(jobId, '✅ JS AGENT: Logic hydration complete.', 'success');
     streamLog(jobId, '✅ CSS AGENT: Design system applied.', 'success');
