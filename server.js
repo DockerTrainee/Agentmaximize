@@ -702,7 +702,7 @@ OUTPUT: Raw CSS ONLY.
             repairBtn.innerText = "Repairing Neural Pathways...";
             repairBtn.disabled = true;
             try {
-                const res = await fetch(`${window.location.origin}/api/self-heal`, {
+                const res = await fetch('/api/self-heal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
