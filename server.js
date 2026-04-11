@@ -858,14 +858,20 @@ Respond with ONLY valid JSON:
     const filePath = path.join(BUILDS_DIR, fileName);
     await fs.writeFile(filePath, finalApp.trim(), 'utf8');
 
+    const moduleCount = blueprint.modules?.length || 0;
+    const complexity = moduleCount > 5 ? 'complex' : (moduleCount > 2 ? 'medium' : 'simple');
+
     const agentRecord = {
         id: jobId,
         projectName: blueprint.projectName,
         tagline: blueprint.tagline || goal,
         goal,
         type: route.type,
+        complexity,
+        agentsUsed: 5, // Orchestrator, HTML, Data, JS, CSS
         filePath: `builds/${fileName}`,
         qaScore: qaResult.score,
+        modules: blueprint.modules, // Storing modules for detailed view
         createdAt: new Date().toISOString(),
         primaryColor: blueprint.designSystem.accentColor,
         secondaryColor: blueprint.designSystem.complementary
