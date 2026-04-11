@@ -613,16 +613,6 @@ document.addEventListener('DOMContentLoaded', () => {
     repairSystemBtn.addEventListener('click', repairDashboard);
     hideCrashBtn.addEventListener('click', () => systemCrashOverlay.classList.add('hidden'));
 
-    const simulateCrashLink = document.getElementById('simulate-crash-link');
-    if (simulateCrashLink) {
-        simulateCrashLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log("[TEST] Triggering simulated crash...");
-            // Force a reference error to test system healing
-            triggerSystemNeuralFailure(); 
-        });
-    }
-
     // ═══════════════════════════════════════════════════════════════
     // INIT
     // ═══════════════════════════════════════════════════════════════

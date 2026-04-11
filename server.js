@@ -288,22 +288,22 @@ GOAL: Repair the critical system files to restore stability.
 ERROR DATA:
 ${JSON.stringify(errorData, null, 2)}
 
-CURRENT INDEX.HTML (first 2000 chars):
-${indexHTML.substring(0, 2000)}
+CURRENT INDEX.HTML (Complete):
+${indexHTML}
 
-CURRENT SCRIPT.JS (relevant snippet around error if available, otherwise first 3000 chars):
-${scriptJS.substring(0, 3000)}
+CURRENT SCRIPT.JS (Complete):
+${scriptJS}
 
 TASK:
 1. Identify which file is causing the error (index.html, script.js, or style.css).
 2. Provide the COMPLETELY FIXED version of ONLY that specific file.
-3. If it's a script error, focus on syntax, state management, or DOM selectors.
+3. You MUST return the ENTIRE file content, not just the fixed part. Do not truncate!
 
 OUTPUT FORMAT:
 Your response must be a valid JSON object:
 {
   "file": "script.js", // or index.html, style.css
-  "content": "the entire fixed content of the file"
+  "content": "the ENTIRE fixed content of the file"
 }
 Only output the JSON. No markdown fences.
 `;
