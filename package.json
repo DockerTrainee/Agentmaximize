@@ -1,0 +1,22 @@
+{
+  "name": "aon-ai-meta-factory",
+  "version": "1.0.0",
+  "description": "Meta-Agent Factory powered by Google Gemini",
+  "main": "server.js",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "axios": "^1.14.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "fs-extra": "^11.2.0",
+    "socket.io": "^4.8.3"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

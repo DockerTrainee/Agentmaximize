@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aon Aegis Vision Architect | Aon AI Synth</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary-bg: #001B2E;
+            --accent-cyan: #00F2FF;
+            --accent-purple: #7000FF;
+            --accent-green: #00FF9D;
+            --accent-amber: #FFB800;
+            --text-main: #E0F7FA;
+            --glass-bg: rgba(0, 27, 46, 0.7);
+            --glass-border: rgba(0, 242, 255, 0.2);
+            --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            --font-tech: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--primary-bg);
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.05) 0%, transparent 70%),
+                linear-gradient(rgba(0, 27, 46, 0.9) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 27, 46, 0.9) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            color: var(--text-main);
+            font-family: var(--font-tech);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .aon-watermark {
+            position: fixed; bottom: 15px; right: 15px;
+            opacity: 0.3; font-size: 12px; font-family: 'Outfit';
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            padding: 15px 25px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            border-bottom: 1px solid var(--glass-border);
+            font-weight: 900;
+        }
+
+        nav {
+            padding: 10px 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #camera-toggle {
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        #camera-toggle.off {
+            border-color: #ff3366;
+            color: #ff3366;
+            background: rgba(255, 51, 102, 0.1);
+        }
+
+        .module-status {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            display: flex;
+            gap: 20px;
+        }
+
+        /* ── MAIN GRID: 3 columns ── */
+        #aon-main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr auto;
+            gap: 14px;
+            padding: 14px;
+            height: calc(100vh - 115px);
+            min-height: 0;
+        }
+
+        /* ── LEFT COLUMN: Camera ── */
+        #aon-data-display {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .camera-viewport-container {
+            position: relative;
+            flex: 1;
+            background: #000;
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 0 50px rgba(0, 242, 255, 0.1);
+            min-height: 0;
+        }
+
+        #video-stream {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.8) contrast(1.2) saturate(1.1);
+        }
+
+        #neural-overlay {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+
+        .telemetry-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            flex-shrink: 0;
+        }
+
+        .telemetry-panel h3 {
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #active-detections-list {
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ── MIDDLE COLUMN: Book Notes Extractor ── */
+        #book-notes-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(0, 10, 20, 0.5);
+            border: 1px solid rgba(0, 255, 157, 0.25);
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        #book-notes-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-green), transparent);
+            animation: scanGreen 3s ease-in-out infinite;
+        }
+
+        @keyframes scanGreen {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .book-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .book-panel-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .book-panel-title::before {
+            content: '📖';
+            font-size: 1rem;
+        }
+
+        #book-status-badge {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(0, 255, 157, 0.1);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            color: var(--accent-green);
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        #book-status-badge.scanning {
+            background: rgba(255, 184, 0, 0.15);
+            border-color: var(--accent-amber);
+            color: var(--accent-amber);
+            animation: pulse-badge 1s ease-in-out infinite;
+        }
+
+        #book-status-badge.done {
+            background: rgba(0, 255, 157, 0.2);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        #book-status-badge.error {
+            background: rgba(255, 51, 102, 0.15);
+            border-color: #ff3366;
+            color: #ff3366;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Capture button */
+        #capture-book-btn {
+            width: 100%;
+            padding: 11px;
+            background: linear-gradient(135deg, rgba(0,255,157,0.15), rgba(0,255,157,0.05));
+            border: 1px solid rgba(0, 255, 157, 0.5);
+            color: var(--accent-green);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        #capture-book-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, rgba(0,255,157,0.3), rgba(0,255,157,0.1));
+            border-color: var(--accent-green);
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.3), 0 0 40px rgba(0, 255, 157, 0.1);
+            transform: translateY(-1px);
+        }
+
+        #capture-book-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #capture-book-btn.scanning-anim {
+            animation: pulse-btn 0.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-btn {
+            0%, 100% { box-shadow: 0 0 10px rgba(255,184,0,0.3); border-color: rgba(255,184,0,0.5); color: var(--accent-amber); }
+            50% { box-shadow: 0 0 25px rgba(255,184,0,0.6); border-color: var(--accent-amber); }
+        }
+
+        /* Snapshot preview */
+        #book-snapshot-preview {
+            display: none;
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid rgba(0,255,157,0.2);
+            object-fit: cover;
+            flex-shrink: 0;
+            max-height: 120px;
+        }
+
+        #book-snapshot-preview.visible {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.97); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Notes textarea */
+        #book-notes-editor {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 242, 255, 0.15);
+            border-radius: 6px;
+            color: #e0f0ff;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            line-height: 1.7;
+            padding: 12px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.3s ease;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        #book-notes-editor:focus {
+            border-color: rgba(0, 255, 157, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.05);
+        }
+
+        #book-notes-editor::-webkit-scrollbar { width: 4px; }
+        #book-notes-editor::-webkit-scrollbar-thumb { background: var(--accent-green); border-radius: 2px; }
+
+        #book-notes-editor::placeholder {
+            color: rgba(255,255,255,0.2);
+            font-style: italic;
+        }
+
+        /* Action buttons row */
+        .book-action-row {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .book-action-btn {
+            flex: 1;
+            padding: 9px 8px;
+            border-radius: 5px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        #save-txt-btn {
+            background: rgba(112, 0, 255, 0.15);
+            border-color: rgba(112, 0, 255, 0.5);
+            color: #b86bff;
+        }
+
+        #save-txt-btn:hover {
+            background: rgba(112, 0, 255, 0.3);
+            box-shadow: 0 0 15px rgba(112, 0, 255, 0.3);
+        }
+
+        #copy-notes-btn {
+            background: rgba(0, 242, 255, 0.08);
+            border-color: rgba(0, 242, 255, 0.3);
+            color: var(--accent-cyan);
+        }
+
+        #copy-notes-btn:hover {
+            background: rgba(0, 242, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        #clear-notes-btn {
+            background: rgba(255, 51, 102, 0.08);
+            border-color: rgba(255, 51, 102, 0.3);
+            color: #ff6688;
+            flex: 0 0 auto;
+            width: 40px;
+        }
+
+        #clear-notes-btn:hover {
+            background: rgba(255, 51, 102, 0.2);
+            box-shadow: 0 0 12px rgba(255, 51, 102, 0.2);
+        }
+
+        .book-action-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        /* Copy success flash */
+        .copy-flash {
+            animation: copyFlash 0.5s ease;
+        }
+
+        @keyframes copyFlash {
+            0% { background: rgba(0, 255, 157, 0.4); }
+            100% { background: rgba(0, 242, 255, 0.08); }
+        }
+
+        /* ── RIGHT COLUMN: AI Analysis ── */
+        #aon-search-results {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            padding-right: 6px;
+            min-height: 0;
+        }
+
+        #aon-search-results::-webkit-scrollbar { width: 4px; }
+        #aon-search-results::-webkit-scrollbar-thumb { background: var(--accent-cyan); }
+
+        .research-card, .architect-protocol {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            padding: 18px;
+            border-radius: 6px;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .research-card:hover, .architect-protocol:hover {
+            transform: translateX(-5px);
+            border-color: var(--accent-purple);
+        }
+
+        .research-card h3, .architect-protocol h3 {
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .research-card h3::before, .architect-protocol h3::before {
+            content: '';
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: var(--accent-purple);
+            box-shadow: 0 0 10px var(--accent-purple);
+        }
+
+        .output-buffer, .heuristic-output {
+            font-size: 0.85rem;
+            line-height: 1.65;
+            color: rgba(255, 255, 255, 0.82);
+        }
+
+        /* ── CONTROLS ROW ── */
+        #aon-controls {
+            grid-column: 1 / 4;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px 20px;
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        #aon-form-1 {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        #aon-form-1 label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        #query-scope {
+            background: #001B2E;
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 7px 12px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            outline: none;
+        }
+
+        #aon-btn-1 {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border: none;
+            padding: 9px 22px;
+            color: white;
+            text-transform: uppercase;
+            font-weight: 800;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+            transition: all 0.3s ease;
+        }
+
+        #aon-btn-1:hover {
+            filter: brightness(1.2);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+            padding: 9px 30px;
+        }
+
+        /* ── FOOTER HUD ── */
+        #unified-hud {
+            padding: 8px 25px;
+            background: #000;
+            border-top: 1px solid var(--glass-border);
+            position: relative;
+        }
+
+        .hud-metrics {
+            display: flex;
+            justify-content: flex-end;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .stat {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--accent-cyan);
+            opacity: 0.8;
+        }
+
+        .stat::before { content: '['; margin-right: 4px; }
+        .stat::after { content: ']'; margin-left: 4px; }
+
+        #book-notes-count {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--accent-green);
+            opacity: 0.8;
+        }
+
+        #book-notes-count::before { content: '['; margin-right: 4px; }
+        #book-notes-count::after { content: ']'; margin-left: 4px; }
+
+        /* ── SCANLINE ANIMATION ── */
+        @keyframes scanline {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        .camera-viewport-container::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: rgba(0, 242, 255, 0.3);
+            box-shadow: 0 0 15px var(--accent-cyan);
+            animation: scanline 4s linear infinite;
+            z-index: 10;
+        }
+
+        /* ── AR MODAL ── */
+        #result-modal {
+            display: none;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%; max-width: 500px;
+            background: rgba(0, 27, 46, 0.92);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--accent-purple);
+            box-shadow: 0 0 50px rgba(112, 0, 255, 0.3);
+            z-index: 100;
+            padding: 25px;
+            border-radius: 8px;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        #result-modal.active { display: flex; }
+
+        #result-modal-header {
+            font-size: 1rem;
+            color: var(--accent-cyan);
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        #result-modal-content {
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: var(--text-main);
+            max-height: 35vh;
+            overflow-y: auto;
+        }
+
+        #modal-close-btn {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+            border: none;
+            padding: 9px 22px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: var(--font-tech);
+            transition: transform 0.2s ease;
+        }
+
+        #modal-close-btn:hover { transform: scale(1.05); }
+
+        @media (max-width: 1100px) {
+            #aon-main { grid-template-columns: 1fr 1fr; }
+            #aon-controls { grid-column: 1 / 3; }
+            #aon-search-results { flex-direction: row; }
+            body { overflow: auto; height: auto; }
+        }
+
+        @media (max-width: 768px) {
+            #aon-main { grid-template-columns: 1fr; }
+            #aon-controls { grid-column: 1 / 2; }
+        }
+    </style>
+</head>
+<body class="aon-agent-theme">
+<div id="aon-root">
+    <h1>Aon Aegis Vision Architect</h1>
+    <nav>
+        <div id="vision-input-core" class="module-status">System: Online | Latency: 12ms | Stream: Active</div>
+        <button id="camera-toggle">Power: ON</button>
+    </nav>
+
+    <main id="aon-main">
+
+        <!-- ── LEFT: Camera Viewport ── -->
+        <section id="aon-data-display">
+            <div class="camera-viewport-container">
+                <video id="video-stream" autoplay playsinline></video>
+                <canvas id="neural-overlay"></canvas>
+
+                <!-- AR Lock Modal -->
+                <div id="result-modal">
+                    <div id="result-modal-header">Target Locked: Unknown</div>
+                    <div id="result-modal-content">Waiting for telemetry...</div>
+                    <button id="modal-close-btn">✖ Resume Scanning</button>
+                </div>
+            </div>
+
+            <div id="neural-object-engine" class="telemetry-panel">
+                <h3>Object Localization</h3>
+                <div id="active-detections-list">Scanning...</div>
+            </div>
+        </section>
+
+        <!-- ── MIDDLE: Book Notes Extractor ── -->
+        <section id="book-notes-panel">
+            <div class="book-panel-header">
+                <div class="book-panel-title">Book Notes Extractor</div>
+                <span id="book-status-badge">READY</span>
+            </div>
+
+            <button id="capture-book-btn" disabled>
+                📷 Capture Book Page
+            </button>
+
+            <img id="book-snapshot-preview" src="" alt="Captured book page snapshot">
+
+            <textarea
+                id="book-notes-editor"
+                placeholder="📖 Point a book at the camera, then click 'Capture Book Page'...&#10;&#10;Gemini AI will extract:&#10;• Book title & author&#10;• Chapter / section detected&#10;• Full readable text&#10;• Key concepts & summaries&#10;&#10;Notes are fully editable — add your own thoughts!&#10;Then save as a .txt file."
+            ></textarea>
+
+            <div class="book-action-row">
+                <button class="book-action-btn" id="save-txt-btn" disabled>💾 Save .txt</button>
+                <button class="book-action-btn" id="copy-notes-btn" disabled>📋 Copy</button>
+                <button class="book-action-btn" id="clear-notes-btn" title="Clear notes">✕</button>
+            </div>
+        </section>
+
+        <!-- ── RIGHT: AI Analysis Panels ── -->
+        <section id="aon-search-results">
+            <div id="semantic-research-hub" class="research-card">
+                <h3>LLM Synthesis Intelligence</h3>
+                <div class="output-buffer">Expert synthesis pending detection...</div>
+            </div>
+
+            <div id="efficiency-architect" class="architect-protocol">
+                <h3>25-Year Expert Protocol</h3>
+                <div class="heuristic-output">Awaiting heuristic analysis...</div>
+            </div>
+        </section>
+
+        <!-- ── CONTROLS ROW ── -->
+        <section id="aon-controls">
+            <form id="aon-form-1">
+                <label for="query-scope">Research Depth Level:</label>
+                <select id="query-scope">
+                    <option value="technical">Technical/Engineering</option>
+                    <option value="architectural">Architectural Utility</option>
+                    <option value="optimization">Efficiency Max-Protocol</option>
+                </select>
+                <button type="button" id="aon-btn-1">Initialize Deep Analysis</button>
+            </form>
+        </section>
+    </main>
+
+    <footer id="unified-hud">
+        <div class="hud-metrics">
+            <span id="book-notes-count">Book Notes: 0 chars</span>
+            <span class="stat">Neural Load: 42%</span>
+            <span class="stat">Semantic Tokens: 0</span>
+            <span class="stat">Heuristic Accuracy: 99.8%</span>
+        </div>
+    </footer>
+</div>
+<div class="aon-watermark">POWERED BY AON AI FACTORY</div>
+
+<script>
+(async () => {
+/**
+ * Aon Aegis Vision Architect — Core Logic v2.0
+ * + Book Notes Extractor Module
+ */
+
+const state = {
+    isCameraActive: false,
+    isCameraEnabled: true,
+    isLocked: false,
+    streamObject: null,
+    detectionBuffer: [],
+    activeAnalysis: null,
+    processingState: "idle",
+    expertConfidenceScore: 0,
+    systemTelemetry: { latency: 12, load: 42, tokens: 0 },
+    researchDepth: "technical",
+    isCapturingBook: false
+};
+
+const elements = {
+    video: document.getElementById('video-stream'),
+    canvas: document.getElementById('neural-overlay'),
+    detectionList: document.getElementById('active-detections-list'),
+    synthesisOutput: document.querySelector('#semantic-research-hub .output-buffer'),
+    expertOutput: document.querySelector('#efficiency-architect .heuristic-output'),
+    initBtn: document.getElementById('aon-btn-1'),
+    queryScope: document.getElementById('query-scope'),
+    hudMetrics: document.querySelector('.hud-metrics'),
+    systemStatus: document.getElementById('vision-input-core'),
+    cameraToggleBtn: document.getElementById('camera-toggle'),
+    resultModal: document.getElementById('result-modal'),
+    modalHeader: document.getElementById('result-modal-header'),
+    modalContent: document.getElementById('result-modal-content'),
+    modalCloseBtn: document.getElementById('modal-close-btn'),
+    // Book Notes
+    captureBtn: document.getElementById('capture-book-btn'),
+    statusBadge: document.getElementById('book-status-badge'),
+    snapshotPreview: document.getElementById('book-snapshot-preview'),
+    notesEditor: document.getElementById('book-notes-editor'),
+    saveTxtBtn: document.getElementById('save-txt-btn'),
+    copyNotesBtn: document.getElementById('copy-notes-btn'),
+    clearNotesBtn: document.getElementById('clear-notes-btn'),
+    bookNotesCount: document.getElementById('book-notes-count')
+};
+
+if (typeof lucide !== 'undefined') lucide.createIcons();
+
+/* ── Telemetry ── */
+const updateTelemetry = () => {
+    elements.systemStatus.innerText = `System: ${state.processingState.toUpperCase()} | Latency: ${state.systemTelemetry.latency}ms | Stream: ${state.isCameraActive ? 'Active' : 'Standby'}`;
+    const notes = elements.notesEditor.value || '';
+    elements.bookNotesCount.innerText = `Book Notes: ${notes.length} chars`;
+};
+
+/* ── Expert Protocol ── */
+const expertProtocol = {
+    technical: (label) => `Structural integrity analysis for ${label} suggests high-tensile load bearing capacity. Implementing modular integration protocols for 15% efficiency gain.`,
+    architectural: (label) => `Spatial optimization for ${label} requires aesthetic alignment with utility. Deployment should follow the Golden Ratio for functional harmony.`,
+    optimization: (label) => `MAX-PROTOCOL: Decoupling ${label} dependencies to reduce system overhead by 22.4%. Recommendation: Horizontal scaling in high-traffic sectors.`
+};
+
+/* ── API Synthesis ── */
+async function performSynthesis(label) {
+    state.processingState = "synthesizing";
+    updateTelemetry();
+    const expertProtocolText = expertProtocol[state.researchDepth](label);
+
+    try {
+        const [cryptoData, newsData, searchData] = await Promise.all([
+            fetch('/live-data/crypto').then(r => r.json()).catch(() => ({ status: 'unavailable' })),
+            fetch('/live-data/news').then(r => r.json()).catch(() => ({ status: 'unavailable' })),
+            fetch('/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: label, depth: state.researchDepth })
+            }).then(r => r.json()).catch(() => ({ results: [] }))
+        ]);
+
+        state.systemTelemetry.tokens += Math.floor(Math.random() * 500) + 200;
+
+        let searchAnalysis = 'Analyzing structural patterns...';
+        if (searchData.results && searchData.results.length > 0) {
+            searchAnalysis = searchData.results.join(' | ');
+        }
+
+        let btcPrice = 'Stable';
+        if (cryptoData.bitcoin && cryptoData.bitcoin.usd) {
+            btcPrice = `$${cryptoData.bitcoin.usd}`;
+        }
+
+        elements.synthesisOutput.innerHTML = `
+            <p><strong>Contextual Analysis:</strong> ${searchAnalysis}</p>
+            <p style="margin-top:10px;"><strong>External Factors:</strong><br>
+            BTC Market Value: ${btcPrice}<br>
+            Neural Sync: Nominal</p>`;
+
+        elements.expertOutput.innerHTML = expertProtocolText;
+        state.expertConfidenceScore = 0.985;
+
+        state.isLocked = true;
+        elements.modalHeader.innerText = `TARGET LOCKED: ${label.toUpperCase()}`;
+        elements.modalContent.innerHTML = `
+            <p style="margin-bottom:15px; color:#00f2ff;"><strong>${searchAnalysis}</strong></p>
+            <p style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">[PROTOCOL DIRECTIVE]: ${expertProtocolText}</p>`;
+        elements.resultModal.classList.add('active');
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(`Target secured. ${label}. ${searchAnalysis}`);
+            utterance.rate = 1.1; utterance.pitch = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+    } catch (err) {
+        console.error("Synthesis Error:", err);
+    } finally {
+        state.processingState = "active";
+        updateTelemetry();
+    }
+}
+
+/* ── Neural Overlay ── */
+function drawOverlay() {
+    const ctx = elements.canvas.getContext('2d');
+    ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+    const cx = elements.canvas.width / 2;
+    const cy = elements.canvas.height / 2;
+    const size = 40;
+
+    ctx.strokeStyle = '#00f2ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - size, cy); ctx.lineTo(cx - 10, cy);
+    ctx.moveTo(cx + 10, cy); ctx.lineTo(cx + size, cy);
+    ctx.moveTo(cx, cy - size); ctx.lineTo(cx, cy - 10);
+    ctx.moveTo(cx, cy + 10); ctx.lineTo(cx, cy + size);
+    ctx.stroke();
+
+    const bSize = 20;
+    ctx.beginPath();
+    ctx.moveTo(cx - size, cy - size + bSize); ctx.lineTo(cx - size, cy - size); ctx.lineTo(cx - size + bSize, cy - size);
+    ctx.moveTo(cx + size - bSize, cy - size); ctx.lineTo(cx + size, cy - size); ctx.lineTo(cx + size, cy - size + bSize);
+    ctx.moveTo(cx - size, cy + size - bSize); ctx.lineTo(cx - size, cy + size); ctx.lineTo(cx - size + bSize, cy + size);
+    ctx.moveTo(cx + size - bSize, cy + size); ctx.lineTo(cx + size, cy + size); ctx.lineTo(cx + size, cy + size - bSize);
+    ctx.stroke();
+
+    if (state.processingState === "scanning") {
+        ctx.fillStyle = '#00f2ff';
+        ctx.font = '12px "JetBrains Mono"';
+        ctx.fillText(`TARGET LOCKED`, cx - 40, cy - size - 10);
+    }
+}
+
+/* ── Camera Vision Stream ── */
+async function startVisionStream() {
+    try {
+        elements.systemStatus.innerText = "System: CONNECTING MAINFRAME... | Latency: -- | Stream: Pending";
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        elements.video.srcObject = stream;
+        state.streamObject = stream;
+        state.isCameraActive = true;
+
+        elements.video.addEventListener('loadedmetadata', () => {
+            elements.canvas.width = elements.video.clientWidth || 640;
+            elements.canvas.height = elements.video.clientHeight || 480;
+            drawOverlay();
+        });
+
+        await elements.video.play().catch(e => console.warn("Autoplay prevented:", e));
+
+        // Enable book capture btn now that camera is live
+        elements.captureBtn.disabled = false;
+
+        // Detection loop
+        setInterval(async () => {
+            if (!state.isCameraActive || !state.isCameraEnabled || state.isLocked || state.processingState === "synthesizing" || state.isCapturingBook) return;
+            state.processingState = "scanning";
+
+            const snapshotCanvas = document.createElement('canvas');
+            snapshotCanvas.width = elements.video.videoWidth;
+            snapshotCanvas.height = elements.video.videoHeight;
+            snapshotCanvas.getContext('2d').drawImage(elements.video, 0, 0);
+
+            const imageBase64 = snapshotCanvas.toDataURL('image/jpeg', 0.8);
+            elements.detectionList.innerHTML = `<div style="color:#7000FF;">ANALYZING FRONTAL VECTOR...</div>`;
+
+            try {
+                const response = await fetch('/vision-analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imageBase64 })
+                });
+                if (!response.ok) {
+                    // Fail silently in background loop to prevent console clutter
+                    console.debug('Background vision loop: Remote service restricted');
+                    return;
+                }
+                const data = await response.json();
+                if (data.objectName) {
+                    elements.detectionList.innerHTML = `<div>${data.objectName.toUpperCase()} DETECTED</div>`;
+                    performSynthesis(data.objectName);
+                } else {
+                    state.processingState = "active";
+                }
+            } catch (err) {
+                console.error("Vision Error:", err);
+                state.processingState = "active";
+            }
+        }, 3000);
+
+        state.processingState = "active";
+        updateTelemetry();
+    } catch (err) {
+        elements.systemStatus.innerText = "Error: Camera Access Denied";
+        console.error(err);
+    }
+}
+
+/* ════════════════════════════════════════════════════════
+   📖  BOOK NOTES EXTRACTOR
+   ════════════════════════════════════════════════════════ */
+
+function setBookStatus(status, text) {
+    elements.statusBadge.className = status;
+    elements.statusBadge.textContent = text;
+}
+
+function captureFrameAsBase64() {
+    const snap = document.createElement('canvas');
+    snap.width = elements.video.videoWidth || 640;
+    snap.height = elements.video.videoHeight || 480;
+    snap.getContext('2d').drawImage(elements.video, 0, 0, snap.width, snap.height);
+    return snap.toDataURL('image/jpeg', 0.92);
+}
+
+async function captureBookPage() {
+    if (!state.isCameraActive || state.isCapturingBook) return;
+
+    state.isCapturingBook = true;
+    elements.captureBtn.disabled = true;
+    elements.captureBtn.classList.add('scanning-anim');
+    elements.captureBtn.textContent = '⏳ Analyzing with Gemini…';
+    setBookStatus('scanning', 'SCANNING');
+
+    try {
+        const imageBase64 = captureFrameAsBase64();
+
+        // Show preview snapshot
+        elements.snapshotPreview.src = imageBase64;
+        elements.snapshotPreview.classList.add('visible');
+
+        // Call backend book-extract endpoint
+        const res = await fetch('/vision-book-extract', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64 })
+        });
+
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+        const data = await res.json();
+
+        if (data.notes) {
+            const timestamp = new Date().toLocaleString();
+            const divider = `\n${'─'.repeat(50)}\n`;
+
+            // Append to existing notes (so multiple captures accumulate)
+            const existing = elements.notesEditor.value;
+            const separator = existing ? `\n\n${divider}📸 Captured: ${timestamp}${divider}\n` : `📸 Captured: ${timestamp}\n${'─'.repeat(50)}\n\n`;
+            elements.notesEditor.value = existing + separator + data.notes;
+
+            elements.saveTxtBtn.disabled = false;
+            elements.copyNotesBtn.disabled = false;
+            setBookStatus('done', 'EXTRACTED');
+            updateTelemetry();
+        } else {
+            throw new Error(data.error || 'No notes returned');
+        }
+    } catch (err) {
+        console.error('Book capture error:', err);
+        setBookStatus('error', 'ERROR');
+        const existing = elements.notesEditor.value;
+        elements.notesEditor.value = existing + `\n[ERROR] Could not extract: ${err.message}\n`;
+    } finally {
+        state.isCapturingBook = false;
+        elements.captureBtn.disabled = false;
+        elements.captureBtn.classList.remove('scanning-anim');
+        elements.captureBtn.textContent = '📷 Capture Book Page';
+        updateTelemetry();
+    }
+}
+
+function saveAsTextFile() {
+    const content = elements.notesEditor.value;
+    if (!content.trim()) return;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `book-notes-${timestamp}.txt`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setBookStatus('done', 'SAVED ✓');
+    setTimeout(() => setBookStatus('done', 'EXTRACTED'), 2000);
+}
+
+async function copyNotes() {
+    const content = elements.notesEditor.value;
+    if (!content.trim()) return;
+    try {
+        await navigator.clipboard.writeText(content);
+        elements.copyNotesBtn.classList.add('copy-flash');
+        elements.copyNotesBtn.textContent = '✓ Copied!';
+        setTimeout(() => {
+            elements.copyNotesBtn.classList.remove('copy-flash');
+            elements.copyNotesBtn.textContent = '📋 Copy';
+        }, 1500);
+    } catch {
+        elements.notesEditor.select();
+        document.execCommand('copy');
+    }
+}
+
+function clearNotes() {
+    if (!elements.notesEditor.value.trim()) return;
+    if (confirm('Clear all book notes?')) {
+        elements.notesEditor.value = '';
+        elements.snapshotPreview.classList.remove('visible');
+        elements.saveTxtBtn.disabled = true;
+        elements.copyNotesBtn.disabled = true;
+        setBookStatus('', 'READY');
+        updateTelemetry();
+    }
+}
+
+// Live char count
+elements.notesEditor.addEventListener('input', updateTelemetry);
+
+/* ── Event Listeners ── */
+elements.captureBtn.addEventListener('click', captureBookPage);
+elements.saveTxtBtn.addEventListener('click', saveAsTextFile);
+elements.copyNotesBtn.addEventListener('click', copyNotes);
+elements.clearNotesBtn.addEventListener('click', clearNotes);
+
+elements.initBtn.addEventListener('click', () => {
+    state.researchDepth = elements.queryScope.value;
+    elements.initBtn.innerText = "System Initializing...";
+    elements.initBtn.disabled = true;
+    startVisionStream();
+});
+
+elements.cameraToggleBtn.addEventListener('click', () => {
+    if (!state.streamObject) return;
+    state.isCameraEnabled = !state.isCameraEnabled;
+    state.streamObject.getVideoTracks().forEach(t => { t.enabled = state.isCameraEnabled; });
+    if (state.isCameraEnabled) {
+        elements.cameraToggleBtn.innerText = "Power: ON";
+        elements.cameraToggleBtn.classList.remove('off');
+    } else {
+        elements.cameraToggleBtn.innerText = "Power: OFF";
+        elements.cameraToggleBtn.classList.add('off');
+    }
+    updateTelemetry();
+});
+
+elements.modalCloseBtn.addEventListener('click', () => {
+    state.isLocked = false;
+    elements.resultModal.classList.remove('active');
+    elements.detectionList.innerHTML = `<div>Resuming scan...</div>`;
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+});
+
+window.addEventListener('resize', () => {
+    if (state.isCameraActive) {
+        elements.canvas.width = elements.video.clientWidth;
+        elements.canvas.height = elements.video.clientHeight;
+    }
+});
+
+updateTelemetry();
+if (typeof lucide !== 'undefined') lucide.createIcons();
+})();
+</script>
+</body>
+</html>

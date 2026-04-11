@@ -1,0 +1,151 @@
+{
+  "agents": [
+    {
+      "id": "job-1775765333691",
+      "projectName": "ENT Connect",
+      "tagline": "Seamlessly connect ENT specialists, staff, and patients with 24/7 care.",
+      "goal": "Creating a website for an ENT specialist doctor that connects staff, patients, and the doctor effectively while offering 24/7 services requires thoughtful design and functionality. Below is a prompt you can use to guide the development:  ---  **Prompt for Website Development:**  \"I need a professional, user-friendly, and responsive website for an ENT specialist doctor that serves as a hub to connect staff, patients, and the doctor seamlessly. The website should include the following features to address patient care and operational efficiency, offering 24/7 services:  1. **Homepage:** A clean and visually appealing homepage with a welcoming message, an overview of ENT services, and easy navigation links.  2. **Appointment Booking System:**    - An intuitive online booking feature for patients to schedule appointments with the doctor.    - Automated email and SMS reminders for upcoming appointments.    - Integration with the doctor's calendar for real-time availability.  3. **Virtual Consultation:**     - Enable secure video consultations for patients who prefer remote care.    - Include a payment gateway for virtual visits.  4. **Patient Portal:**    - A login system where patients can view their medical history, prescriptions, test results, and upcoming appointments.    - Support for uploading medical records for consultations.  5. **Staff Portal:**    - A private login area for staff to manage appointments, patient records, and communication with the doctor.    - Tools for coordinating schedules and workflow.  6. **Doctor Dashboard:**    - A centralized area where the doctor can access patient information, manage appointments, review test results, and communicate with staff or patients.  7. **24/7 Chatbot Support:**    - Implement an AI-powered chatbot to answer common patient queries, provide appointment information, and guide visitors to relevant sections of the website.    - Escalate complex queries to human staff during working hours.  8. **Emergency Services:**    - Highlight emergency contact information prominently.    - Include a feature where patients can request urgent consultations or home visits (if applicable).  9. **ENT Information Hub:**    - A blog or resource section with articles, videos, and FAQs related to ENT health issues.    - Provide downloadable guides for common procedures or conditions.  10. **Mobile-Friendly Design:**     - Ensure the website is fully responsive and optimized for mobile devices to allow patients and staff to access it anytime, anywhere.  11. **Secure Communication:**     - Implement end-to-end encryption for all patient-doctor communications to protect sensitive information.     - Ensure the website is GDPR and HIPAA compliant (if applicable).  12. **Feedback & Reviews:**     - A section for patients to leave reviews and feedback about their experience.     - Display testimonials to build trust and credibility.  13. **Contact Information:**     - Clearly display contact details for the clinic, including phone numbers, email addresses, and location maps.     - Include a contact form for inquiries.  14. **Analytics and Reporting:**     - Integrate tools to track website traffic, appointment trends, and other metrics to improve services.  15. **Multilingual Support:**      - Provide content in multiple languages to cater to diverse patients.  ---  **Technical Considerations:** - Use a reliable hosting provider to ensure uptime and fast loading speeds. - Implement SEO (Search Engine Optimization) best practices to make the website easily discoverable online. - Utilize a CMS (Content Management System) like WordPress for easy updates and maintenance. - Ensure compatibility with all major browsers.  ---  By incorporating these features, the website will act as a comprehensive solution to connect staff, patients, and the doctor, while providing round-the-clock support and streamlined services.",
+      "type": "dashboard",
+      "filePath": "builds/ent-connect-job-1775765333691.html",
+      "qaScore": 75,
+      "createdAt": "2026-04-09T20:10:57.504Z",
+      "primaryColor": "#2A9D8F",
+      "secondaryColor": "#E9C46A"
+    },
+    {
+      "id": "job-1775763747382",
+      "projectName": "ENTCare Pro",
+      "tagline": "Streamlining communication and care for ENT specialists, staff, and patients.",
+      "goal": "### 1. **Understand the Needs of ENT Specialists** - **Research and gather insights**: Talk to ENT specialists, their staff, and patients to understand their pain points. Common needs might include: - Scheduling appointments efficiently. - Sharing medical reports or test results securely. - Enabling real-time communication between staff, patients, and doctors. - Managing follow-up care, prescriptions, and patient history. - Providing teleconsultation options for remote patients. - Prioritize the features based on feedback. --- ### 2. **Key Features to Include** Here are some essential features your application or software could offer: #### For Patients: - **Appointment Booking System**: Patients can book, reschedule, or cancel appointments directly through the app. - **Real-Time Notifications**: Reminders for appointments, medications, or follow-ups. - **Medical Record Access**: Secure access to their ENT-related test results, prescriptions, or treatment plans. - **Teleconsultation**: Video calls for remote consultations with ENT specialists. - **Symptom Tracker**: A tool for patients to log symptoms (e.g., hearing loss, throat pain, etc.) to share with the doctor. #### For Staff: - **Patient Management Dashboard**: A centralized platform to view patient appointments, reports, and communication history. - **Internal Communication**: Staff can communicate with doctors, update patient files, and manage workflow seamlessly. - **Billing and Payments**: Easy handling of payments, invoices, and insurance claims. #### For Doctors: - **Patient History Viewer**: Quick access to past visits, prescriptions, and test results. - **Telemedicine Tools**: Secure video conferencing, chat, or voice calls with patients. - **Prescription Management**: Generate and share prescriptions digitally. - **Analytics and Reporting**: Insights into patient outcomes, appointment trends, or treatment efficacy. --- ### 3. **Choose the Right Technology Stack** - **Backend**: Use robust frameworks like Django (Python), Node.js, or Ruby on Rails for handling data, user authentication, and communication. - **Frontend**: Consider React.js, Angular, or Vue.js for a responsive and user-friendly interface. - **Mobile App**: Build a cross-platform app using Flutter or React Native for Android and iOS. - **Database**: Use a secure database like PostgreSQL, MySQL, or MongoDB for storing sensitive medical data. - **Security**: Implement encryption (e.g., HTTPS, SSL/TLS), two-factor authentication, and compliance with healthcare standards like HIPAA. --- ### 4. **Focus on Security and Compliance** Since your application will handle sensitive medical data, ensure: - **Data Encryption**: Encrypt all data both in transit and at rest. - **Access Control**: Restrict access to authorized users and roles (e.g., doctors, staff, patients). - **Compliance**: Adhere to region-specific health data regulations (e.g., HIPAA in the US, GDPR in Europe). --- ### 5. **UI/UX Design** - Design an intuitive interface that is easy for all users (patients, staff, doctors) to navigate. - Use clear icons, labels, and instructional tooltips to ensure accessibility. - Include accessibility features for hearing-impaired patients (e.g., visual alerts instead of audio notifications). --- ### 6. **Build Communication Channels** - **Real-Time Chat**: Patients and staff can message doctors for quick questions or updates. - **Video and Voice Calls**: Enable seamless teleconsultation between doctors and patients. - **Push Notifications**: Remind users of upcoming appointments, new messages, or critical updates. --- ### 7. **Prototype and Test** - **Prototype**: Start with a minimum viable product (MVP) that includes the most essential features. - **Test**: Run beta testing with a small group of ENT specialists, staff, and patients to gather feedback and improve. --- ### 8. **Consider Long-Term Scalability** - Ensure your application can handle a growing number of users as the practice expands. - Think about integrating advanced features like AI for diagnosing ENT conditions or automating administrative tasks. --- ### 9. **Marketing and Deployment** - **Launch Strategy**: Offer the app initially to a select group of clinics for feedback and refinement. - **Training**: Provide tutorials or onboarding sessions for doctors, staff, and patients. - **Support**: Set up a customer support system to handle issues and queries post-launch. --- ### 10. **Monetization Options** - Subscription model for clinics or doctors. - Per-patient fee for larger practices. - Offer premium features (e.g., advanced analytics, AI-based tools) for an additional fee. --- By focusing on usability, security, and customization, your app can significantly enhance communication and efficiency for ENT specialists and their teams. Let me know if you need more guidance on specific aspects of the development process!  Copy to Clipboard",
+      "type": "tool",
+      "complexity": "complex",
+      "filePath": "builds/entcare-pro-job-1775763747382.html",
+      "qaScore": 85,
+      "modules": [
+        {
+          "id": "mod_1",
+          "name": "Appointment Booking System",
+          "role": "Allows patients to book, reschedule, or cancel appointments with real-time availability updates.",
+          "priority": "high"
+        },
+        {
+          "id": "mod_2",
+          "name": "Teleconsultation",
+          "role": "Enables secure video and voice consultations between doctors and patients.",
+          "priority": "high"
+        },
+        {
+          "id": "mod_3",
+          "name": "Patient Management Dashboard",
+          "role": "Centralized platform for staff to manage appointments, patient files, and communication.",
+          "priority": "high"
+        },
+        {
+          "id": "mod_4",
+          "name": "Medical Records Access",
+          "role": "Secure portal for patients and doctors to access test results, prescriptions, and treatment history.",
+          "priority": "medium"
+        },
+        {
+          "id": "mod_5",
+          "name": "Symptom Tracker",
+          "role": "Tool for patients to log symptoms and share detailed reports with doctors.",
+          "priority": "medium"
+        },
+        {
+          "id": "mod_6",
+          "name": "Billing and Payments",
+          "role": "Facilitates payments, invoices, and insurance claims processing seamlessly.",
+          "priority": "medium"
+        },
+        {
+          "id": "mod_7",
+          "name": "Internal Communication",
+          "role": "Real-time chat and messaging for staff and doctors to coordinate workflows.",
+          "priority": "low"
+        },
+        {
+          "id": "mod_8",
+          "name": "Analytics and Reporting",
+          "role": "Provides insights into patient trends, appointment efficiency, and treatment outcomes.",
+          "priority": "low"
+        }
+      ],
+      "createdAt": "2026-04-09T19:43:40.959Z",
+      "primaryColor": "#007BFF",
+      "secondaryColor": "#28A745"
+    },
+    {
+      "id": "job-1775752755594",
+      "projectName": "AgentMaximize",
+      "tagline": "Unlocking the full potential of your AI interactions through guided optimization.",
+      "goal": "how can i use this agent at it's best ?",
+      "type": "chatbot",
+      "complexity": "simple",
+      "filePath": "builds/agentmaximize-job-1775752755594.html",
+      "qaScore": 80,
+      "modules": [
+        {
+          "id": "mod_1",
+          "name": "Contextual Guidance Engine",
+          "role": "Analyzes user intent and provides real-time usage tips based on active context",
+          "priority": "high"
+        },
+        {
+          "id": "mod_2",
+          "name": "Prompt Refinement Lab",
+          "role": "Transforms basic user queries into high-performance system instructions",
+          "priority": "high"
+        },
+        {
+          "id": "mod_3",
+          "name": "Interactive Support Hub",
+          "role": "Facilitates feature discovery and dynamic walkthroughs for new capabilities",
+          "priority": "medium"
+        }
+      ],
+      "createdAt": "2026-04-09T16:41:40.922Z",
+      "primaryColor": "#6366F1",
+      "secondaryColor": "#10B981"
+    },
+    {
+      "id": "job-1775682496914",
+      "projectName": "Aon Quantum Ledger",
+      "tagline": "Institutional-grade predictive analytics for cross-asset market intelligence.",
+      "goal": "Build a premium financial analytics dashboard for stocks and crypto",
+      "type": "dashboard",
+      "complexity": "complex",
+      "filePath": "builds/aon-quantum-ledger-job-1775682496914.html",
+      "qaScore": 75,
+      "modules": [
+        {
+          "id": "mod_1",
+          "name": "LiveStream Engine",
+          "role": "WebSocket orchestration for sub-millisecond stock and crypto price updates.",
+          "priority": "high"
+        },
+        {
+          "id": "mod_2",
+          "name": "Portfolio Sentinel",
+          "role": "Multi-asset reconciliation and real-time PnL monitoring.",
+          "priority": "high"
+        },
+        {
+          "id": "mod_3",
+          "name": "Predictive Engine",
+          "role": "Time-series forecasting using technical indicator signals and ML modeling.",
+          "priority": "high"
+        },
+        {
+          "id": "mod_4",
+          "name": "Advanced Charting Suite",
+          "role": "Interactive candlestick rendering with volume-profile overlays.",
+          "priority": "medium"
+        }
+      ],
+      "createdAt": "2026-04-08T21:12:44.503Z",
+      "primaryColor": "#0F172A",
+      "secondaryColor": "#3B82F6"
+    }
+  ]
+}

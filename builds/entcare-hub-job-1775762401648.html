@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENTCare Hub | Aon AI Factory</title>
+    <meta name="description" content="Streamlined communication and management for ENT specialists.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #007BFF;
+            --secondary: #28A745;
+            --bg: #050507;
+            --surface: rgba(15,15,20,0.85);
+            --border: rgba(255,255,255,0.08);
+            --text: #f0f0f5;
+            --text-muted: rgba(255,255,255,0.5);
+            --error: #ef4444;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        h1,h2,h3,h4 { font-family: 'Outfit', sans-serif; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        
+        /* SELF-HEAL UI */
+        #aon-self-heal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; text-align: center; padding: 20px;
+        }
+        .heal-card {
+            background: #111; border: 1px solid var(--error); border-radius: 16px;
+            padding: 40px; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .heal-btn {
+            background: var(--primary); color: white; border: none; padding: 12px 24px;
+            border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .heal-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--primary); }
+        .heal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .aon-watermark {
+            position: fixed; bottom: 12px; right: 16px;
+            font-size: 11px; font-family: 'Outfit', sans-serif;
+            opacity: 0.25; pointer-events: none; letter-spacing: 0.1em;
+        }
+        :root {
+  --primary: #007BFF;
+  --secondary: #28A745;
+  --bg: #121212;
+  --surface: #1E1E1E;
+  --text: #EAEAEA;
+  --accent-gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+h1, h2 {
+  font-family: 'Outfit', sans-serif;
+}
+
+#aon-header {
+  background: var(--accent-gradient);
+  padding: 2rem;
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+#aon-header h1 {
+  font-size: 2.5rem;
+}
+
+#aon-header p {
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+#aon-main {
+  display: flex;
+  min-height: 100vh;
+}
+
+#aon-sidebar {
+  width: 300px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 1.5rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+#aon-sidebar nav ul {
+  list-style: none;
+}
+
+#aon-sidebar nav ul li {
+  margin-bottom: 1rem;
+}
+
+#aon-sidebar nav ul li a {
+  text-decoration: none;
+  color: var(--text);
+  font-size: 1rem;
+  display: block;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+#aon-sidebar nav ul li a:hover {
+  background: var(--accent-gradient);
+  box-shadow: 0 0 10px var(--primary);
+  color: #fff;
+}
+
+#aon-content {
+  flex: 1;
+  padding: 2rem;
+}
+
+article {
+  background: rgba(30, 30, 30, 0.8);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  animation: fade-in 0.5s ease-in-out;
+}
+
+article h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+article p {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+button {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: var(--secondary);
+  box-shadow: 0 0 15px var(--primary);
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+#aon-data-appointment,
+#aon-data-teleconsultation {
+  background: rgba(30, 30, 30, 0.5);
+  height: 100px;
+  margin-top: 1rem;
+  border-radius: 8px;
+  animation: pulse 1.5s infinite;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}
+
+@keyframes pulse {
+  0% {
+    background-color: rgba(30, 30, 30, 0.5);
+  }
+  50% {
+    background-color: rgba(30, 30, 30, 0.7);
+  }
+  100% {
+    background-color: rgba(30, 30, 30, 0.5);
+  }
+}
+
+@keyframes slide-in {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+    </style>
+</head>
+<body>
+    <div id="aon-self-heal-overlay">
+        <div class="heal-card">
+            <h2 style="color: var(--error); margin-bottom: 10px;">Neural Instability Detected</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">This agent has encountered a runtime error. The Aon Factory can attempt an autonomous repair.</p>
+            <div id="error-details" style="font-family: monospace; font-size: 12px; background: #000; padding: 10px; border-radius: 8px; color: #ff9d9d; text-align: left; margin-bottom: 20px; max-height: 150px; overflow: auto;"></div>
+            <button id="repair-btn" class="heal-btn">Execute Self-Repair</button>
+        </div>
+    </div>
+
+    <div id="aon-header" role="banner">
+  <h1>ENTCare Hub</h1>
+  <p>Your comprehensive tool for ENT specialists, staff, and patients.</p>
+</div>
+
+<div id="aon-main" role="main">
+  <aside id="aon-sidebar" role="complementary">
+    <nav>
+      <ul>
+        <li><a href="#appointment_booking" data-module="mod_1">Appointment Booking System</a></li>
+        <li><a href="#teleconsultation" data-module="mod_2">Teleconsultation Platform</a></li>
+        <li><a href="#patient_dashboard" data-module="mod_3">Patient Management Dashboard</a></li>
+        <li><a href="#medical_records" data-module="mod_4">Medical Record Access</a></li>
+        <li><a href="#symptom_tracker" data-module="mod_5">Symptom Tracker</a></li>
+        <li><a href="#analytics_reporting" data-module="mod_6">Analytics & Reporting</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <section id="aon-content">
+    <article id="appointment_booking" data-module="mod_1" role="region" aria-labelledby="appointment_booking_title">
+      <h2 id="appointment_booking_title">Appointment Booking System</h2>
+      <p>Patients can schedule, reschedule, or cancel appointments efficiently.</p>
+      <button id="aon-btn-1" data-action="openForm">Book Appointment</button>
+      <div id="aon-data-appointment">Loading...</div>
+    </article>
+
+    <article id="teleconsultation" data-module="mod_2" role="region" aria-labelledby="teleconsultation_title">
+      <h2 id="teleconsultation_title">Teleconsultation Platform</h2>
+      <p>Secure video and voice calls for remote consultations with ENT specialists.</p>
+      <button id="aon-btn-2" data-action="startTeleconsultation">Start Teleconsultation</button>
+      <div id="aon-data-teleconsultation">Loading...</div>
+    </article>
+
+    <article id="patient_dashboard" data-module="mod_3" role="region" aria-labelledby="patient_dashboard_title">
+      <h2 id="patient_dashboard_title">Patient Management Dashboard</h2>
+      <p>A centralized platform for staff to manage appointments, reports, and communication.</p>
+      <div id="aon-data-dashboard">Loading...</div>
+    </article>
+
+    <article id="medical_records" data-module="mod_4" role="region" aria-labelledby="medical_records_title">
+      <h2 id="medical_records_title">Medical Record Access</h2>
+      <p>Patients can securely access their test results, prescriptions, and treatment plans.</p>
+      <div id="aon-data-records">Loading...</div>
+    </article>
+
+    <article id="symptom_tracker" data-module="mod_5" role="region" aria-labelledby="symptom_tracker_title">
+      <h2 id="symptom_tracker_title">Symptom Tracker</h2>
+      <p>Patients can log and share symptoms (e.g., hearing loss, throat pain) with doctors.</p>
+      <label for="aon-input-1">Log your symptoms:</label>
+      <textarea id="aon-input-1" data-action="logSymptoms" placeholder="Describe your symptoms..."></textarea>
+      <button id="aon-btn-3" data-action="submitSymptoms">Submit</button>
+      <div id="aon-data-symptoms">Loading...</div>
+    </article>
+
+    <article id="analytics_reporting" data-module="mod_6" role="region" aria-labelledby="analytics_reporting_title">
+      <h2 id="analytics_reporting_title">Analytics & Reporting</h2>
+      <p>Gain insights into patient outcomes, appointment trends, and treatment efficacy.</p>
+      <div id="aon-display-1" data-action="viewAnalytics">
+        <p>Analytics Chart:</p>
+        <div id="aon-data-analytics">Loading...</div>
+      </div>
+    </article>
+  </section>
+</div>
+    <div class="aon-watermark">⚡ AON AI FACTORY v6.0 Alpha</div>
+    <script>
+    (async () => {
+        const JOB_ID = "job-1775762401648";
+        const repairBtn = document.getElementById('repair-btn');
+        const overlay = document.getElementById('aon-self-heal-overlay');
+        const errorView = document.getElementById('error-details');
+
+        window.onerror = function(msg, url, line, col, error) {
+            handleCrash({ message: msg, stack: error?.stack, line, col });
+            return false;
+        };
+
+        window.onunhandledrejection = function(event) {
+            handleCrash({ message: event.reason?.message || 'Unhandled Rejection', stack: event.reason?.stack });
+        };
+
+        function handleCrash(err) {
+            console.error('[AON CRASH]:', err);
+            overlay.style.display = 'flex';
+            errorView.innerText = err.message + "\n" + (err.stack || '');
+        }
+
+        repairBtn.onclick = async () => {
+            repairBtn.innerText = "Repairing Neural Pathways...";
+            repairBtn.disabled = true;
+            try {
+                const res = await fetch('http://localhost:3000/api/self-heal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jobId: JOB_ID,
+                        error: { message: errorView.innerText },
+                        code: document.documentElement.outerHTML
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    repairBtn.innerText = "Repair Successful! Reloading...";
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (e) {
+                repairBtn.innerText = "Repair Failed. Try again?";
+                repairBtn.disabled = false;
+                alert("Repair Error: " + e.message);
+            }
+        };
+
+        try {
+            document.addEventListener("DOMContentLoaded", () => {
+  const state = (window.__AON_STATE__ = {
+    selectedPatient: null,
+    selectedAppointment: null,
+    searchQuery: "",
+    isLoading: false,
+  });
+
+  // Helper function to fetch data from API endpoints
+  async function fetchData(url, method = "GET", body = null, displayTarget = "") {
+    state.isLoading = true;
+    try {
+      const options = {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      if (body) {
+        options.body = JSON.stringify(body);
+      }
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      if (displayTarget) {
+        document.getElementById(displayTarget).textContent = JSON.stringify(data, null, 2);
+      }
+      return data;
+    } catch (error) {
+      console.error("Fetch error:", error);
+      if (displayTarget) {
+        document.getElementById(displayTarget).textContent = "Error loading data.";
+      }
+    } finally {
+      state.isLoading = false;
+    }
+  }
+
+  // Event Handlers
+  function handleAppointmentBooking() {
+    const appointmentContainer = document.getElementById("aon-data-appointment");
+    fetchData(
+      "http://localhost:3000/live-data/appointments",
+      "GET",
+      null,
+      "aon-data-appointment"
+    );
+  }
+
+  function handleMedicalRecordAccess() {
+    const medicalRecordContainer = document.getElementById("aon-data-records");
+    fetchData(
+      "http://localhost:3000/live-data/medical_records",
+      "GET",
+      null,
+      "aon-data-records"
+    );
+  }
+
+  function handleSearchQuery(event) {
+    const query = event.target.value;
+    state.searchQuery = query;
+    fetchData(
+      "http://localhost:3000/search",
+      "POST",
+      { query },
+      "search-results"
+    );
+  }
+
+  function handleRealTimeNotification() {
+    setInterval(() => {
+      fetchData("http://localhost:3000/live-data/communications", "GET", null, "communications-feed");
+    }, 30000);
+  }
+
+  function handleTeleconsultationStart() {
+    const teleconsultationContainer = document.getElementById("aon-data-teleconsultation");
+    teleconsultationContainer.textContent = "Starting teleconsultation...";
+    setTimeout(() => {
+      teleconsultationContainer.textContent = "Teleconsultation started.";
+    }, 2000);
+  }
+
+  function handleSymptomTrackerUpdate() {
+    const symptomsInput = document.getElementById("aon-input-1");
+    const symptomsText = symptomsInput.value.trim();
+    const symptomsContainer = document.getElementById("aon-data-symptoms");
+
+    if (symptomsText) {
+      fetchData("http://localhost:3000/live-data/symptoms", "POST", { symptoms: symptomsText })
+        .then(() => {
+          symptomsContainer.textContent = "Symptoms logged successfully!";
+          symptomsInput.value = "";
+        })
+        .catch(() => {
+          symptomsContainer.textContent = "Failed to log symptoms.";
+        });
+    } else {
+      symptomsContainer.textContent = "Please enter your symptoms.";
+    }
+  }
+
+  // Attach event listeners
+  document.getElementById("aon-btn-1").addEventListener("click", handleAppointmentBooking);
+  document.getElementById("aon-btn-2").addEventListener("click", handleTeleconsultationStart);
+  document.getElementById("aon-btn-3").addEventListener("click", handleSymptomTrackerUpdate);
+  document.getElementById("aon-input-1").addEventListener("input", handleSearchQuery);
+
+  // Initialize Real-Time Notifications
+  handleRealTimeNotification();
+
+  // Initialize Icon Rendering
+  setTimeout(() => {
+    if (typeof lucide !== "undefined" && lucide.createIcons) {
+      lucide.createIcons();
+    }
+  }, 0);
+});
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } catch (e) {
+            handleCrash(e);
+        }
+    })();
+    </script>
+</body>
+</html>

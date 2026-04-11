@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<!-- AON AI — NEXUS PRIME v5.0 | Architected from Claude Code, Anthropic, OpenHands, CrewAI patterns -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aon AI | NEXUS PRIME — AI Automating AI</title>
+    <meta name="description" content="Aon AI Nexus Prime — The self-directed multi-agent factory that synthesizes intelligent applications from a single goal.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Inter:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Animated Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <div id="app" class="nexus-layout">
+        <!-- ══════════════════ SIDEBAR ══════════════════ -->
+        <aside class="nexus-sidebar glass-heavy">
+            <div class="sidebar-header">
+                <div class="logo-cluster">
+                    <div class="logo-orb" id="logo-orb"></div>
+                    <div>
+                        <h1 class="logo-text">AON <span>AI</span></h1>
+                        <p class="logo-sub">NEXUS PRIME v5.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" id="nav-nexus" data-view="nexus">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>COMMAND HUB</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-agents" data-view="agents">
+                    <i data-lucide="bot"></i>
+                    <span>AGENT LIBRARY</span>
+                    <span class="nav-badge" id="agent-count-badge">0</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-pipeline" data-view="pipeline">
+                    <i data-lucide="git-branch"></i>
+                    <span>PIPELINE</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-analytics" data-view="analytics">
+                    <i data-lucide="activity"></i>
+                    <span>DIAGNOSTICS</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <div class="status-row">
+                        <span class="status-dot pulsing"></span>
+                        <span class="status-label">NEXUS: ONLINE</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-dot socket-dot"></span>
+                        <span class="status-label" id="socket-status">WS: CONNECTING...</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-dot" style="background: #9d50ff;"></span>
+                        <span class="status-label">GEMINI FLASH ACTIVE</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ══════════════════ MAIN CONTENT ══════════════════ -->
+        <main class="nexus-main">
+            <!-- Header / Mission Input -->
+            <header class="nexus-header">
+                <div class="mission-input-group glass">
+                    <div class="mission-icon"><i data-lucide="target"></i></div>
+                    <div class="mission-input-wrap">
+                        <input type="text" id="goal-input"
+                            placeholder="DEFINE YOUR MISSION — e.g. 'Build a real-time crypto trading dashboard'"
+                            autocomplete="off" spellcheck="false">
+                        <div class="mission-type-badge hidden" id="mission-type-badge">
+                            <span id="mission-type-text">DASHBOARD</span>
+                        </div>
+                    </div>
+                    <button id="initialize-btn" class="launch-btn">
+                        <i data-lucide="zap"></i>
+                        <span>DEPLOY</span>
+                    </button>
+                </div>
+                <div class="header-actions">
+                    <div class="action-chip glass" id="model-indicator">
+                        <i data-lucide="cpu"></i>
+                        <span>MULTI-AGENT</span>
+                    </div>
+                    <div class="user-avatar">R</div>
+                </div>
+            </header>
+
+            <!-- ── VIEW: COMMAND HUB ── -->
+            <section class="view-content active" id="view-nexus">
+                <div class="nexus-grid">
+
+                    <!-- Central Orb / Status Card -->
+                    <div class="nexus-card orb-card glass span-2">
+                        <div class="card-header">
+                            <h2>NEXUS CORE</h2>
+                            <div class="card-badges">
+                                <span class="badge badge-stable">STABLE</span>
+                                <span class="badge badge-version">v5.0</span>
+                            </div>
+                        </div>
+                        <div class="orb-stage">
+                            <canvas id="orb-canvas"></canvas>
+                            <div class="orb-info">
+                                <p id="current-task" class="orb-task-text">AWAITING MISSION...</p>
+                                <div class="progress-wrap">
+                                    <div class="progress-track">
+                                        <div class="progress-fill" id="nexus-progress"></div>
+                                    </div>
+                                    <span class="progress-label" id="progress-label">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terminal Log -->
+                    <div class="nexus-card terminal-card glass">
+                        <div class="card-header">
+                            <h2>AUTONOMY ENGINE</h2>
+                            <div class="terminal-dots">
+                                <span class="t-dot red"></span>
+                                <span class="t-dot yellow"></span>
+                                <span class="t-dot green"></span>
+                            </div>
+                        </div>
+                        <div class="terminal-body" id="log-terminal">
+                            <div class="log-line system">[NEXUS] REFLEXIVE ENGINE ONLINE.</div>
+                            <div class="log-line system">[NEXUS] MULTI-AGENT PIPELINE READY.</div>
+                            <div class="log-line user">[AON] Awaiting mission input...</div>
+                        </div>
+                    </div>
+
+                    <!-- Squad / Modules Card -->
+                    <div class="nexus-card squad-card glass">
+                        <div class="card-header">
+                            <h2>DEPLOYED SQUAD</h2>
+                        </div>
+                        <div class="squad-list" id="squad-list">
+                            <div class="empty-state">
+                                <i data-lucide="radio"></i>
+                                <p>SQUAD OFFLINE</p>
+                                <small>Deploy a mission to activate agents</small>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ── VIEW: AGENT LIBRARY ── -->
+            <section class="view-content hidden" id="view-agents">
+                <div class="section-header">
+                    <h2>AGENT LIBRARY</h2>
+                    <p>All synthesized applications — click to launch or manage.</p>
+                </div>
+                <div class="agents-grid" id="agents-grid">
+                    <div class="empty-state full-width">
+                        <i data-lucide="archive"></i>
+                        <p>NO AGENTS DEPLOYED YET</p>
+                        <small>Run a mission to create your first agent.</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── VIEW: PIPELINE ── -->
+            <section class="view-content hidden" id="view-pipeline">
+                <div class="section-header">
+                    <h2>MULTI-AGENT PIPELINE</h2>
+                    <p>Real-time view of the Orchestrator-Workers synthesis topology.</p>
+                </div>
+                <div class="pipeline-view">
+                    <div class="pipeline-graph" id="pipeline-graph">
+                        <!-- PHASE 0: Router -->
+                        <div class="pipeline-phase">
+                            <div class="pipeline-node " id="node-router">
+                                <div class="node-icon"><i data-lucide="git-branch"></i></div>
+                                <div class="node-label">MISSION ROUTER</div>
+                                <div class="node-sub">Classifies goal type</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow"><i data-lucide="arrow-right"></i></div>
+
+                        <!-- PHASE 1: Orchestrator -->
+                        <div class="pipeline-phase">
+                            <div class="pipeline-node" id="node-orchestrator">
+                                <div class="node-icon"><i data-lucide="crown"></i></div>
+                                <div class="node-label">ORCHESTRATOR</div>
+                                <div class="node-sub">Blueprints the app</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow"><i data-lucide="arrow-right"></i></div>
+
+                        <!-- PHASE 2: Parallel Workers -->
+                        <div class="pipeline-phase parallel">
+                            <div class="pipeline-node" id="node-html">
+                                <div class="node-icon"><i data-lucide="code-2"></i></div>
+                                <div class="node-label">HTML AGENT</div>
+                                <div class="node-sub">Semantic structure</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                            <div class="pipeline-node" id="node-data">
+                                <div class="node-icon"><i data-lucide="database"></i></div>
+                                <div class="node-label">DATA AGENT</div>
+                                <div class="node-sub">Live data layer</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow"><i data-lucide="arrow-right"></i></div>
+
+                        <!-- PHASE 3: Parallel Workers -->
+                        <div class="pipeline-phase parallel">
+                            <div class="pipeline-node" id="node-js">
+                                <div class="node-icon"><i data-lucide="braces"></i></div>
+                                <div class="node-label">JS AGENT</div>
+                                <div class="node-sub">Logic & interactivity</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                            <div class="pipeline-node" id="node-css">
+                                <div class="node-icon"><i data-lucide="palette"></i></div>
+                                <div class="node-label">CSS AGENT</div>
+                                <div class="node-sub">Design system</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow"><i data-lucide="arrow-right"></i></div>
+
+                        <!-- PHASE 4: QA Critic -->
+                        <div class="pipeline-phase">
+                            <div class="pipeline-node" id="node-qa">
+                                <div class="node-icon"><i data-lucide="shield-check"></i></div>
+                                <div class="node-label">QA CRITIC</div>
+                                <div class="node-sub">Evaluator-optimizer</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow"><i data-lucide="arrow-right"></i></div>
+
+                        <!-- PHASE 5: Output -->
+                        <div class="pipeline-phase">
+                            <div class="pipeline-node output-node" id="node-output">
+                                <div class="node-icon"><i data-lucide="rocket"></i></div>
+                                <div class="node-label">LIVE AGENT</div>
+                                <div class="node-sub">Deployed & running</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pipeline-log glass" id="pipeline-log">
+                        <div class="log-line system">[NEXUS] Pipeline visualization ready.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── VIEW: DIAGNOSTICS ── -->
+            <section class="view-content hidden" id="view-analytics">
+                <div class="section-header">
+                    <h2>SYSTEM DIAGNOSTICS</h2>
+                </div>
+                <div class="diagnostics-grid">
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">REFLEXIVE LOOP</div>
+                        <div class="diag-value cyan">ACTIVE</div>
+                        <div class="diag-sub">Orchestrator → Workers → QA Critic</div>
+                    </div>
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">PARALLELIZATION</div>
+                        <div class="diag-value purple">ENABLED</div>
+                        <div class="diag-sub">HTML+Data | JS+CSS simultaneous</div>
+                    </div>
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">GOAL ROUTER</div>
+                        <div class="diag-value cyan">ACTIVE</div>
+                        <div class="diag-sub">6 mission types classified</div>
+                    </div>
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">WEBSOCKET</div>
+                        <div class="diag-value" id="diag-ws">CONNECTING</div>
+                        <div class="diag-sub">Real-time telemetry stream</div>
+                    </div>
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">AGENT REGISTRY</div>
+                        <div class="diag-value purple" id="diag-agents">0 AGENTS</div>
+                        <div class="diag-sub">Persistent local storage</div>
+                    </div>
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">AI BACKBONE</div>
+                        <div class="diag-value cyan">GEMINI FLASH</div>
+                        <div class="diag-sub">4-model cascade fallback</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ══════════════════ MISSION SUCCESS OVERLAY ══════════════════ -->
+    <div id="nexus-overlay" class="nexus-overlay hidden">
+        <div class="overlay-panel glass-heavy">
+            <div class="overlay-header">
+                <div>
+                    <h2 id="overlay-title">MISSION COMPLETE</h2>
+                    <p id="overlay-subtitle" class="overlay-sub"></p>
+                </div>
+                <button class="close-btn" id="close-overlay"><i data-lucide="x"></i></button>
+            </div>
+            <div class="overlay-body">
+                <div class="overlay-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">TYPE</div>
+                        <div class="stat-value" id="overlay-type">-</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">QA SCORE</div>
+                        <div class="stat-value" id="overlay-qa">-</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">COMPLEXITY</div>
+                        <div class="stat-value" id="overlay-complexity">-</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">AGENTS USED</div>
+                        <div class="stat-value" id="overlay-agents">5</div>
+                    </div>
+                </div>
+                <div class="overlay-modules" id="overlay-modules"></div>
+                <div class="overlay-actions">
+                    <a id="overlay-launch-btn" href="#" target="_blank" class="action-btn primary-btn">
+                        <i data-lucide="rocket"></i> LAUNCH APPLICATION
+                    </a>
+                    <button class="action-btn secondary-btn" id="overlay-close-btn">
+                        <i data-lucide="x-circle"></i> CLOSE
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

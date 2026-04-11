@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<!-- VERSION 4.2 - REFLEXIVE FACTORY ONLINE -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aon AI | Universal Software Factory</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="nexus-theme">
+    <div id="app" class="nexus-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="nexus-sidebar glass">
+            <div class="sidebar-header">
+                <div class="logo-orb"></div>
+                <h1 class="logo-text">AON <span>AI</span></h1>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#nexus" class="nav-item active" id="nav-nexus" data-view="nexus">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>NEXUS</span>
+                </a>
+                <a href="#agents" class="nav-item" id="nav-agents" data-view="agents">
+                    <i data-lucide="cpu"></i>
+                    <span>ACTIVE AGENTS</span>
+                </a>
+                <a href="#blueprints" class="nav-item" id="nav-blueprints" data-view="blueprints">
+                    <i data-lucide="layers"></i>
+                    <span>BLUEPRINTS</span>
+                </a>
+                <a href="#analytics" class="nav-item" id="nav-analytics" data-view="analytics">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span>SYSTEM HEALTH</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="status-dot pulsing"></span>
+                    <span class="status-label">AUTONOMY: 100%</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="nexus-main">
+            <header class="nexus-header">
+                <div class="header-search glass">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="goal-input" placeholder="DEFINE THE MISSION (E.G. 'BUILD A UNIVERSAL TRAVEL AGENT')">
+                    <button id="initialize-btn" class="glow-btn">INITIALIZE</button>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn glass"><i data-lucide="settings"></i></button>
+                    <button class="icon-btn glass"><i data-lucide="bell"></i></button>
+                    <div class="user-profile"><div class="avatar">R</div></div>
+                </div>
+            </header>
+
+            <section class="nexus-container">
+                <!-- Nexus View -->
+                <div class="view-content" id="view-nexus">
+                    <div class="nexus-grid">
+                        <div class="nexus-card central-command glass span-2">
+                             <div class="card-header"><h2>NEXUS CORE v4.2</h2><span class="badge">STABLE</span></div>
+                             <div class="nexus-orb-container">
+                                 <canvas id="orb-canvas"></canvas>
+                                 <div class="orb-overlay">
+                                     <h3 id="current-task">AWAITING MISSION COMMANDS...</h3>
+                                     <div class="progress-bar-container"><div class="progress-bar" id="nexus-progress"></div></div>
+                                 </div>
+                             </div>
+                        </div>
+
+                        <div class="nexus-card terminal glass">
+                            <div class="card-header">
+                                <h2>AUTONOMY ENGINE LOGS</h2>
+                                <div class="terminal-actions"><span class="terminal-dot red"></span><span class="terminal-dot yellow"></span><span class="terminal-dot green"></span></div>
+                            </div>
+                            <div class="terminal-content" id="log-terminal">
+                                <div class="log-line system">[SYSTEM] REFLEXIVE ENGINE ONLINE.</div>
+                                <div class="log-line user">READY FOR REAL-WORLD SYNTHESIS...</div>
+                            </div>
+                        </div>
+
+                        <div class="nexus-card summary glass">
+                            <div class="card-header"><h2>SYSTEM COMPONENTS</h2></div>
+                            <div class="agent-list" id="squad-list">
+                                <div class="empty-state"><p>DEPLOY A MISSION TO HYDRATE SQUAD...</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Agents View -->
+                <div class="view-content hidden" id="view-agents">
+                    <div class="nexus-card summary glass">
+                        <div class="card-header"><h2>SQUAD OVERVIEW</h2></div>
+                        <div class="agent-list" id="squad-view-list" style="padding: 1rem;">
+                            <div class="empty-state"><h3>SQUAD OFFLINE</h3><p>DEPLOY A MISSION TO HYDRATE AGENTS.</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blueprints View -->
+                <div class="view-content hidden" id="view-blueprints">
+                    <div class="nexus-card summary glass">
+                        <div class="card-header"><h2>MASTER BLUEPRINTS</h2></div>
+                        <div class="agent-list" style="padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="agent-item"><i data-lucide="globe"></i><div><h4>Real-Time Newsregator</h4><p>Live search/scraping synthesis.</p></div></div>
+                            <div class="agent-item"><i data-lucide="trending-up"></i><div><h4>Crypto Pulse</h4><p>Live market analysis.</p></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics View -->
+                <div class="view-content hidden" id="view-analytics">
+                    <div class="nexus-card summary glass">
+                        <div class="card-header"><h2>SYSTEM DIAGNOSTICS</h2></div>
+                        <div style="padding: 2rem;">
+                            <p>Handshake Status: <span style="color: var(--accent-cyan);">SYNCHRONIZED</span></p>
+                            <p>Reflexive Loop: <span style="color: var(--accent-cyan);">ACTIVE (DRAFT-CRITIQUE-REFINE)</span></p>
+                            <p>Live Brain: <span style="color: var(--accent-cyan);">GEMINI-FLASH ACTIVE</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Overlay -->
+    <div id="nexus-overlay" class="nexus-overlay hidden">
+        <div class="overlay-content glass">
+            <div class="overlay-header"><h2>MISSION SUCCESS</h2><button class="close-overlay"><i data-lucide="x"></i></button></div>
+            <div class="overlay-body"><iframe id="preview-frame" frameborder="0"></iframe></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

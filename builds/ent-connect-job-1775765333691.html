@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENT Connect | Aon AI Factory</title>
+    <meta name="description" content="Seamlessly connect ENT specialists, staff, and patients with 24/7 care.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        :root {
+            --primary: #2A9D8F;
+            --secondary: #E9C46A;
+            --bg: #050507;
+            --surface: rgba(15,15,20,0.85);
+            --border: rgba(255,255,255,0.08);
+            --text: #f0f0f5;
+            --text-muted: rgba(255,255,255,0.5);
+            --error: #ef4444;
+            --radius: 16px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        h1,h2,h3,h4 { font-family: 'Outfit', sans-serif; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        
+        /* SELF-HEAL UI */
+        #aon-self-heal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; text-align: center; padding: 20px;
+        }
+        .heal-card {
+            background: #111; border: 1px solid var(--error); border-radius: 16px;
+            padding: 40px; max-width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .heal-btn {
+            background: var(--primary); color: white; border: none; padding: 12px 24px;
+            border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .heal-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--primary); }
+        .heal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .aon-watermark {
+            position: fixed; bottom: 12px; right: 16px;
+            font-size: 11px; font-family: 'Outfit', sans-serif;
+            opacity: 0.25; pointer-events: none; letter-spacing: 0.1em;
+        }
+        :root {
+    --primary-color: #2A9D8F;
+    --secondary-color: #E9C46A;
+    --corner-radius: 16px;
+    --blur-radius: 12px;
+    --font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-family);
+    background-color: #f0f0f0;
+    color: #333;
+    overflow-y: scroll;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+body::-webkit-scrollbar {
+    width: 8px;
+}
+
+body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+    padding: 16px;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: var(--corner-radius);
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+        0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(var(--blur-radius));
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.02);
+    box-shadow: 
+        0 8px 12px -1px rgba(0, 0, 0, 0.2), 
+        0 4px 8px -2px rgba(0, 0, 0, 0.2);
+}
+
+.heading {
+    font-size: clamp(1.5rem, 2vw + 1rem, 2.5rem);
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 16px;
+}
+
+.subheading {
+    font-size: clamp(1rem, 1.5vw + 0.5rem, 1.5rem);
+    font-weight: 500;
+    color: var(--secondary-color);
+    margin-bottom: 8px;
+}
+
+.text {
+    font-size: clamp(0.875rem, 1vw + 0.5rem, 1.125rem);
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--corner-radius);
+    cursor: pointer;
+    font-size: clamp(0.875rem, 1vw + 0.5rem, 1rem);
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.button:hover {
+    background-color: #219a72;
+    transform: translateY(-2px);
+}
+
+.bento-grid__tabs {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 16px;
+}
+
+.bento-grid__tabs a {
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.bento-grid__tabs a:hover {
+    text-decoration: underline;
+}
+    </style>
+</head>
+<body>
+    <div id="aon-self-heal-overlay">
+        <div class="heal-card">
+            <h2 style="color: var(--error); margin-bottom: 10px;">Neural Instability Detected</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">This agent has encountered a runtime error. The Aon Factory can attempt an autonomous repair.</p>
+            <div id="error-details" style="font-family: monospace; font-size: 12px; background: #000; padding: 10px; border-radius: 8px; color: #ff9d9d; text-align: left; margin-bottom: 20px; max-height: 150px; overflow: auto;"></div>
+            <button id="repair-btn" class="heal-btn">Execute Self-Repair</button>
+        </div>
+    </div>
+
+    <nav role="navigation" aria-label="Primary Navigation" class="bento-grid">
+    <ul class="bento-grid__tabs">
+      <li><a href="#home" aria-label="Go to Home">Home</a></li>
+      <li><a href="#services" aria-label="View ENT Services">Services</a></li>
+      <li><a href="#appointments" aria-label="Book an Appointment">Appointments</a></li>
+      <li><a href="#portal" aria-label="Access Patient Portal">Patient Portal</a></li>
+      <li><a href="#contact" aria-label="Contact Us">Contact</a></li>
+    </ul>
+  </nav>
+
+<main role="main" class="bento-grid" aria-label="Main Content">
+  <section id="home" class="bento-grid__full" aria-labelledby="home-title">
+      <h1 id="home-title">Welcome to ENT Connect</h1>
+      <p>Your trusted partner in ear, nose, and throat health. We are here for you 24/7.</p>
+  </section>
+
+  <section id="services" class="bento-grid__full" aria-labelledby="services-title">
+      <h2 id="services-title">Our Services</h2>
+      <p>Comprehensive care for all your ENT needs, including treatments for sinus issues, hearing loss, and throat conditions.</p>
+  </section>
+
+  <section id="appointments" class="bento-grid__half" aria-labelledby="appointments-title">
+      <h2 id="appointments-title">Book an Appointment</h2>
+      <p>Schedule an appointment with our specialist at your convenience.</p>
+    <form aria-label="Appointment Booking Form">
+      <label for="appointment-date">Choose a date:</label>
+      <input type="date" id="appointment-date" name="appointment-date" aria-required="true" />
+      <label for="appointment-time">Choose a time:</label>
+      <input type="time" id="appointment-time" name="appointment-time" aria-required="true" />
+      <button type="submit" class="button">Confirm Appointment</button>
+    </form>
+    <div id="appointment-loading" role="status" aria-live="polite">Loading appointment data...</div>
+  </section>
+
+  <section id="virtual-consultation" class="bento-grid__half" aria-labelledby="virtual-consultation-title">
+      <h2 id="virtual-consultation-title">Request a Virtual Consultation</h2>
+      <p>Connect with our specialists from the comfort of your home.</p>
+      <form aria-label="Virtual Consultation Form">
+        <label for="consultation-date">Choose a date:</label>
+        <input type="date" id="consultation-date" name="consultation-date" aria-required="true" />
+        <label for="consultation-time">Choose a time:</label>
+        <input type="time" id="consultation-time" name="consultation-time" aria-required="true" />
+        <button type="submit" class="button">Request Consultation</button>
+      </form>
+  </section>
+</main>
+    <div class="aon-watermark">⚡ AON AI FACTORY v6.0 Alpha</div>
+    <script>
+    (async () => {
+        const JOB_ID = "job-1775765333691";
+        const repairBtn = document.getElementById('repair-btn');
+        const overlay = document.getElementById('aon-self-heal-overlay');
+        const errorView = document.getElementById('error-details');
+
+        window.onerror = function(msg, url, line, col, error) {
+            handleCrash({ message: msg, stack: error?.stack, line, col });
+            return false;
+        };
+
+        window.onunhandledrejection = function(event) {
+            handleCrash({ message: event.reason?.message || 'Unhandled Rejection', stack: event.reason?.stack });
+        };
+
+        function handleCrash(err) {
+            console.error('[AON CRASH]:', err);
+            overlay.style.display = 'flex';
+            errorView.innerText = err.message + "\n" + (err.stack || '');
+        }
+
+        repairBtn.onclick = async () => {
+            repairBtn.innerText = "Repairing Neural Pathways...";
+            repairBtn.disabled = true;
+            try {
+                const res = await fetch('http://localhost:3000/api/self-heal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jobId: JOB_ID,
+                        error: { message: errorView.innerText },
+                        code: document.documentElement.outerHTML
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    repairBtn.innerText = "Repair Successful! Reloading...";
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (e) {
+                repairBtn.innerText = "Repair Failed. Try again?";
+                repairBtn.disabled = false;
+                alert("Repair Error: " + e.message);
+            }
+        };
+
+        try {
+            // Global State
+window.__AON_STATE__ = {
+    data: {},
+    ui: { loading: true },
+    config: {
+        accentColor: "#2A9D8F",
+        complementary: "#E9C46A",
+        surfaceBlur: "12px",
+        cornerRadius: "16px"
+    }
+};
+
+// Centralized Store Update Pattern
+const store = {
+    setState(newState) {
+        Object.assign(window.__AON_STATE__, newState);
+        this.render();
+    },
+    render() {
+        // Logic to re-render the UI based on the updated state
+        // E.g., update DOM elements, re-initialize charts, etc.
+    }
+};
+
+// Error Resilience Utility
+async function fetchWithErrorHandling(url, options) {
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        showToast(error.message); // Implement showToast to display error to the user
+    }
+}
+
+// Micro-interactions
+function setTransition(element, duration) {
+    element.style.transition = `all ${duration}ms ease-in-out`;
+}
+
+// Appointment Booking System
+async function bookAppointment(data) {
+    const response = await fetchWithErrorHandling('/api/book-appointment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+
+    if (response) {
+        store.setState({ data: { ...window.__AON_STATE__.data, appointment: response } });
+        sendAppointmentConfirmation(response); // Implement this function to send confirmation emails/SMS
+    }
+}
+
+// Virtual Consultation
+async function requestVirtualConsultation(data) {
+    const response = await fetchWithErrorHandling('/api/request-virtual-consultation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+
+    if (response) {
+        store.setState({ data: { ...window.__AON_STATE__.data, consultation: response } });
+        processPayment(response); // Implement payment processing
+    }
+}
+
+// Initialize Chart.js if container exists
+if (document.getElementById('chart-container')) {
+    const ctx = document.getElementById('chart-container').getContext('2d');
+    const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['January', 'February', 'March', 'April'],
+            datasets: [{
+                label: 'Sample Data',
+                data: [12, 19, 3, 5],
+                borderColor: 'rgba(42,157,143,1)',
+                backgroundColor: 'rgba(42,157,143,0.2)',
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } catch (e) {
+            handleCrash(e);
+        }
+    })();
+    </script>
+</body>
+</html>
