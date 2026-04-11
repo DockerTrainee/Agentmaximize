@@ -342,7 +342,7 @@ button:active {
             repairBtn.innerText = "Repairing Neural Pathways...";
             repairBtn.disabled = true;
             try {
-                const res = await fetch('http://localhost:3000/api/self-heal', {
+                const res = await fetch('/api/self-heal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -410,7 +410,7 @@ button:active {
   function handleAppointmentBooking() {
     const appointmentContainer = document.getElementById("aon-data-appointment");
     fetchData(
-      "http://localhost:3000/live-data/appointments",
+      "/live-data/appointments",
       "GET",
       null,
       "aon-data-appointment"
@@ -420,7 +420,7 @@ button:active {
   function handleMedicalRecordAccess() {
     const medicalRecordContainer = document.getElementById("aon-data-records");
     fetchData(
-      "http://localhost:3000/live-data/medical_records",
+      "/live-data/medical_records",
       "GET",
       null,
       "aon-data-records"
@@ -431,7 +431,7 @@ button:active {
     const query = event.target.value;
     state.searchQuery = query;
     fetchData(
-      "http://localhost:3000/search",
+      "/search",
       "POST",
       { query },
       "search-results"
@@ -440,7 +440,7 @@ button:active {
 
   function handleRealTimeNotification() {
     setInterval(() => {
-      fetchData("http://localhost:3000/live-data/communications", "GET", null, "communications-feed");
+      fetchData("/live-data/communications", "GET", null, "communications-feed");
     }, 30000);
   }
 
@@ -458,7 +458,7 @@ button:active {
     const symptomsContainer = document.getElementById("aon-data-symptoms");
 
     if (symptomsText) {
-      fetchData("http://localhost:3000/live-data/symptoms", "POST", { symptoms: symptomsText })
+      fetchData("/live-data/symptoms", "POST", { symptoms: symptomsText })
         .then(() => {
           symptomsContainer.textContent = "Symptoms logged successfully!";
           symptomsInput.value = "";

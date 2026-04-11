@@ -628,6 +628,7 @@ STRICT RULES:
 - Hook into Bento-Grid article IDs.
 - Use 'lucide.createIcons()' for premium iconography.
 - Implement 'Hot State' updates for live data feeds.
+- IMPORTANT: Use RELATIVE paths for all fetch calls (e.g., '/chat', '/live-data'). DO NOT use 'http://localhost:3000'.
 `;
 
     const cssAgentPrompt = `

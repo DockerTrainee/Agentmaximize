@@ -365,7 +365,7 @@ div[id^="aon-data-"]:after {
             repairBtn.innerText = "Repairing Neural Pathways...";
             repairBtn.disabled = true;
             try {
-                const res = await fetch('http://localhost:3000/api/self-heal', {
+                const res = await fetch('/api/self-heal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -398,11 +398,11 @@ div[id^="aon-data-"]:after {
   };
 
   const endpoints = {
-    fetchPatientRecords: "http://localhost:3000/live-data/crypto",
-    fetchAppointmentSchedules: "http://localhost:3000/live-data/news",
-    searchTeleconsultationLogs: "http://localhost:3000/search",
-    searchBillingData: "http://localhost:3000/search",
-    chatBot: "http://localhost:3000/chat"
+    fetchPatientRecords: "/live-data/crypto",
+    fetchAppointmentSchedules: "/live-data/news",
+    searchTeleconsultationLogs: "/search",
+    searchBillingData: "/search",
+    chatBot: "/chat"
   };
 
   const updateInterval = {

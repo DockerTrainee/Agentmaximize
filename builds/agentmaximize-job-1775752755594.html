@@ -556,7 +556,7 @@ textarea {
         setGeneratingState(true);
 
         try {
-            const response = await fetch('http://localhost:3000/chat', {
+            const response = await fetch('/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -681,7 +681,7 @@ textarea {
         elements.capabilityBtn.addEventListener('click', async () => {
             try {
                 updateUI(elements.supportFeed, "Fetching new capabilities...");
-                const res = await fetch('http://localhost:3000/search', {
+                const res = await fetch('/search', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ query: "new_features" })

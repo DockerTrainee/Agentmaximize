@@ -374,7 +374,7 @@ button:hover {
             repairBtn.innerText = "Repairing Neural Pathways...";
             repairBtn.disabled = true;
             try {
-                const res = await fetch('http://localhost:3000/api/self-heal', {
+                const res = await fetch('/api/self-heal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -457,7 +457,7 @@ button:hover {
 
   // Event Handler: Handle Patient Data Update
   async function handlePatientDataUpdate() {
-    const data = await fetchData("http://localhost:3000/live-data/crypto", "GET");
+    const data = await fetchData("/live-data/crypto", "GET");
     if (data) {
       state.currentPatient = data;
       updateDOM(
@@ -483,7 +483,7 @@ button:hover {
 
   // Event Handler: Submit Search Query
   async function handleSearchQuerySubmit(query) {
-    const data = await fetchData("http://localhost:3000/search", "POST", { query });
+    const data = await fetchData("/search", "POST", { query });
     if (data) {
       updateDOM(
         "search-results",
@@ -504,14 +504,14 @@ button:hover {
     const endpoints = [
       {
         id: "crypto_data",
-        path: "http://localhost:3000/live-data/crypto",
+        path: "/live-data/crypto",
         method: "GET",
         updateInterval: 30,
         displayTarget: "aon-data-crypto",
       },
       {
         id: "news_data",
-        path: "http://localhost:3000/live-data/news",
+        path: "/live-data/news",
         method: "GET",
         updateInterval: 60,
         displayTarget: "aon-data-news",

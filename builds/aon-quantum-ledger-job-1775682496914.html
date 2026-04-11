@@ -332,7 +332,7 @@ h1, h2 { font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; }
     };
 
     const handleLivePriceUpdate = async () => {
-        const data = await fetchData('http://localhost:3000/live-data/crypto');
+        const data = await fetchData('/live-data/crypto');
         if (data) {
             elements.pnl.textContent = `$${data.summary_pnl || '0.00'}`;
             elements.ticker.textContent = `Live: ${data.market_pulse || 'Stable'}`;
@@ -341,7 +341,7 @@ h1, h2 { font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; }
     };
 
     const handleSearchQuery = async (query) => {
-        const results = await fetchData('http://localhost:3000/search', {
+        const results = await fetchData('/search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ query })
@@ -350,7 +350,7 @@ h1, h2 { font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; }
     };
 
     const refreshSentimentIndex = async () => {
-        const data = await fetchData('http://localhost:3000/live-data/news');
+        const data = await fetchData('/live-data/news');
         if (data) {
             state.currentSentimentScore = data.score;
             // logic to update sentiment gauge/DOM
