@@ -22,12 +22,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // GLOBAL SYSTEM ERROR HANDLERS
     // ═══════════════════════════════════════════════════════════════
     window.onerror = function(msg, url, line, col, error) {
+        // Ignore errors from browser extensions — they are NOT our app's fault
+        if (url && (url.startsWith('chrome-extension://') || url.startsWith('moz-extension://'))) {
+            console.warn('[NEXUS] Ignored extension error:', msg);
+            return true; // suppress
+        }
         handleSystemCrash({ message: msg, stack: error?.stack, line, col, source: url });
         return false;
     };
 
     window.onunhandledrejection = function(event) {
-        handleSystemCrash({ message: event.reason?.message || 'Unhandled Rejection', stack: event.reason?.stack });
+        const stack = event.reason?.stack || '';
+        // Ignore extension-originated promise rejections
+        if (stack.includes('chrome-extension://') || stack.includes('moz-extension://')) {
+            console.warn('[NEXUS] Ignored extension rejection:', event.reason?.message);
+            return;
+        }
+        handleSystemCrash({ message: event.reason?.message || 'Unhandled Rejection', stack });
     };
 
     function handleSystemCrash(err) {
