@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>AON AI | Upgrade to Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --glass-pro: rgba(255, 255, 255, 0.05);
+            --pro-gradient: linear-gradient(135deg, #00f2ff 0%, #7000ff 100%);
+        }
+
+        body {
+            background: #03030a;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .pricing-container {
+            max-width: 500px;
+            width: 100%;
+            padding: 3rem 2rem;
+            background: var(--surface-high);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0,242,255,0.05) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .pro-badge {
+            background: var(--pro-gradient);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 { font-size: 2.5rem; margin-bottom: 1rem; font-weight: 800; background: linear-gradient(to bottom, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        p { color: var(--text-dim); margin-bottom: 3rem; line-height: 1.6; }
+
+        .feature-list {
+            text-align: left;
+            margin-bottom: 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .feature-icon { color: var(--accent-cyan); width: 20px; height: 20px; }
+
+        .price-tag {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-sub { color: var(--text-dim); margin-bottom: 2rem; font-size: 0.9rem; }
+
+        .upgrade-btn {
+            width: 100%;
+            padding: 1.2rem;
+            background: var(--pro-gradient);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.5);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="pricing-container">
+        <button class="close-btn" onclick="window.history.back()">
+            <i data-lucide="x"></i>
+        </button>
+        
+        <div class="pro-badge">Nexus Prime</div>
+        <h1>Unleash the Factory</h1>
+        <p>Break the limits and scale your multi-agent architecture with priority synthesis.</p>
+
+        <div class="feature-list">
+            <div class="feature-item">
+                <i data-lucide="check-circle-2" class="feature-icon"></i>
+                <span>Unlimited Active Agents</span>
+            </div>
+            <div class="feature-item">
+                <i data-lucide="check-circle-2" class="feature-icon"></i>
+                <span>Priority Synthesis Engine</span>
+            </div>
+            <div class="feature-item">
+                <i data-lucide="check-circle-2" class="feature-icon"></i>
+                <span>Multi-Agent Factory Access</span>
+            </div>
+            <div class="feature-item">
+                <i data-lucide="check-circle-2" class="feature-icon"></i>
+                <span>Premium UI Themes</span>
+            </div>
+        </div>
+
+        <div class="price-tag">$9.99</div>
+        <div class="price-sub">per month • 7-day free trial</div>
+
+        <button class="upgrade-btn" id="start-purchase">
+            Start Free Trial
+        </button>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

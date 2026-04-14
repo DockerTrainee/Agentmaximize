@@ -449,6 +449,26 @@ app.post('/api/self-heal', authMiddleware, async (req, res) => {
     
     try {
         // Trigger background repair
+        const projectType = classification.type; // dashboard, chatbot, tool, simulation
+
+        // 🛡️ SUBSCRIPTION GATE: Limit free users to 1 agent
+        const dbPath = path.join(__dirname, 'agents-db.json');
+        let currentAgents = [];
+        try {
+            const dbData = await fs.readJson(dbPath);
+            currentAgents = dbData.agents || [];
+        } catch (e) {}
+
+        const isPremium = req.headers['x-subscription-pro'] === 'true';
+        if (!isPremium && currentAgents.length >= 1) {
+            return res.status(403).json({
+                error: 'AGENT_LIMIT_REACHED',
+                message: 'Free users are limited to 1 active agent. Upgrade to Pro for unlimited synthesis.'
+            });
+        }
+
+        // Initialize Synthesis Engine with Gemini Cloud Orchestration
+        const synthesisId = `job-${Date.now()}`;
         const repairedCode = await runAgentRepair(jobId, error, code);
         
         // Update the file

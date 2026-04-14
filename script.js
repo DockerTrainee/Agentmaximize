@@ -2,7 +2,12 @@
  * AON AI — NEXUS PRIME v5.0 — Frontend Intelligence
  * Patterns: Claude Code agentic loop, Anthropic pipeline viz, OpenHands event model
  */
-document.addEventListener('DOMContentLoaded', () => {
+import { BillingManager } from './billing.js';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize Subscription Billing
+    await BillingManager.init();
+
     // ═══════════════════════════════════════════════════════════════
     // GLOBAL SYSTEM ERROR HANDLERS
     // ═══════════════════════════════════════════════════════════════
@@ -346,6 +351,18 @@ document.addEventListener('DOMContentLoaded', () => {
         updateProgress(0, 'INITIALIZING...');
         addLog(`[MISSION] "${goal}"`, 'user');
 
+        // Check Agent Limit for Free Users
+        const agentsRes = await fetch('/api/agents');
+        const agentsData = await agentsRes.json();
+        const agents = agentsData.agents || [];
+
+        if (!BillingManager.isPremium && agents.length >= 1) {
+            addLog(`[LIMIT REACHED] Free users can only store 1 active agent.`, 'error');
+            location.assign('pricing.html');
+            resetMission();
+            return;
+        }
+
         initBtn.disabled = true;
         initBtn.querySelector('span').textContent = 'RUNNING';
 
@@ -556,6 +573,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!goal) { addLog('[ERROR] Please enter a mission goal.', 'error'); return; }
         runMission(goal);
     });
+
+    const upgradeLink = document.getElementById('upgrade-pro-link');
+    if (upgradeLink) {
+        upgradeLink.addEventListener('click', () => {
+            location.assign('pricing.html');
+        });
+    }
 
     goalInput.addEventListener('keypress', e => {
         if (e.key === 'Enter') initBtn.click();
