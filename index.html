@@ -383,49 +383,244 @@
 
     <!-- ══════════════════ PLATFORM MANUAL MODAL ══════════════════ -->
     <div id="manual-modal" class="nexus-modal">
-        <div class="modal-content glass-heavy mission-manual animate__animated animate__zoomIn">
-            <div class="modal-header">
+        <div class="modal-content glass-heavy mission-manual animate__animated animate__zoomIn" style="max-width:780px; max-height:88vh; overflow:hidden; display:flex; flex-direction:column;">
+
+            <!-- Header -->
+            <div class="modal-header" style="flex-shrink:0;">
                 <div class="header-main">
                     <i data-lucide="book-open" class="manual-icon"></i>
                     <div>
-                        <h2>Operational Manual</h2>
-                        <p>Nexus Prime v5.0 Platform Architecture</p>
+                        <h2>AON AI Help Center</h2>
+                        <p>Your complete guide to building with Nexus Prime</p>
                     </div>
                 </div>
                 <button class="modal-close" id="close-manual"><i data-lucide="x"></i></button>
             </div>
-            
-            <div class="manual-body">
-                <div class="manual-grid">
-                    <div class="manual-card">
-                        <h3><i data-lucide="target"></i> MISSION CONTROL</h3>
-                        <p>Type your goal in the center bar. The "Orchestrator" analyzes your intent and defines a <strong>Blueprint</strong> which includes the UI theme, logic requirements, and data architecture.</p>
-                    </div>
-                    <div class="manual-card">
-                        <h3><i data-lucide="cpu"></i> MULTI-AGENT SYNTHESIS</h3>
-                        <p>Our parallel factory triggers 5 agents: <strong>HTML, Data, JS, CSS</strong>, and the <strong>QA Critic</strong>. They work simultaneously to build, refine, and verify your app in seconds.</p>
-                    </div>
-                    <div class="manual-card">
-                        <h3><i data-lucide="shield-check"></i> SELF-HEALING</h3>
-                        <p>Every generated app is protected. If a logic error occurs, the <strong>Aon Neural Surgeon</strong> automatically patches the code to restore functionality without manual debugging.</p>
-                    </div>
-                    <div class="manual-card">
-                        <h3><i data-lucide="bot"></i> AGENT LIBRARY</h3>
-                        <p>Store, audit, and launch your fleet of AI agents. Each agent is a standalone production-ready application hosted on your Nexus server.</p>
-                    </div>
-                </div>
-                
-                <div class="manual-footer-note">
-                    <div class="note-icon"><i data-lucide="info"></i></div>
-                    <p><strong>Note:</strong> Sensitive actions like "Forced Diagnostics" or "Agent Deletion" require your Admin Password. Look for the <strong>LOCKED</strong> indicator in the header.</p>
-                </div>
+
+            <!-- Tab Navigation -->
+            <div style="display:flex; gap:0.5rem; padding:0 1.5rem; border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto;">
+                <button class="help-tab active" data-tab="start">🚀 Quick Start</button>
+                <button class="help-tab" data-tab="agents">🤖 Agents</button>
+                <button class="help-tab" data-tab="pipeline">⚡ Pipeline</button>
+                <button class="help-tab" data-tab="pro">💎 Pro Plan</button>
+                <button class="help-tab" data-tab="tips">💡 Pro Tips</button>
             </div>
-            
-            <div class="modal-actions">
-                <button class="action-btn primary full" id="manual-dismiss">GOT IT, LET'S BUILD</button>
+
+            <!-- Tab Content -->
+            <div class="manual-body" style="overflow-y:auto; flex:1;">
+
+                <!-- TAB: Quick Start -->
+                <div class="help-tab-content active" id="tab-start">
+                    <div style="padding:1.5rem 0 0.5rem;">
+                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">Get your first AI-powered app running in under 60 seconds.</p>
+                        <div style="display:flex; flex-direction:column; gap:1rem;">
+                            <div class="manual-step">
+                                <div class="step-number">1</div>
+                                <div>
+                                    <h4>Describe what you want to build</h4>
+                                    <p>Type a clear goal into the Mission bar. Be specific: <em>"Build a personal finance tracker with charts and a budget planner"</em> works far better than <em>"Make an app."</em></p>
+                                </div>
+                            </div>
+                            <div class="manual-step">
+                                <div class="step-number">2</div>
+                                <div>
+                                    <h4>Click DEPLOY and watch the agents work</h4>
+                                    <p>The system activates 5 AI agents simultaneously — Orchestrator, HTML, Data, JS, CSS — and a QA Critic that grades and polishes the output.</p>
+                                </div>
+                            </div>
+                            <div class="manual-step">
+                                <div class="step-number">3</div>
+                                <div>
+                                    <h4>Launch your app from Agent Library</h4>
+                                    <p>When synthesis is complete, your app appears in the <strong>Agent Library</strong> tab. Click <strong>Launch</strong> to open it in a new tab — it runs live, right now.</p>
+                                </div>
+                            </div>
+                            <div class="manual-step">
+                                <div class="step-number">4</div>
+                                <div>
+                                    <h4>Your library is private to you</h4>
+                                    <p>Every device gets its own unique ID. Your agents are <strong>100% private</strong> — no other user can see or access them.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="manual-tip-box">
+                            <i data-lucide="lightbulb"></i>
+                            <p><strong>Best prompts include:</strong> the type of app, key features, the audience, and any design preference (e.g., "dark mode, minimalist").</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: Agents -->
+                <div class="help-tab-content" id="tab-agents">
+                    <div style="padding:1.5rem 0 0.5rem;">
+                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">Understand what types of apps you can build and how to manage them.</p>
+                        <div class="manual-grid">
+                            <div class="manual-card">
+                                <h3><i data-lucide="bar-chart-2"></i> Dashboard</h3>
+                                <p>Analytics panels, data monitors, KPI trackers. Great for business metrics and real-time data visualization.</p>
+                                <div class="example-prompt">e.g. "Sales performance dashboard with weekly charts"</div>
+                            </div>
+                            <div class="manual-card">
+                                <h3><i data-lucide="message-square"></i> Chatbot</h3>
+                                <p>Conversational AI assistants for customer support, FAQ bots, or learning companions.</p>
+                                <div class="example-prompt">e.g. "Customer support bot for a shoe store"</div>
+                            </div>
+                            <div class="manual-card">
+                                <h3><i data-lucide="wrench"></i> Tool</h3>
+                                <p>Utility apps like calculators, converters, generators, or form builders.</p>
+                                <div class="example-prompt">e.g. "Invoice generator with PDF export"</div>
+                            </div>
+                            <div class="manual-card">
+                                <h3><i data-lucide="globe"></i> Landing Page</h3>
+                                <p>Marketing pages, product showcases, and portfolio sites with premium design.</p>
+                                <div class="example-prompt">e.g. "Landing page for a fitness coaching app"</div>
+                            </div>
+                        </div>
+                        <div class="manual-tip-box" style="margin-top:1rem;">
+                            <i data-lucide="trash-2"></i>
+                            <p>To delete an agent, go to <strong>Agent Library</strong> → hover the card → click <strong>Delete</strong>. This is permanent and cannot be undone.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: Pipeline -->
+                <div class="help-tab-content" id="tab-pipeline">
+                    <div style="padding:1.5rem 0 0.5rem;">
+                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">See exactly how your apps are built — step by step inside the Multi-Agent Factory.</p>
+                        <div style="display:flex; flex-direction:column; gap:0.8rem;">
+                            <div class="pipeline-step">
+                                <span class="pipe-icon" style="background:rgba(157,80,255,0.2);">🔀</span>
+                                <div><strong>Mission Router</strong><br><small>Classifies your goal (dashboard, chatbot, tool, etc.) and selects the optimal build strategy.</small></div>
+                            </div>
+                            <div class="pipeline-step">
+                                <span class="pipe-icon" style="background:rgba(0,242,255,0.15);">👑</span>
+                                <div><strong>Orchestrator Agent</strong><br><small>Designs the app blueprint: project name, UI theme, module list, and design system.</small></div>
+                            </div>
+                            <div class="pipeline-step">
+                                <span class="pipe-icon" style="background:rgba(0,255,136,0.15);">⚡</span>
+                                <div><strong>HTML + Data Agents (Parallel)</strong><br><small>Simultaneously build the semantic structure and wire in live data sources.</small></div>
+                            </div>
+                            <div class="pipeline-step">
+                                <span class="pipe-icon" style="background:rgba(255,189,46,0.15);">🎨</span>
+                                <div><strong>JS + CSS Agents (Parallel)</strong><br><small>Add full interactivity and a premium glassmorphic design system simultaneously.</small></div>
+                            </div>
+                            <div class="pipeline-step">
+                                <span class="pipe-icon" style="background:rgba(255,80,80,0.15);">🛡️</span>
+                                <div><strong>QA Critic + Optimizer</strong><br><small>Scores quality (0–100), flags issues, then applies a final "Premium Polish" pass to fix them.</small></div>
+                            </div>
+                            <div class="pipeline-step">
+                                <span class="pipe-icon" style="background:rgba(0,255,136,0.2);">🚀</span>
+                                <div><strong>Self-Healing Guard</strong><br><small>If a runtime error ever occurs in a deployed app, the Neural Surgeon auto-patches it.</small></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: Pro Plan -->
+                <div class="help-tab-content" id="tab-pro">
+                    <div style="padding:1.5rem 0 0.5rem;">
+                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">AON AI offers a free tier and a Pro plan for power users.</p>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+                            <div class="plan-card">
+                                <div class="plan-label">FREE</div>
+                                <ul class="plan-list">
+                                    <li><i data-lucide="check"></i> 1 Active Agent</li>
+                                    <li><i data-lucide="check"></i> All app types</li>
+                                    <li><i data-lucide="check"></i> Self-Healing</li>
+                                    <li><i data-lucide="x" class="no"></i> Agent Library limit</li>
+                                    <li><i data-lucide="x" class="no"></i> Priority synthesis</li>
+                                </ul>
+                            </div>
+                            <div class="plan-card pro-plan-card">
+                                <div class="plan-label pro">PRO · $9.99/mo</div>
+                                <ul class="plan-list">
+                                    <li><i data-lucide="check"></i> <strong>Unlimited Agents</strong></li>
+                                    <li><i data-lucide="check"></i> All app types</li>
+                                    <li><i data-lucide="check"></i> Self-Healing</li>
+                                    <li><i data-lucide="check"></i> Priority synthesis</li>
+                                    <li><i data-lucide="check"></i> 7-day free trial</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="manual-tip-box">
+                            <i data-lucide="zap"></i>
+                            <p>Click <strong>⚡ UPGRADE PRO</strong> in the left sidebar to start your 7-day free trial. No charges until the trial ends.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: Pro Tips -->
+                <div class="help-tab-content" id="tab-tips">
+                    <div style="padding:1.5rem 0 0.5rem;">
+                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">Tricks used by advanced users to get the best results.</p>
+                        <div style="display:flex; flex-direction:column; gap:0.8rem;">
+                            <div class="tip-item">
+                                <span class="tip-badge">01</span>
+                                <div><strong>Be specific with data</strong> — Instead of "a finance app", say "a budget tracker with income/expense categories, pie charts, and a monthly savings goal of $500."</div>
+                            </div>
+                            <div class="tip-item">
+                                <span class="tip-badge">02</span>
+                                <div><strong>Mention design style</strong> — "Dark mode, glassmorphism, purple accent" gives the CSS Agent clear direction and produces stunning results.</div>
+                            </div>
+                            <div class="tip-item">
+                                <span class="tip-badge">03</span>
+                                <div><strong>Name your audience</strong> — "A dashboard for gym owners tracking 50+ members" helps all agents understand the scale and complexity.</div>
+                            </div>
+                            <div class="tip-item">
+                                <span class="tip-badge">04</span>
+                                <div><strong>Watch the Pipeline tab</strong> — Open the Pipeline view before clicking Deploy to watch all 5 agents activate and process in real-time.</div>
+                            </div>
+                            <div class="tip-item">
+                                <span class="tip-badge">05</span>
+                                <div><strong>Build a suite</strong> — Create multiple apps for the same business (Admin Dashboard + Customer Chatbot + Report Tool) and link them together to build a full product.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-actions" style="flex-shrink:0; border-top:1px solid var(--border);">
+                <button class="action-btn primary full" id="manual-dismiss">GOT IT — LET'S BUILD 🚀</button>
             </div>
         </div>
     </div>
+
+    <style>
+        .help-tab {
+            background: none; border: none; color: var(--text-dim); padding: 0.8rem 1rem;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent;
+            white-space: nowrap; transition: all 0.2s; font-family: inherit;
+        }
+        .help-tab.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+        .help-tab-content { display: none; }
+        .help-tab-content.active { display: block; }
+        .manual-step { display: flex; gap: 1rem; align-items: flex-start; padding: 1rem; background: var(--glass-pro, rgba(255,255,255,0.03)); border-radius: 12px; border: 1px solid var(--border); }
+        .step-number { width: 32px; height: 32px; min-width: 32px; background: linear-gradient(135deg, #00f2ff, #9d50ff); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; }
+        .manual-step h4 { margin: 0 0 0.3rem; font-size: 0.95rem; }
+        .manual-step p { margin: 0; color: var(--text-dim); font-size: 0.85rem; }
+        .manual-tip-box { display: flex; gap: 0.8rem; align-items: flex-start; background: rgba(0,242,255,0.05); border: 1px solid rgba(0,242,255,0.2); border-radius: 12px; padding: 1rem; margin-top: 1.2rem; }
+        .manual-tip-box i { color: var(--accent-cyan); min-width: 20px; }
+        .manual-tip-box p { margin: 0; font-size: 0.85rem; color: var(--text-dim); }
+        .example-prompt { background: rgba(255,255,255,0.04); border-radius: 8px; padding: 0.5rem 0.8rem; font-size: 0.75rem; color: var(--accent-cyan); margin-top: 0.5rem; font-style: italic; }
+        .pipeline-step { display: flex; gap: 1rem; align-items: flex-start; padding: 0.8rem; border-radius: 10px; border: 1px solid var(--border); }
+        .pipe-icon { font-size: 1.2rem; padding: 0.5rem; border-radius: 10px; }
+        .pipeline-step strong { font-size: 0.9rem; }
+        .pipeline-step small { color: var(--text-dim); }
+        .plan-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem; }
+        .pro-plan-card { border-color: rgba(0,242,255,0.4); background: rgba(0,242,255,0.04); }
+        .plan-label { font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 1rem; color: var(--text-dim); }
+        .plan-label.pro { background: linear-gradient(90deg,#00f2ff,#9d50ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .plan-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+        .plan-list li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+        .plan-list i { width: 16px; height: 16px; color: #00ff88; }
+        .plan-list i.no { color: #ff5555; }
+        .tip-item { display: flex; gap: 1rem; align-items: flex-start; padding: 0.8rem; border-radius: 10px; border: 1px solid var(--border); font-size: 0.85rem; }
+        .tip-badge { background: linear-gradient(135deg,#9d50ff,#00f2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 1.1rem; min-width: 28px; }
+        .tip-item div { color: var(--text-dim); line-height: 1.5; }
+        .tip-item strong { color: var(--text); }
+    </style>
 
     <script type="module" src="script.js"></script>
     <script>

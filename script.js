@@ -547,6 +547,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 2000);
     }
 
+    // Help Center Tab Switching
+    document.querySelectorAll('.help-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.help-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.help-tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            const target = document.getElementById(`tab-${tab.dataset.tab}`);
+            if (target) target.classList.add('active');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        });
+    });
+
     // ═══════════════════════════════════════════════════════════════
     // NAVIGATION
     // ═══════════════════════════════════════════════════════════════
