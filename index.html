@@ -99,10 +99,6 @@
                         <i data-lucide="help-circle"></i>
                         <span>HELP</span>
                     </div>
-                    <div class="action-chip glass" id="admin-lock-btn" title="Admin Security Lock">
-                        <i data-lucide="lock"></i>
-                        <span id="lock-status-text">LOCKED</span>
-                    </div>
                     <div class="action-chip glass" id="model-indicator">
                         <i data-lucide="cpu"></i>
                         <span>MULTI-AGENT</span>
@@ -110,29 +106,6 @@
                     <div class="user-avatar" id="user-avatar-btn">R</div>
                 </div>
             </header>
-
-            <!-- Admin Password Overlay (Sleek Glassmorphism) -->
-            <div id="admin-overlay" class="nexus-overlay hidden">
-                <div class="overlay-panel glass-heavy" style="max-width: 400px;">
-                    <div class="overlay-header">
-                        <div>
-                            <h2>ADMIN ACCESS</h2>
-                            <p class="overlay-sub">Enter password to unlock system mutations.</p>
-                        </div>
-                        <button class="close-btn" id="close-admin-overlay"><i data-lucide="x"></i></button>
-                    </div>
-                    <div class="overlay-body">
-                        <div class="mission-input-group glass" style="margin-bottom: 1.5rem;">
-                            <div class="mission-icon"><i data-lucide="shield-check"></i></div>
-                            <input type="password" id="admin-password-input" placeholder="ENTER ACCESS KEY..." style="background: none; border: none; outline: none; color: var(--text); flex: 1; padding: 0.5rem;">
-                        </div>
-                        <button id="unlock-btn" class="launch-btn" style="width: 100%;">
-                            <i data-lucide="unlock"></i>
-                            <span>UNLOCK SYSTEM</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
 
             <!-- ── VIEW: COMMAND HUB ── -->
             <section class="view-content active" id="view-nexus">
@@ -396,13 +369,6 @@
             <div class="overlay-body">
                 <div id="system-error-details" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; color: #ff9d9d; margin-bottom: 20px; max-height: 200px; overflow: auto; border: 1px solid rgba(255,0,0,0.2);"></div>
                 
-                <div class="admin-auth-required glass" style="padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;">
-                    <p style="font-size: 0.75rem; margin-bottom: 0.8rem; color: var(--text-muted);">ADMIN AUTHENTICATION REQUIRED FOR SYSTEM PATCH</p>
-                    <div class="mission-input-group glass">
-                        <div class="mission-icon"><i data-lucide="shield-check"></i></div>
-                        <input type="password" id="repair-admin-pass" placeholder="ENTER ACCESS KEY..." style="background: none; border: none; outline: none; color: var(--text); flex: 1; padding: 0.5rem;">
-                    </div>
-                </div>
 
                 <div class="overlay-actions">
                     <button id="repair-system-btn" class="launch-btn" style="background: linear-gradient(135deg, #ff4444, #9d50ff); width: 100%;">

@@ -53,21 +53,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const diagWS           = document.getElementById('diag-ws');
     const diagAgents       = document.getElementById('diag-agents');
     
-    // Admin Security
-    const adminLockBtn     = document.getElementById('admin-lock-btn');
-    const adminOverlay     = document.getElementById('admin-overlay');
-    const adminPassInput   = document.getElementById('admin-password-input');
-    const unlockBtn        = document.getElementById('unlock-btn');
-    const closeAdminBtn    = document.getElementById('close-admin-overlay');
-    const lockStatusText   = document.getElementById('lock-status-text');
-    let adminPassword      = localStorage.getItem('nexus_admin_pass') || '';
-
-    // Dashboard Repair Elements
-    const systemCrashOverlay = document.getElementById('system-crash-overlay');
-    const repairSystemBtn    = document.getElementById('repair-system-btn');
-    const repairAdminPass    = document.getElementById('repair-admin-pass');
-    const hideCrashBtn       = document.getElementById('hide-crash-overlay');
-    
     // Manual Elements
     const manualModal      = document.getElementById('manual-modal');
     const helpTrigger      = document.getElementById('help-trigger');
@@ -369,18 +354,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch('/orchestrate', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'x-admin-password': adminPassword 
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ goal })
             });
-            
-            if (res.status === 401) {
-                showAdminPrompt();
-                throw new Error('Unauthorized: Admin Password Required');
-            }
-            
+
             const data = await res.json();
             if (!data.success) throw new Error(data.error || 'Failed to start mission');
 
@@ -585,75 +562,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (e.key === 'Enter') initBtn.click();
     });
 
-    // ═══════════════════════════════════════════════════════════════
-    // ADMIN SECURITY LOGIC
-    // ═══════════════════════════════════════════════════════════════
-    function updateLockUI() {
-        if (!adminLockBtn) return;
-        const icon = adminLockBtn.querySelector('[data-lucide]');
-        if (adminPassword) {
-            if (icon) icon.setAttribute('data-lucide', 'unlock');
-            lockStatusText.textContent = 'UNLOCKED';
-            adminLockBtn.classList.add('unlocked');
-        } else {
-            if (icon) icon.setAttribute('data-lucide', 'lock');
-            lockStatusText.textContent = 'LOCKED';
-            adminLockBtn.classList.remove('unlocked');
-        }
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-
-    function showAdminPrompt() {
-        adminOverlay.classList.remove('hidden');
-        adminPassInput.focus();
-    }
-
-    adminLockBtn.addEventListener('click', showAdminPrompt);
-    closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
-
-    unlockBtn.addEventListener('click', () => {
-        const pass = adminPassInput.value.trim();
-        if (!pass) return;
-        adminPassword = pass;
-        localStorage.setItem('nexus_admin_pass', pass);
-        adminOverlay.classList.add('hidden');
-        updateLockUI();
-        addLog(`[SYSTEM] System access key synchronized.`, 'success');
-    });
-
-    adminPassInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') unlockBtn.click();
-    });
+    // Dashboard Repair Elements
+    const systemCrashOverlay = document.getElementById('system-crash-overlay');
+    const repairSystemBtn    = document.getElementById('repair-system-btn');
+    const hideCrashBtn       = document.getElementById('hide-crash-overlay');
 
     // ═══════════════════════════════════════════════════════════════
     // DASHBOARD SELF-HEALING LOGIC
     // ═══════════════════════════════════════════════════════════════
     async function repairDashboard() {
-        const pass = repairAdminPass.value.trim() || adminPassword;
-        if (!pass) {
-            alert("Admin Access Key is required for core system repair.");
-            repairAdminPass.focus();
-            return;
-        }
-
         const details = document.getElementById('system-error-details').innerText;
-        
+
         repairSystemBtn.disabled = true;
         repairSystemBtn.innerHTML = '<i class="pulsing"></i> STABILIZING CORE...';
-        
+
         try {
             const res = await fetch('/api/self-heal-dashboard', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'x-admin-password': pass
-                },
-                body: JSON.stringify({
-                    error: { message: details }
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ error: { message: details } })
             });
             const data = await res.json();
-            
+
             if (data.success) {
                 repairSystemBtn.innerHTML = '<i data-lucide="check"></i> CORE REPAIRED. RELOADING...';
                 addLog(`[SYSTEM] Central Nexus patched successfully. Target: ${data.target}`, 'success');
@@ -669,12 +599,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         lucide.createIcons();
     }
 
-    repairSystemBtn.addEventListener('click', repairDashboard);
-    hideCrashBtn.addEventListener('click', () => systemCrashOverlay.classList.add('hidden'));
+    if (repairSystemBtn) repairSystemBtn.addEventListener('click', repairDashboard);
+    if (hideCrashBtn) hideCrashBtn.addEventListener('click', () => systemCrashOverlay.classList.add('hidden'));
 
     // ═══════════════════════════════════════════════════════════════
     // INIT
     // ═══════════════════════════════════════════════════════════════
-    updateLockUI();
     loadAgentLibrary();
 });

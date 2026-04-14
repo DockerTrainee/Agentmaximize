@@ -77,17 +77,8 @@ app.use((err, req, res, next) => {
     next();
 });
 
-// Admin Auth Middleware
-const authMiddleware = (req, res, next) => {
-    const adminPassword = sanitizeEnv(process.env.ADMIN_PASSWORD || '1234');
-    const clientPassword = req.headers['x-admin-password'];
-    
-    if (clientPassword === adminPassword) {
-        next();
-    } else {
-        res.status(401).json({ success: false, error: 'Unauthorized: Invalid Admin Password' });
-    }
-};
+// Auth Middleware — password system removed, open access
+const authMiddleware = (req, res, next) => next();
 
 app.use(express.static(__dirname));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
@@ -426,7 +417,7 @@ app.get('/api/agents', async (req, res) => {
     }
 });
 
-app.delete('/api/agents/:id', authMiddleware, async (req, res) => {
+app.delete('/api/agents/:id', async (req, res) => {
     try {
         const db = await fs.readJson(AGENTS_DB_PATH);
         const agent = db.agents.find(a => a.id === req.params.id);
@@ -441,7 +432,7 @@ app.delete('/api/agents/:id', authMiddleware, async (req, res) => {
     }
 });
 
-app.post('/api/self-heal', authMiddleware, async (req, res) => {
+app.post('/api/self-heal', async (req, res) => {
     const { jobId, error, code } = req.body;
     if (!jobId || !error) return res.status(400).json({ error: 'Missing jobId or error context' });
     
@@ -498,7 +489,7 @@ async function saveAgentToRegistry(agentData) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ORCHESTRATION API — Returns job ID immediately (non-blocking)
 // ─────────────────────────────────────────────────────────────────────────────
-app.post('/orchestrate', authMiddleware, async (req, res) => {
+app.post('/orchestrate', async (req, res) => {
     const { goal } = req.body;
     if (!process.env.GEMINI_API_KEY) {
         return res.status(500).json({ success: false, error: 'MISSING GEMINI_API_KEY in .env' });
@@ -953,7 +944,7 @@ app.get('/live-data/:type', async (req, res) => {
     }
 });
 
-app.post('/api/self-heal-dashboard', authMiddleware, async (req, res) => {
+app.post('/api/self-heal-dashboard', async (req, res) => {
     const { error } = req.body;
     if (!error) return res.status(400).json({ error: 'Missing error context' });
     
