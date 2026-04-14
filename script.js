@@ -526,10 +526,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ═══════════════════════════════════════════════════════════════
     // OPERATIONAL MANUAL LOGIC
     // ═══════════════════════════════════════════════════════════════
+    // Ensure modal starts hidden
+    if (manualModal) manualModal.style.display = 'none';
+
     function toggleManual(show) {
+        if (!manualModal) { console.warn('[NEXUS] manual-modal not found'); return; }
         if (show) {
             manualModal.style.display = 'flex';
             manualModal.classList.add('active');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         } else {
             manualModal.style.display = 'none';
             manualModal.classList.remove('active');
@@ -538,6 +543,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (helpTrigger) {
         helpTrigger.addEventListener('click', () => toggleManual(true));
+    } else {
+        console.warn('[NEXUS] help-trigger button not found in DOM');
     }
 
     [closeManualBtn, dismissManualBtn].forEach(btn => {
