@@ -410,8 +410,13 @@ Rules:
 // ─────────────────────────────────────────────────────────────────────────────
 app.get('/api/agents', async (req, res) => {
     try {
+        const clientId = req.headers['x-client-id'];
         const db = await fs.readJson(AGENTS_DB_PATH);
-        res.json({ success: true, agents: db.agents });
+        // Filter to only return this user's agents
+        const agents = clientId
+            ? db.agents.filter(a => a.clientId === clientId || !a.clientId)
+            : db.agents;
+        res.json({ success: true, agents });
     } catch (e) {
         res.json({ success: false, agents: [] });
     }
@@ -419,8 +424,13 @@ app.get('/api/agents', async (req, res) => {
 
 app.delete('/api/agents/:id', async (req, res) => {
     try {
+        const clientId = req.headers['x-client-id'];
         const db = await fs.readJson(AGENTS_DB_PATH);
         const agent = db.agents.find(a => a.id === req.params.id);
+        // Security: Only allow deletion of own agents
+        if (agent && clientId && agent.clientId && agent.clientId !== clientId) {
+            return res.status(403).json({ success: false, error: 'Forbidden: Not your agent.' });
+        }
         if (agent && agent.filePath) {
             fs.removeSync(path.join(__dirname, agent.filePath));
         }
@@ -481,8 +491,8 @@ app.post('/api/self-heal', async (req, res) => {
 
 async function saveAgentToRegistry(agentData) {
     const db = await fs.readJson(AGENTS_DB_PATH);
-    db.agents.unshift(agentData); // Newest first
-    if (db.agents.length > 50) db.agents = db.agents.slice(0, 50); // Keep last 50
+    db.agents.unshift(agentData); // Newest first, includes clientId
+    if (db.agents.length > 500) db.agents = db.agents.slice(0, 500); // Increase limit for multi-user
     await fs.writeJson(AGENTS_DB_PATH, db, { spaces: 2 });
 }
 
@@ -491,13 +501,29 @@ async function saveAgentToRegistry(agentData) {
 // ─────────────────────────────────────────────────────────────────────────────
 app.post('/orchestrate', async (req, res) => {
     const { goal } = req.body;
+    const clientId = req.headers['x-client-id'] || `anon-${Date.now()}`;
     if (!process.env.GEMINI_API_KEY) {
         return res.status(500).json({ success: false, error: 'MISSING GEMINI_API_KEY in .env' });
     }
+
+    // 🛡️ SUBSCRIPTION GATE: Limit free users to 1 agent per device
+    try {
+        const db = await fs.readJson(AGENTS_DB_PATH);
+        const userAgents = db.agents.filter(a => a.clientId === clientId);
+        const isPremium = req.headers['x-subscription-pro'] === 'true';
+        if (!isPremium && userAgents.length >= 1) {
+            return res.status(403).json({
+                success: false,
+                error: 'AGENT_LIMIT_REACHED',
+                message: 'Free users are limited to 1 active agent. Upgrade to Pro for unlimited synthesis.'
+            });
+        }
+    } catch (e) { /* if db read fails, allow synthesis */ }
+
     const jobId = `job-${Date.now()}`;
-    jobs[jobId] = { id: jobId, goal, status: 'processing', progress: 0, logs: [], result: null, error: null };
-    console.log(`[NEXUS] JOB QUEUED: ${jobId}`);
-    runNexusPrimeSynthesis(jobId, goal).catch(err => {
+    jobs[jobId] = { id: jobId, goal, clientId, status: 'processing', progress: 0, logs: [], result: null, error: null };
+    console.log(`[NEXUS] JOB QUEUED: ${jobId} for client: ${clientId}`);
+    runNexusPrimeSynthesis(jobId, goal, clientId).catch(err => {
         jobs[jobId].status = 'failed';
         jobs[jobId].error = err.message;
         streamLog(jobId, `CRITICAL FAILURE: ${err.message}`, 'error');
@@ -517,7 +543,7 @@ app.get('/job-status/:id', (req, res) => {
 // NEXUS PRIME SYNTHESIS ENGINE v5.0
 // Applies: Orchestrator-Workers, Parallelization, Evaluator-Optimizer, Routing
 // ─────────────────────────────────────────────────────────────────────────────
-async function runNexusPrimeSynthesis(jobId, goal) {
+async function runNexusPrimeSynthesis(jobId, goal, clientId) {
     const job = jobs[jobId];
     const stripDocTags = t => t.replace(/<\/?(html|head|body|!DOCTYPE|meta|title|link|script)[^>]*>/gi, '').trim();
 
@@ -890,7 +916,8 @@ Respond with ONLY valid JSON:
         modules: blueprint.modules, // Storing modules for detailed view
         createdAt: new Date().toISOString(),
         primaryColor: blueprint.designSystem.accentColor,
-        secondaryColor: blueprint.designSystem.complementary
+        secondaryColor: blueprint.designSystem.complementary,
+        clientId: clientId || 'shared'  // Tag agent to the user's device
     };
 
     await saveAgentToRegistry(agentRecord);

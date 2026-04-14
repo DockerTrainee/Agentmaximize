@@ -9,6 +9,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     await BillingManager.init();
 
     // ═══════════════════════════════════════════════════════════════
+    // DEVICE ID — Unique per-user identifier for isolated agent library
+    // ═══════════════════════════════════════════════════════════════
+    let clientId = localStorage.getItem('nexus_client_id');
+    if (!clientId) {
+        clientId = crypto.randomUUID();
+        localStorage.setItem('nexus_client_id', clientId);
+    }
+    console.log('[NEXUS] Device ID:', clientId);
+
+    // ═══════════════════════════════════════════════════════════════
     // GLOBAL SYSTEM ERROR HANDLERS
     // ═══════════════════════════════════════════════════════════════
     window.onerror = function(msg, url, line, col, error) {
@@ -354,7 +364,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch('/orchestrate', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-client-id': clientId,
+                    'x-subscription-pro': BillingManager.isPremium ? 'true' : 'false'
+                },
                 body: JSON.stringify({ goal })
             });
 
@@ -421,7 +435,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ═══════════════════════════════════════════════════════════════
     async function loadAgentLibrary() {
         try {
-            const res = await fetch('/api/agents');
+            const res = await fetch('/api/agents', {
+                headers: { 'x-client-id': clientId }
+            });
             const data = await res.json();
             const agents = data.agents || [];
 
@@ -477,15 +493,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (confirm('Delete this agent?')) {
                         const res = await fetch(`/api/agents/${id}`, { 
                             method: 'DELETE',
-                            headers: { 'x-admin-password': adminPassword }
+                            headers: { 'x-client-id': clientId }
                         });
-                        
-                        if (res.status === 401) {
-                            alert('Unauthorized: Admin Password Required');
-                            showAdminPrompt();
-                        } else {
-                            loadAgentLibrary();
-                        }
+                        loadAgentLibrary();
                     }
                 });
 
