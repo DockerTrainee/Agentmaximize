@@ -154,8 +154,36 @@
         </button>
     </div>
 
-    <script>
+    <script type="module">
+        import { BillingManager } from './billing.js';
         lucide.createIcons();
+
+        const btn = document.getElementById('start-purchase');
+
+        btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            // If running in the native Android app — use Google Play Billing
+            if (window.Capacitor && window.Capacitor.isNative) {
+                const success = await BillingManager.purchasePro();
+                if (success) {
+                    btn.textContent = '✅ Trial Activated!';
+                    setTimeout(() => location.assign('index.html'), 1500);
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = 'Start Free Trial';
+                }
+            } else {
+                // Web/browser mode — activate 7-day trial locally for testing
+                const trialEnd = Date.now() + (7 * 24 * 60 * 60 * 1000);
+                localStorage.setItem('nexus_is_premium', 'true');
+                localStorage.setItem('nexus_trial_end', trialEnd);
+                btn.textContent = '✅ 7-Day Trial Started!';
+                btn.style.background = 'linear-gradient(135deg, #00ff88 0%, #00b4d8 100%)';
+                setTimeout(() => location.assign('index.html'), 1500);
+            }
+        });
     </script>
 </body>
 </html>
