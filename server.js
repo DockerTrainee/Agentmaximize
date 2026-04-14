@@ -622,7 +622,8 @@ STRICT RULES:
 4. Include an "OPERATIONS MODAL" (id="aon-guide-modal") that is hidden by default.
 5. ZERO-PLACEHOLDER POLICY: Do not use "Loading..." or "Coming Soon" in static HTML.
 6. Accessibility: Include aria-labels and proper role attributes for all modules.
-7. Structure for application type: ${route.type}.
+7. CRITICAL: NEVER use inline JavaScript handlers (NO onclick="...", NO onchange="..."). Your JS agent counterpart will attach all listeners via ID/Class.
+8. Structure for application type: ${route.type}.
 `;
 
     const mockDataPrompt = `
