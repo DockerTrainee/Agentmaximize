@@ -9,13 +9,22 @@ export const BillingManager = {
 
     async init() {
         try {
-            // Check localStorage for a premium flag (set by native Capacitor bridge)
+            // ── Check trial expiry first ───────────────────────────
+            const trialEnd = localStorage.getItem('nexus_trial_end');
+            if (trialEnd && Date.now() > parseInt(trialEnd)) {
+                // Trial has expired — revert to free
+                localStorage.setItem('nexus_is_premium', 'false');
+                localStorage.removeItem('nexus_trial_end');
+                console.log('[BILLING] Trial expired. Reverted to Free tier.');
+            }
+
+            // ── Check stored premium status ────────────────────────
             const stored = localStorage.getItem('nexus_is_premium');
             this.isPremium = stored === 'true';
 
-            // If running inside a Capacitor native app, try to verify via RevenueCat
+            // ── If running inside Capacitor native app ─────────────
+            // Verify via RevenueCat (overrides localStorage)
             if (window.Capacitor && window.Capacitor.isNative) {
-                // Dynamic import only in native context to avoid browser errors
                 const { Purchases } = await import('@revenuecat/purchases-capacitor');
                 const apiKey = window.RC_API_KEY || 'goog_placeholder_key';
                 await Purchases.configure({ apiKey });
@@ -24,9 +33,8 @@ export const BillingManager = {
                 localStorage.setItem('nexus_is_premium', this.isPremium ? 'true' : 'false');
             }
 
-            console.log('[BILLING] Status:', this.isPremium ? 'PRO ✅' : 'FREE');
+            console.log('[BILLING] Status:', this.isPremium ? 'PRO ✅' : 'FREE | Trial ends:', trialEnd ? new Date(parseInt(trialEnd)).toLocaleDateString() : 'N/A');
         } catch (e) {
-            // Graceful fallback — always allow access if billing check fails
             console.warn('[BILLING] Init failed, defaulting to free mode:', e.message);
             this.isPremium = false;
         }
