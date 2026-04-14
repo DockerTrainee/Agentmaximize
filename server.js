@@ -83,6 +83,9 @@ const authMiddleware = (req, res, next) => next();
 app.use(express.static(__dirname));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
+// Redirect /favicon.ico → /favicon.png to stop 404 errors
+app.get('/favicon.ico', (req, res) => res.redirect(301, '/favicon.png'));
+
 // Health check for Deployment (Render/Cloud Run)
 app.get('/health', (req, res) => res.json({ status: 'HEALTHY', timestamp: new Date() }));
 
