@@ -1,64 +1,58 @@
 /**
- * Agent Maximize - Subscription Manager
- * Integration with RevenueCat for Google Play Billing
+ * Agent Maximize — Billing Manager
+ * Browser-safe: uses localStorage for web/dev mode.
+ * Native Capacitor billing (RevenueCat) is wired in separately via the Android build.
  */
-
-import { Purchases } from '@revenuecat/purchases-capacitor';
 
 export const BillingManager = {
     isPremium: false,
-    
-    // Initialize the SDK
+
     async init() {
         try {
-            // Note: This API key will be configured in the Render Dashboard
-            // For logic testing, we check if the key is provided
-            const apiKey = window.RC_API_KEY || 'goog_placeholder_key';
-            
-            await Purchases.configure({ apiKey });
-            console.log('RevenueCat initialized');
-            
-            await this.updateStatus();
+            // Check localStorage for a premium flag (set by native Capacitor bridge)
+            const stored = localStorage.getItem('nexus_is_premium');
+            this.isPremium = stored === 'true';
+
+            // If running inside a Capacitor native app, try to verify via RevenueCat
+            if (window.Capacitor && window.Capacitor.isNative) {
+                // Dynamic import only in native context to avoid browser errors
+                const { Purchases } = await import('@revenuecat/purchases-capacitor');
+                const apiKey = window.RC_API_KEY || 'goog_placeholder_key';
+                await Purchases.configure({ apiKey });
+                const info = await Purchases.getCustomerInfo();
+                this.isPremium = info.entitlements.active['pro'] !== undefined;
+                localStorage.setItem('nexus_is_premium', this.isPremium ? 'true' : 'false');
+            }
+
+            console.log('[BILLING] Status:', this.isPremium ? 'PRO ✅' : 'FREE');
         } catch (e) {
-            console.error('Billing Init Error:', e);
-            // Default to free mode if initialization fails
-            this.isPremium = false; 
+            // Graceful fallback — always allow access if billing check fails
+            console.warn('[BILLING] Init failed, defaulting to free mode:', e.message);
+            this.isPremium = false;
         }
     },
 
-    // Refresh the user's premium status
-    async updateStatus() {
-        try {
-            const customerInfo = await Purchases.getCustomerInfo();
-            // We'll define the entitlement ID as 'pro' in RevenueCat dashboard
-            this.isPremium = customerInfo.entitlements.active['pro'] !== undefined;
-            
-            // Dispatch custom event for UI updates
-            const event = new CustomEvent('subscriptionChange', { detail: { isPremium: this.isPremium } });
-            window.dispatchEvent(event);
-        } catch (e) {
-            console.error('Status Update Error:', e);
-        }
-    },
-
-    // Trigger purchase flow
     async purchasePro() {
-        try {
-            const offerings = await Purchases.getOfferings();
-            if (offerings.current !== null && offerings.current.availablePackages.length !== 0) {
-                const purchaseResult = await Purchases.purchasePackage({
-                    aPackage: offerings.current.availablePackages[0]
-                });
-                
-                if (purchaseResult.customerInfo.entitlements.active['pro'] !== undefined) {
-                    this.isPremium = true;
-                    return true;
+        if (window.Capacitor && window.Capacitor.isNative) {
+            try {
+                const { Purchases } = await import('@revenuecat/purchases-capacitor');
+                const offerings = await Purchases.getOfferings();
+                if (offerings.current?.availablePackages?.length) {
+                    const result = await Purchases.purchasePackage({
+                        aPackage: offerings.current.availablePackages[0]
+                    });
+                    if (result.customerInfo.entitlements.active['pro'] !== undefined) {
+                        this.isPremium = true;
+                        localStorage.setItem('nexus_is_premium', 'true');
+                        return true;
+                    }
                 }
+            } catch (e) {
+                if (!e.userCancelled) alert('Purchase Failed: ' + e.message);
             }
-        } catch (e) {
-            if (!e.userCancelled) {
-                alert('Purchase Failed: ' + e.message);
-            }
+        } else {
+            // Web fallback — redirect to pricing page
+            location.assign('pricing.html');
         }
         return false;
     }
