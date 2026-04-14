@@ -62,6 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const repairSystemBtn    = document.getElementById('repair-system-btn');
     const repairAdminPass    = document.getElementById('repair-admin-pass');
     const hideCrashBtn       = document.getElementById('hide-crash-overlay');
+    
+    // Manual Elements
+    const manualModal      = document.getElementById('manual-modal');
+    const helpTrigger      = document.getElementById('help-trigger');
+    const closeManualBtn   = document.getElementById('close-manual');
+    const dismissManualBtn = document.getElementById('manual-dismiss');
 
     const navItems = document.querySelectorAll('.nav-item');
 
@@ -495,6 +501,35 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             agentsGrid.innerHTML = `<div class="empty-state full-width"><p>FAILED TO LOAD: ${err.message}</p></div>`;
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // OPERATIONAL MANUAL LOGIC
+    // ═══════════════════════════════════════════════════════════════
+    function toggleManual(show) {
+        if (show) {
+            manualModal.style.display = 'flex';
+            manualModal.classList.add('active');
+        } else {
+            manualModal.style.display = 'none';
+            manualModal.classList.remove('active');
+        }
+    }
+
+    if (helpTrigger) {
+        helpTrigger.addEventListener('click', () => toggleManual(true));
+    }
+
+    [closeManualBtn, dismissManualBtn].forEach(btn => {
+        if (btn) btn.addEventListener('click', () => toggleManual(false));
+    });
+
+    // Auto-Tour for first timers
+    if (!localStorage.getItem('nexus_tour_completed')) {
+        setTimeout(() => {
+            toggleManual(true);
+            localStorage.setItem('nexus_tour_completed', 'true');
+        }, 2000);
     }
 
     // ═══════════════════════════════════════════════════════════════

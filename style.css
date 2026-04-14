@@ -828,3 +828,208 @@ h1, h2, h3, h4 {
 
 /* ── Utils ── */
 .hidden { display: none !important; }
+/* ══════════════════ PLATFORM MANUAL ══════════════════ */
+.mission-manual {
+    max-width: 900px !important;
+    padding: 2.5rem !important;
+}
+
+.manual-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--accent-cyan);
+    margin-right: 1.25rem;
+}
+
+.manual-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.manual-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    border-radius: 12px;
+    transition: all 0.3s var(--easing);
+}
+
+.manual-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--accent-cyan);
+    transform: translateY(-3px);
+}
+
+.manual-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    color: var(--accent-cyan);
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+}
+
+.manual-card h3 i { width: 1.1rem; height: 1.1rem; }
+
+.manual-card p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.manual-footer-note {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    background: rgba(157, 80, 255, 0.1);
+    border: 1px solid rgba(157, 80, 255, 0.2);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.manual-footer-note .note-icon { color: var(--accent-purple); }
+.manual-footer-note p { font-size: 0.85rem; color: #f0f0f8; }
+
+#help-trigger {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#help-trigger:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+}
+
+/* ═══════════════════════════════════════════════
+   MOBILE RESPONSIVENESS (Play Store Optimized)
+   ═══════════════════════════════════════════════ */
+@media screen and (max-width: 850px) {
+    :root {
+        --sidebar-w: 0px;
+    }
+
+    body {
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+        /* Support for mobile browser address bars */
+        min-height: -webkit-fill-available;
+    }
+
+    .nexus-layout {
+        flex-direction: column;
+        height: auto;
+    }
+
+    /* Transform Sidebar to Bottom Nav */
+    .nexus-sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        z-index: 1000;
+        flex-direction: row;
+        padding: 0.5rem;
+        border-right: none;
+        border-top: 1px solid var(--border);
+        background: var(--surface-high);
+        backdrop-filter: blur(20px);
+        justify-content: space-around;
+        gap: 0;
+    }
+
+    .sidebar-header, .sidebar-footer { display: none; }
+
+    .sidebar-nav {
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-around;
+        gap: 0;
+    }
+
+    .nav-item {
+        flex-direction: column;
+        gap: 4px;
+        padding: 0.5rem;
+        font-size: 0.6rem;
+        flex: 1;
+        justify-content: center;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        text-align: center;
+    }
+
+    .nav-item i { width: 22px; height: 22px; }
+    .nav-item.active {
+        background: none;
+        border-left: none;
+        border-bottom: 2px solid var(--accent-cyan);
+        color: var(--accent-cyan);
+    }
+    .nav-badge { position: absolute; top: 2px; right: 20%; font-size: 0.55rem; }
+
+    /* Main Content Adjustments */
+    .nexus-main {
+        padding: 1rem;
+        padding-bottom: 90px; /* Space for bottom nav */
+        gap: 1rem;
+    }
+
+    .nexus-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-actions {
+        order: -1;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Grid Stacking */
+    .nexus-grid {
+        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .span-2 { grid-column: auto; }
+
+    .orb-stage { min-height: 250px; }
+
+    /* Modal / Overlay Adjustments */
+    .overlay-panel {
+        width: 95%;
+        padding: 1.5rem;
+    }
+
+    .overlay-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .manual-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mission-manual {
+        padding: 1.5rem !important;
+    }
+
+    /* Diagnostics */
+    .diagnostics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Landscape / Tablet Tweak */
+@media screen and (min-width: 851px) and (max-width: 1100px) {
+    :root { --sidebar-w: 220px; }
+    .nexus-grid { grid-template-columns: repeat(2, 1fr); }
+    .span-2 { grid-column: span 2; }
+}

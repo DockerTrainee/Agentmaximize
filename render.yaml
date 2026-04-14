@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: agent-maximize-nexus
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false # User will need to add this in Render UI
+      - key: GITHUB_TOKEN
+        sync: false # User will need to add this in Render UI
+      - key: ADMIN_PASSWORD
+        sync: false # User will need to add this in Render UI
+      - key: PORT
+        value: 3000

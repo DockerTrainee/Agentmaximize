@@ -1,7 +1,12 @@
 node_modules/
 .env
-server.log
-*.json.bak
-# Local storage files (optional to ignore, but better for a clean repo)
-# builds/
-# agents-db.json
+android/
+www/
+capacitor.config.json
+*.log
+agents-db.json
+builds/
+splash.png
+icon.png
+*.png
+!favicon.png

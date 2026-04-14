@@ -26,7 +26,9 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+const io = new Server(server, { 
+    cors: { origin: "*", methods: ["GET", "POST"] } 
+});
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
@@ -89,6 +91,9 @@ const authMiddleware = (req, res, next) => {
 
 app.use(express.static(__dirname));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+
+// Health check for Deployment (Render/Cloud Run)
+app.get('/health', (req, res) => res.json({ status: 'HEALTHY', timestamp: new Date() }));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GEMINI CLIENT

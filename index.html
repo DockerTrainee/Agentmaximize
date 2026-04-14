@@ -15,6 +15,10 @@
     <script src="/socket.io/socket.io.js"></script>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#03030a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
     <!-- Animated Background Canvas -->
@@ -91,6 +95,10 @@
                     </button>
                 </div>
                 <div class="header-actions">
+                    <div class="action-chip glass" id="help-trigger" title="Platform Manual">
+                        <i data-lucide="help-circle"></i>
+                        <span>HELP</span>
+                    </div>
                     <div class="action-chip glass" id="admin-lock-btn" title="Admin Security Lock">
                         <i data-lucide="lock"></i>
                         <span id="lock-status-text">LOCKED</span>
@@ -407,7 +415,60 @@
         </div>
     </div>
 
+    <!-- ══════════════════ PLATFORM MANUAL MODAL ══════════════════ -->
+    <div id="manual-modal" class="nexus-modal">
+        <div class="modal-content glass-heavy mission-manual animate__animated animate__zoomIn">
+            <div class="modal-header">
+                <div class="header-main">
+                    <i data-lucide="book-open" class="manual-icon"></i>
+                    <div>
+                        <h2>Operational Manual</h2>
+                        <p>Nexus Prime v5.0 Platform Architecture</p>
+                    </div>
+                </div>
+                <button class="modal-close" id="close-manual"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="manual-body">
+                <div class="manual-grid">
+                    <div class="manual-card">
+                        <h3><i data-lucide="target"></i> MISSION CONTROL</h3>
+                        <p>Type your goal in the center bar. The "Orchestrator" analyzes your intent and defines a <strong>Blueprint</strong> which includes the UI theme, logic requirements, and data architecture.</p>
+                    </div>
+                    <div class="manual-card">
+                        <h3><i data-lucide="cpu"></i> MULTI-AGENT SYNTHESIS</h3>
+                        <p>Our parallel factory triggers 5 agents: <strong>HTML, Data, JS, CSS</strong>, and the <strong>QA Critic</strong>. They work simultaneously to build, refine, and verify your app in seconds.</p>
+                    </div>
+                    <div class="manual-card">
+                        <h3><i data-lucide="shield-check"></i> SELF-HEALING</h3>
+                        <p>Every generated app is protected. If a logic error occurs, the <strong>Aon Neural Surgeon</strong> automatically patches the code to restore functionality without manual debugging.</p>
+                    </div>
+                    <div class="manual-card">
+                        <h3><i data-lucide="bot"></i> AGENT LIBRARY</h3>
+                        <p>Store, audit, and launch your fleet of AI agents. Each agent is a standalone production-ready application hosted on your Nexus server.</p>
+                    </div>
+                </div>
+                
+                <div class="manual-footer-note">
+                    <div class="note-icon"><i data-lucide="info"></i></div>
+                    <p><strong>Note:</strong> Sensitive actions like "Forced Diagnostics" or "Agent Deletion" require your Admin Password. Look for the <strong>LOCKED</strong> indicator in the header.</p>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="action-btn primary full" id="manual-dismiss">GOT IT, LET'S BUILD</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
-    <script>lucide.createIcons();</script>
+    <script>
+        lucide.createIcons();
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+    </script>
 </body>
 </html>
