@@ -661,20 +661,24 @@ Write Enterprise JavaScript for: "${blueprint.projectName}"
 GOAL: ${goal} | CATEGORY: ${blueprint.modules.map(m => m.type).join(', ')}
 
 ARCHITECTURE:
-1. Global State: window.__AON_STATE__ = { data: {}, ui: { loading: true }, config: ${JSON.stringify(blueprint.designSystem)} };
-2. Logic Patterns: Use a centralized 'store' update pattern.
+1. Global State: ALWAYS use window.__AON_STATE__ = { data: {}, ui: { loading: false }, config: ${JSON.stringify(blueprint.designSystem)} };
+   - NEVER use a bare variable called "state". ALWAYS use window.__AON_STATE__.
+2. State updates: Use a helper: function setState(patch) { Object.assign(window.__AON_STATE__, patch); }
 3. Charting: IF modules include 'chart', implement Chart.js logic using the canvases provided.
-4. Error Resilience: Wrap all fetch/async calls in try/catch with UI toast/notification feedback.
+4. Error Resilience: Wrap ALL fetch/async calls in try/catch with UI toast/notification feedback.
 5. Micro-interactions: Use standard easing for all UI transitions.
 
 STRICT RULES:
-- Output ONLY raw JavaScript.
+- Output ONLY raw JavaScript. NO backticks, NO markdown.
+- DECLARE every variable with const/let/var before using it. NEVER reference undeclared variables.
+- DO NOT use React, Vue, or Angular patterns. This is VANILLA JS only.
 - POPULATE the UI immediately using the 'mockData' from Data Architect. DO NOT show empty states.
 - HYDRATE the "OPERATIONS MODAL" using the 'operations_manual' data.
 - IMPLEMENT real logic for every tap/click event mentioned in the HTML.
 - Hook into Bento-Grid article IDs.
 - Use 'lucide.createIcons()' for premium iconography.
 - IMPORTANT: Use RELATIVE paths for all fetch calls (e.g., '/chat', '/live-data').
+- CRITICAL: All code must run without errors. Test every variable reference before writing it.
 `;
 
     const cssAgentPrompt = `
