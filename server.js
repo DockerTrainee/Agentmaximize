@@ -850,7 +850,6 @@ OUTPUT: Raw CSS ONLY.
             <h2 style="color: var(--error); margin-bottom: 10px;">Neural Instability Detected</h2>
             <p style="color: var(--text-muted); margin-bottom: 20px;">This agent has encountered a runtime error. The Aon Factory can attempt an autonomous repair.</p>
             <div id="error-details" style="font-family: monospace; font-size: 12px; background: #000; padding: 10px; border-radius: 8px; color: #ff9d9d; text-align: left; margin-bottom: 20px; max-height: 150px; overflow: auto;"></div>
-            <input type="password" id="repair-pass" placeholder="Admin Access Key" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: #000; color: white; margin-bottom: 10px; outline: none;">
             <button id="repair-btn" class="heal-btn">Execute Self-Repair</button>
         </div>
     </div>
@@ -889,17 +888,13 @@ OUTPUT: Raw CSS ONLY.
         }
 
         repairBtn.onclick = async () => {
-            const pass = repairPass.value;
-            if (!pass) { alert("Admin password required for self-repair."); return; }
-            
             repairBtn.innerText = "Repairing Neural Pathways...";
             repairBtn.disabled = true;
             try {
                 const res = await fetch('/api/self-heal', {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json',
-                        'x-admin-password': pass
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         jobId: JOB_ID,
