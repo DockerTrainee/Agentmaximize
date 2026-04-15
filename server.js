@@ -125,12 +125,14 @@ function streamProgress(jobId, value, label = '') {
 const GITHUB_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions';
 
 const MODEL_CASCADE = [
-    "models/gemini-2.0-flash",
-    "models/gemini-1.5-flash-8b",
-    "models/gemini-flash-latest",
+    // ── Gemini (Primary — always try these first) ──
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-8b",
+    "gemini-1.0-pro",
+    // ── GitHub Models (Fallback — only if GITHUB_TOKEN has models scope) ──
     "github/gpt-4o",
-    "github/meta-llama-3.1-70b-instruct",
-    "github/gpt-4o-mini"
+    "github/gpt-4o-mini",
 ];
 
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
@@ -182,6 +184,7 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
                     text = await callGitHubAI(modelName, prompt, jobId);
                 } else {
                     if (jobId) streamLog(jobId, `${tag} Calling ${modelName}...`, 'system');
+                    // Note: genAI SDK accepts the model name without 'models/' prefix
                     const model = genAI.getGenerativeModel({ model: modelName });
                     const result = await model.generateContent(prompt);
                     text = result.response.text().trim();
@@ -198,6 +201,13 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
             } catch (err) {
                 console.error(`[AI ATTEMPT FAILED] Provider: ${isGithub ? 'GitHub' : 'Google'} | Model: ${modelName} | Error: ${err.message}`);
                 
+                // Skip GitHub models entirely if they lack the required token scope
+                const isMissingPermission = err.message.includes('permission') || err.message.includes('models') || err.message.includes('Unauthorized') || err.message.includes('403');
+                if (isGithub && isMissingPermission) {
+                    if (jobId) streamLog(jobId, `⚠️ GitHub model skipped (token lacks models scope): ${modelName}`, 'error');
+                    break; // Skip ALL remaining github models would require restructuring; just break to next
+                }
+
                 // Retry logic for rate limits
                 const isRateLimit = err.message.includes('429') || err.message.includes('quota') || err.message.includes('rate limit');
                 
@@ -207,7 +217,7 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
                     await wait(backoff);
                     attempts++;
                 } else {
-                    if (jobId) streamLog(jobId, `❌ ${modelName} failed: ${err.message.substring(0, 50)}...`, 'error');
+                    if (jobId) streamLog(jobId, `❌ ${modelName} failed: ${err.message.substring(0, 80)}`, 'error');
                     break; // Move to next model in cascade
                 }
             }
