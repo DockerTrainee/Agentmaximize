@@ -405,197 +405,131 @@
 
     <!-- ══════════════════ PLATFORM MANUAL MODAL ══════════════════ -->
     <div id="manual-modal" class="nexus-modal">
-        <div class="modal-content glass-heavy mission-manual animate__animated animate__zoomIn" style="max-width:780px; max-height:88vh; overflow:hidden; display:flex; flex-direction:column;">
+        <div class="modal-content glass-heavy mission-manual animate__animated animate__zoomIn" style="max-width:800px; max-height:88vh; overflow:hidden; display:flex; flex-direction:column; border-color: rgba(0, 242, 255, 0.3);">
 
             <!-- Header -->
-            <div class="modal-header" style="flex-shrink:0;">
-                <div class="header-main">
-                    <i data-lucide="book-open" class="manual-icon"></i>
+            <div class="modal-header" style="flex-shrink:0; background: linear-gradient(180deg, rgba(0, 242, 255, 0.05) 0%, transparent 100%); border-bottom: none; padding-bottom: 0.5rem;">
+                <div class="header-main" style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="background: rgba(0,242,255,0.1); padding: 10px; border-radius: 10px; border: 1px solid rgba(0,242,255,0.2);">
+                        <i data-lucide="cpu" style="color: var(--accent-cyan); width: 28px; height: 28px;"></i>
+                    </div>
                     <div>
-                        <h2>AON AI Help Center</h2>
-                        <p>Your complete guide to building with Nexus Prime</p>
+                        <h2 style="font-weight: 800; letter-spacing: 1px; font-size: 1.4rem;">NEXUS COMMAND CENTER</h2>
+                        <p style="color: var(--accent-purple); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px;">System Protocols & Telemetry</p>
                     </div>
                 </div>
-                <button class="modal-close" id="close-manual"><i data-lucide="x"></i></button>
+                <button class="modal-close" id="close-manual" style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><i data-lucide="x"></i></button>
             </div>
 
             <!-- Tab Navigation -->
-            <div style="display:flex; gap:0.5rem; padding:0 1.5rem; border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto;">
-                <button class="help-tab active" data-tab="start">🚀 Quick Start</button>
-                <button class="help-tab" data-tab="agents">🤖 Agents</button>
-                <button class="help-tab" data-tab="pipeline">⚡ Pipeline</button>
-                <button class="help-tab" data-tab="pro">💎 Pro Plan</button>
-                <button class="help-tab" data-tab="tips">💡 Pro Tips</button>
+            <div style="display:flex; gap:1rem; padding:0 2rem; border-bottom:1px solid rgba(0, 242, 255, 0.1); flex-shrink:0; overflow-x:auto;">
+                <button class="help-tab active" data-tab="start" style="display: flex; gap: 0.5rem; align-items: center; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; font-size: 0.75rem;"><i data-lucide="terminal" style="width: 14px;"></i> CORE ENGINE</button>
+                <button class="help-tab" data-tab="agents" style="display: flex; gap: 0.5rem; align-items: center; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; font-size: 0.75rem;"><i data-lucide="shield-check" style="width: 14px;"></i> AGENT PROTOCOLS</button>
+                <button class="help-tab" data-tab="support" style="display: flex; gap: 0.5rem; align-items: center; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; font-size: 0.75rem;; color: var(--accent-cyan);"><i data-lucide="headset" style="width: 14px;"></i> OPERATIONAL SUPPORT</button>
             </div>
 
             <!-- Tab Content -->
-            <div class="manual-body" style="overflow-y:auto; flex:1;">
+            <div class="manual-body" style="overflow-y:auto; flex:1; background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wMSkiLz48L3N2Zz4=');">
 
-                <!-- TAB: Quick Start -->
+                <!-- TAB: CORE ENGINE -->
                 <div class="help-tab-content active" id="tab-start">
-                    <div style="padding:1.5rem 0 0.5rem;">
-                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">Get your first AI-powered app running in under 60 seconds.</p>
-                        <div style="display:flex; flex-direction:column; gap:1rem;">
-                            <div class="manual-step">
-                                <div class="step-number">1</div>
+                    <div style="padding:2rem;">
+                        <p style="color:var(--text-dim); margin-bottom:2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; opacity: 0.8;">// INITIALIZING SYNTHESIS SEQUENCE...</p>
+                        <div style="display:flex; flex-direction:column; gap:1.2rem;">
+                            
+                            <div class="manual-step" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); padding: 1.2rem;">
+                                <div class="step-number" style="background: rgba(0,242,255,0.05); color: var(--accent-cyan); border: 1px solid rgba(0,242,255,0.2);"><i data-lucide="crosshair" style="width: 16px;"></i></div>
                                 <div>
-                                    <h4>Describe what you want to build</h4>
-                                    <p>Type a clear goal into the Mission bar. Be specific: <em>"Build a personal finance tracker with charts and a budget planner"</em> works far better than <em>"Make an app."</em></p>
+                                    <h4 style="color: #fff; letter-spacing: 0.5px; font-size: 1rem;">Declare Mission Vector</h4>
+                                    <p style="margin-top: 0.5rem; line-height: 1.5; font-size: 0.9rem;">Input explicit parameters into the prompt. Precision yields higher QA scores. <br><em style="color: var(--accent-cyan);">"Deploy a realtime finance tracker with integrated analytics charts."</em></p>
                                 </div>
                             </div>
-                            <div class="manual-step">
-                                <div class="step-number">2</div>
+
+                            <div class="manual-step" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); padding: 1.2rem;">
+                                <div class="step-number" style="background: rgba(157,80,255,0.05); color: var(--accent-purple); border: 1px solid rgba(157,80,255,0.2);"><i data-lucide="zap" style="width: 16px;"></i></div>
                                 <div>
-                                    <h4>Click DEPLOY and watch the agents work</h4>
-                                    <p>The system activates 5 AI agents simultaneously — Orchestrator, HTML, Data, JS, CSS — and a QA Critic that grades and polishes the output.</p>
+                                    <h4 style="color: #fff; letter-spacing: 0.5px; font-size: 1rem;">Trigger Multi-Agent Deployment</h4>
+                                    <p style="margin-top: 0.5rem; line-height: 1.5; font-size: 0.9rem;">Execute the 'DEPLOY' command. The Orchestrator establishes a neural link with 5 parallel workers to architect the infrastructure.</p>
                                 </div>
                             </div>
-                            <div class="manual-step">
-                                <div class="step-number">3</div>
+                            
+                            <div class="manual-step" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); padding: 1.2rem;">
+                                <div class="step-number" style="background: rgba(0,255,136,0.05); color: #00ff88; border: 1px solid rgba(0,255,136,0.2);"><i data-lucide="rocket" style="width: 16px;"></i></div>
                                 <div>
-                                    <h4>Launch your app from Agent Library</h4>
-                                    <p>When synthesis is complete, your app appears in the <strong>Agent Library</strong> tab. Click <strong>Launch</strong> to open it in a new tab — it runs live, right now.</p>
+                                    <h4 style="color: #fff; letter-spacing: 0.5px; font-size: 1rem;">Initialize Live Instance</h4>
+                                    <p style="margin-top: 0.5rem; line-height: 1.5; font-size: 0.9rem;">Upon QA Critic verification, the build propagates to the Local Registry. Access via 'AGENT LIBRARY' to launch the live instance.</p>
                                 </div>
                             </div>
-                            <div class="manual-step">
-                                <div class="step-number">4</div>
-                                <div>
-                                    <h4>Your library is private to you</h4>
-                                    <p>Every device gets its own unique ID. Your agents are <strong>100% private</strong> — no other user can see or access them.</p>
-                                </div>
-                            </div>
+
                         </div>
-                        <div class="manual-tip-box">
-                            <i data-lucide="lightbulb"></i>
-                            <p><strong>Best prompts include:</strong> the type of app, key features, the audience, and any design preference (e.g., "dark mode, minimalist").</p>
+                        
+                        <div class="manual-tip-box" style="border-radius: 8px; background: rgba(0,242,255,0.02); border: 1px solid rgba(0,242,255,0.1); border-left: 2px solid var(--accent-cyan); padding: 1rem; margin-top: 1.5rem;">
+                            <i data-lucide="terminal" style="color: var(--accent-cyan);"></i>
+                            <div>
+                                <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent-cyan); opacity: 0.8; letter-spacing: 0.5px;">SYSTEM.LOG // Optimizing commands requires specific module declarations and preferred UI tokens (e.g. 'glassmorphism').</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- TAB: Agents -->
+                <!-- TAB: AGENT PROTOCOLS -->
                 <div class="help-tab-content" id="tab-agents">
-                    <div style="padding:1.5rem 0 0.5rem;">
-                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">Understand what types of apps you can build and how to manage them.</p>
-                        <div class="manual-grid">
-                            <div class="manual-card">
-                                <h3><i data-lucide="bar-chart-2"></i> Dashboard</h3>
-                                <p>Analytics panels, data monitors, KPI trackers. Great for business metrics and real-time data visualization.</p>
-                                <div class="example-prompt">e.g. "Sales performance dashboard with weekly charts"</div>
+                    <div style="padding:2rem;">
+                        <p style="color:var(--text-dim); margin-bottom:2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; opacity: 0.8;">// AVAILABLE SYNTHESIS ARCHITECTURES</p>
+                        <div class="manual-grid" style="grid-template-columns: 1fr; gap: 1rem;">
+                            
+                            <div class="manual-card" style="display: flex; gap: 1.5rem; align-items: flex-start; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); padding: 1.5rem; transition: transform 0.2s; cursor: crosshair;">
+                                <div style="background: rgba(0,242,255,0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(0,242,255,0.1);"><i data-lucide="layout-dashboard" style="color: var(--accent-cyan); width: 28px; height: 28px;"></i></div>
+                                <div style="flex: 1;">
+                                    <h3 style="margin: 0; font-size: 1rem; letter-spacing: 1px; color: #fff;">DASHBOARD PROTOCOL</h3>
+                                    <p style="margin: 8px 0 0; font-size: 0.9rem; color: var(--text-dim); line-height: 1.5;">Analytics, KPI telemetry, and complex data visualization interfaces. The Data Agent prioritizes Chart.js logic.</p>
+                                </div>
                             </div>
-                            <div class="manual-card">
-                                <h3><i data-lucide="message-square"></i> Chatbot</h3>
-                                <p>Conversational AI assistants for customer support, FAQ bots, or learning companions.</p>
-                                <div class="example-prompt">e.g. "Customer support bot for a shoe store"</div>
+
+                            <div class="manual-card" style="display: flex; gap: 1.5rem; align-items: flex-start; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); padding: 1.5rem; transition: transform 0.2s; cursor: crosshair;">
+                                <div style="background: rgba(157,80,255,0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(157,80,255,0.1);"><i data-lucide="bot" style="color: var(--accent-purple); width: 28px; height: 28px;"></i></div>
+                                <div style="flex: 1;">
+                                    <h3 style="margin: 0; font-size: 1rem; letter-spacing: 1px; color: #fff;">CONVERSATIONAL AGENT</h3>
+                                    <p style="margin: 8px 0 0; font-size: 0.9rem; color: var(--text-dim); line-height: 1.5;">Chat interfaces, support heuristics, and interactive companion applications. Built using high-speed socket emulation.</p>
+                                </div>
                             </div>
-                            <div class="manual-card">
-                                <h3><i data-lucide="wrench"></i> Tool</h3>
-                                <p>Utility apps like calculators, converters, generators, or form builders.</p>
-                                <div class="example-prompt">e.g. "Invoice generator with PDF export"</div>
+                            
+                            <div class="manual-card" style="display: flex; gap: 1.5rem; align-items: flex-start; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); padding: 1.5rem; transition: transform 0.2s; cursor: crosshair;">
+                                <div style="background: rgba(0,255,136,0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(0,255,136,0.1);"><i data-lucide="binary" style="color: #00ff88; width: 28px; height: 28px;"></i></div>
+                                <div style="flex: 1;">
+                                    <h3 style="margin: 0; font-size: 1rem; letter-spacing: 1px; color: #fff;">UTILITY MATRIX</h3>
+                                    <p style="margin: 8px 0 0; font-size: 0.9rem; color: var(--text-dim); line-height: 1.5;">Calculators, format converters, and specialized micro-tools. Pure Vanilla JS emphasis for zero-latency execution.</p>
+                                </div>
                             </div>
-                            <div class="manual-card">
-                                <h3><i data-lucide="globe"></i> Landing Page</h3>
-                                <p>Marketing pages, product showcases, and portfolio sites with premium design.</p>
-                                <div class="example-prompt">e.g. "Landing page for a fitness coaching app"</div>
-                            </div>
-                        </div>
-                        <div class="manual-tip-box" style="margin-top:1rem;">
-                            <i data-lucide="trash-2"></i>
-                            <p>To delete an agent, go to <strong>Agent Library</strong> → hover the card → click <strong>Delete</strong>. This is permanent and cannot be undone.</p>
+
                         </div>
                     </div>
                 </div>
 
-                <!-- TAB: Pipeline -->
-                <div class="help-tab-content" id="tab-pipeline">
-                    <div style="padding:1.5rem 0 0.5rem;">
-                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">See exactly how your apps are built — step by step inside the Multi-Agent Factory.</p>
-                        <div style="display:flex; flex-direction:column; gap:0.8rem;">
-                            <div class="pipeline-step">
-                                <span class="pipe-icon" style="background:rgba(157,80,255,0.2);">🔀</span>
-                                <div><strong>Mission Router</strong><br><small>Classifies your goal (dashboard, chatbot, tool, etc.) and selects the optimal build strategy.</small></div>
-                            </div>
-                            <div class="pipeline-step">
-                                <span class="pipe-icon" style="background:rgba(0,242,255,0.15);">👑</span>
-                                <div><strong>Orchestrator Agent</strong><br><small>Designs the app blueprint: project name, UI theme, module list, and design system.</small></div>
-                            </div>
-                            <div class="pipeline-step">
-                                <span class="pipe-icon" style="background:rgba(0,255,136,0.15);">⚡</span>
-                                <div><strong>HTML + Data Agents (Parallel)</strong><br><small>Simultaneously build the semantic structure and wire in live data sources.</small></div>
-                            </div>
-                            <div class="pipeline-step">
-                                <span class="pipe-icon" style="background:rgba(255,189,46,0.15);">🎨</span>
-                                <div><strong>JS + CSS Agents (Parallel)</strong><br><small>Add full interactivity and a premium glassmorphic design system simultaneously.</small></div>
-                            </div>
-                            <div class="pipeline-step">
-                                <span class="pipe-icon" style="background:rgba(255,80,80,0.15);">🛡️</span>
-                                <div><strong>QA Critic + Optimizer</strong><br><small>Scores quality (0–100), flags issues, then applies a final "Premium Polish" pass to fix them.</small></div>
-                            </div>
-                            <div class="pipeline-step">
-                                <span class="pipe-icon" style="background:rgba(0,255,136,0.2);">🚀</span>
-                                <div><strong>Self-Healing Guard</strong><br><small>If a runtime error ever occurs in a deployed app, the Neural Surgeon auto-patches it.</small></div>
-                            </div>
+                <!-- TAB: OPERATIONAL SUPPORT -->
+                <div class="help-tab-content" id="tab-support">
+                    <div style="padding:4rem 2rem; text-align: center; border-radius: 8px;">
+                        
+                        <div style="position: relative; display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0, 242, 255, 0.2); border-radius: 50%; margin-bottom: 2rem; box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);">
+                            <i data-lucide="shield-alert" style="color: var(--accent-cyan); width: 36px; height: 36px;"></i>
+                            <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px dashed rgba(0, 242, 255, 0.3); animation: spin 10s linear infinite;"></div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- TAB: Pro Plan -->
-                <div class="help-tab-content" id="tab-pro">
-                    <div style="padding:1.5rem 0 0.5rem;">
-                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">AON AI offers a free tier and a Pro plan for power users.</p>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
-                            <div class="plan-card">
-                                <div class="plan-label">FREE</div>
-                                <ul class="plan-list">
-                                    <li><i data-lucide="check"></i> 1 Active Agent</li>
-                                    <li><i data-lucide="check"></i> All app types</li>
-                                    <li><i data-lucide="check"></i> Self-Healing</li>
-                                    <li><i data-lucide="x" class="no"></i> Agent Library limit</li>
-                                    <li><i data-lucide="x" class="no"></i> Priority synthesis</li>
-                                </ul>
+                        <h3 style="margin: 0 0 1rem; letter-spacing: 2px; font-weight: 800; font-size: 1.4rem; color: #fff;">AON ADMINISTRATION</h3>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; line-height: 1.6; margin-bottom: 2.5rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+                            For direct operational queries, escalated algorithmic anomalies, or enterprise integration protocols, establish a secure link with the Lead Administrator.
+                        </p>
+                        
+                        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(0,242,255,0.15); border-radius: 16px; padding: 2rem; max-width: 500px; margin: 0 auto; backdrop-filter: blur(10px);">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                                <div style="width: 8px; height: 8px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 10px #00ff88;"></div>
+                                <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #00ff88; margin: 0; text-transform: uppercase;">Connection Open</p>
                             </div>
-                            <div class="plan-card pro-plan-card">
-                                <div class="plan-label pro">PRO · $9.99/mo</div>
-                                <ul class="plan-list">
-                                    <li><i data-lucide="check"></i> <strong>Unlimited Agents</strong></li>
-                                    <li><i data-lucide="check"></i> All app types</li>
-                                    <li><i data-lucide="check"></i> Self-Healing</li>
-                                    <li><i data-lucide="check"></i> Priority synthesis</li>
-                                    <li><i data-lucide="check"></i> 7-day free trial</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="manual-tip-box">
-                            <i data-lucide="zap"></i>
-                            <p>Click <strong>⚡ UPGRADE PRO</strong> in the left sidebar to start your 7-day free trial. No charges until the trial ends.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB: Pro Tips -->
-                <div class="help-tab-content" id="tab-tips">
-                    <div style="padding:1.5rem 0 0.5rem;">
-                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">Tricks used by advanced users to get the best results.</p>
-                        <div style="display:flex; flex-direction:column; gap:0.8rem;">
-                            <div class="tip-item">
-                                <span class="tip-badge">01</span>
-                                <div><strong>Be specific with data</strong> — Instead of "a finance app", say "a budget tracker with income/expense categories, pie charts, and a monthly savings goal of $500."</div>
-                            </div>
-                            <div class="tip-item">
-                                <span class="tip-badge">02</span>
-                                <div><strong>Mention design style</strong> — "Dark mode, glassmorphism, purple accent" gives the CSS Agent clear direction and produces stunning results.</div>
-                            </div>
-                            <div class="tip-item">
-                                <span class="tip-badge">03</span>
-                                <div><strong>Name your audience</strong> — "A dashboard for gym owners tracking 50+ members" helps all agents understand the scale and complexity.</div>
-                            </div>
-                            <div class="tip-item">
-                                <span class="tip-badge">04</span>
-                                <div><strong>Watch the Pipeline tab</strong> — Open the Pipeline view before clicking Deploy to watch all 5 agents activate and process in real-time.</div>
-                            </div>
-                            <div class="tip-item">
-                                <span class="tip-badge">05</span>
-                                <div><strong>Build a suite</strong> — Create multiple apps for the same business (Admin Dashboard + Customer Chatbot + Report Tool) and link them together to build a full product.</div>
-                            </div>
+                            
+                            <a href="mailto:Raj.bans@ymail.com" style="display: flex; align-items: center; justify-content: center; gap: 1rem; background: linear-gradient(135deg, rgba(0,242,255,0.1), rgba(157,80,255,0.1)); border: 1px solid var(--accent-cyan); color: #fff; text-decoration: none; padding: 1.2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease; box-shadow: 0 0 25px rgba(0, 242, 255, 0.15); letter-spacing: 1px;">
+                                <i data-lucide="mail" style="color: var(--accent-cyan);"></i> Raj.bans@ymail.com
+                            </a>
+                            <p style="margin: 1.5rem 0 0; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-dim); opacity: 0.7;">SLA: ~24 Operational Hours | End-to-End Encrypted</p>
                         </div>
                     </div>
                 </div>
@@ -603,8 +537,12 @@
             </div>
 
             <!-- Footer -->
-            <div class="modal-actions" style="flex-shrink:0; border-top:1px solid var(--border);">
-                <button class="action-btn primary full" id="manual-dismiss">GOT IT — LET'S BUILD 🚀</button>
+            <div class="modal-actions" style="flex-shrink:0; border-top:1px solid rgba(0, 242, 255, 0.1); background: rgba(0,0,0,0.5); padding: 1rem 2rem; justify-content: space-between; align-items: center; display: flex;">
+                <div style="font-family: 'JetBrains Mono', monospace; color: var(--text-dim); font-size: 0.75rem; letter-spacing: 1px; display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="display: inline-block; width: 6px; height: 6px; background: var(--accent-cyan); border-radius: 50%; box-shadow: 0 0 8px var(--accent-cyan);"></span>
+                    TELEMETRY ACTIVE
+                </div>
+                <button class="action-btn primary" id="manual-dismiss" style="padding: 0.7rem 2.5rem; border-radius: 6px; font-weight: 800; letter-spacing: 1px; font-size: 0.85rem; box-shadow: 0 0 20px rgba(0,242,255,0.15); border: 1px solid rgba(0,242,255,0.3);">ACKNOWLEDGE</button>
             </div>
         </div>
     </div>

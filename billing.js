@@ -9,34 +9,40 @@ export const BillingManager = {
 
     async init() {
         try {
-            // ── Check trial expiry first ───────────────────────────
-            const trialEnd = localStorage.getItem('nexus_trial_end');
-            if (trialEnd && Date.now() > parseInt(trialEnd)) {
-                // Trial has expired — revert to free
-                localStorage.setItem('nexus_is_premium', 'false');
-                localStorage.removeItem('nexus_trial_end');
-                console.log('[BILLING] Trial expired. Reverted to Free tier.');
-            }
+            const clientId = localStorage.getItem('nexus_client_id') || `anon-${Date.now()}`;
+            localStorage.setItem('nexus_client_id', clientId);
 
-            // ── Check stored premium status ────────────────────────
-            const stored = localStorage.getItem('nexus_is_premium');
-            this.isPremium = stored === 'true';
+            // ── 1. Check server-side status (Tamper-proof) ────────────────
+            await this.syncStatus();
 
-            // ── If running inside Capacitor native app ─────────────
-            // Verify via RevenueCat (overrides localStorage)
+            // ── 2. If running inside Capacitor native app ────────────────
             if (window.Capacitor && window.Capacitor.isNative) {
                 const { Purchases } = await import('@revenuecat/purchases-capacitor');
-                const apiKey = window.RC_API_KEY || 'goog_placeholder_key';
+                const apiKey = "goog_SgNRYmUvIqWlpPzDxKcVqYvV"; // Placeholder — Replace with real RC Key
                 await Purchases.configure({ apiKey });
                 const info = await Purchases.getCustomerInfo();
                 this.isPremium = info.entitlements.active['pro'] !== undefined;
                 localStorage.setItem('nexus_is_premium', this.isPremium ? 'true' : 'false');
             }
 
-            console.log('[BILLING] Status:', this.isPremium ? 'PRO ✅' : 'FREE | Trial ends:', trialEnd ? new Date(parseInt(trialEnd)).toLocaleDateString() : 'N/A');
+            console.log('[BILLING] Status:', this.isPremium ? 'PRO ✅' : 'FREE');
         } catch (e) {
-            console.warn('[BILLING] Init failed, defaulting to free mode:', e.message);
-            this.isPremium = false;
+            console.warn('[BILLING] Init failed:', e.message);
+        }
+    },
+
+    async syncStatus() {
+        const clientId = localStorage.getItem('nexus_client_id');
+        if (!clientId) return;
+        try {
+            const res = await fetch(`/api/subscription/status?clientId=${clientId}`);
+            const data = await res.json();
+            if (data.success) {
+                this.isPremium = data.isPremium;
+                localStorage.setItem('nexus_is_premium', this.isPremium ? 'true' : 'false');
+            }
+        } catch (e) {
+            console.error('[BILLING] Status sync failed:', e);
         }
     },
 
@@ -58,10 +64,73 @@ export const BillingManager = {
             } catch (e) {
                 if (!e.userCancelled) alert('Purchase Failed: ' + e.message);
             }
+            return false;
         } else {
-            // Web fallback — redirect to pricing page
-            location.assign('pricing.html');
+            // 🌐 WEB FLOW: Razorpay
+            const clientId = localStorage.getItem('nexus_client_id');
+            
+            try {
+                // 1. Create Order
+                const orderRes = await fetch('/api/payment/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-client-id': clientId }
+                });
+                const orderData = await orderRes.json();
+                
+                if (!orderRes.ok) throw new Error(orderData.message || 'Order creation failed');
+
+                // 2. Open Razorpay Modal
+                return new Promise((resolve, reject) => {
+                    const options = {
+                        key: orderData.keyId,
+                        amount: orderData.amount,
+                        currency: orderData.currency,
+                        name: "AgentMaximize Pro",
+                        description: "Monthly Subscription",
+                        order_id: orderData.orderId,
+                        handler: async (response) => {
+                            // 3. Verify Payment
+                            try {
+                                const verifyRes = await fetch('/api/payment/verify', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'x-client-id': clientId },
+                                    body: JSON.stringify({
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_signature: response.razorpay_signature,
+                                        clientId
+                                    })
+                                });
+                                const verifyData = await verifyRes.json();
+                                if (verifyData.success) {
+                                    this.isPremium = true;
+                                    localStorage.setItem('nexus_is_premium', 'true');
+                                    resolve(true);
+                                } else {
+                                    throw new Error(verifyData.message);
+                                }
+                            } catch (err) {
+                                reject(err);
+                            }
+                        },
+                        prefill: {
+                            name: "Aon User",
+                            email: "support@aon.ai"
+                        },
+                        theme: { color: "#00f2ff" }
+                    };
+
+                    const rzp = new window.Razorpay(options);
+                    rzp.on('payment.failed', (response) => {
+                        reject(new Error(response.error.description));
+                    });
+                    rzp.open();
+                });
+            } catch (e) {
+                console.error('[BILLING] Purchase Error:', e);
+                alert(e.message);
+                return false;
+            }
         }
-        return false;
     }
 };

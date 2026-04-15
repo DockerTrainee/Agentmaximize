@@ -21,8 +21,108 @@ const path = require('path');
 const dotenv = require('dotenv');
 const axios = require('axios');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
+const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 
 dotenv.config();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RAZORPAY CLIENT
+// ─────────────────────────────────────────────────────────────────────────────
+let razorpayInstance = null;
+try {
+    const rzpKeyId = (process.env.RAZORPAY_KEY_ID || '').trim();
+    const rzpKeySecret = (process.env.RAZORPAY_KEY_SECRET || '').trim();
+    if (rzpKeyId && rzpKeySecret && !rzpKeyId.includes('YOUR_KEY')) {
+        razorpayInstance = new Razorpay({ key_id: rzpKeyId, key_secret: rzpKeySecret });
+        console.log('[RAZORPAY] Payment gateway initialized.');
+    } else {
+        console.warn('[RAZORPAY] Keys not configured. Payment endpoints will return errors.');
+    }
+} catch (e) {
+    console.error('[RAZORPAY] Init failed:', e.message);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MCP TOOL MANAGER — Bridges external tools to Gemini
+// ─────────────────────────────────────────────────────────────────────────────
+class MCPManager {
+    constructor() {
+        this.clients = new Map();
+        this.tools = [];
+    }
+
+    async connectServer(name, config) {
+        try {
+            console.log(`[MCP] Connecting to ${name}...`);
+            const transport = new StdioClientTransport({
+                command: config.command,
+                args: config.args || []
+            });
+            const client = new Client({ name: "aon-ai-bridge", version: "1.0.0" }, { capabilities: { tools: {} } });
+            await client.connect(transport);
+            this.clients.set(name, client);
+            
+            const serverTools = await client.listTools();
+            const mapped = serverTools.tools.map(t => ({
+                serverName: name,
+                ...t
+            }));
+            this.tools.push(...mapped);
+            console.log(`[MCP] Server ${name} connected. Tools: ${serverTools.tools.length}`);
+        } catch (e) {
+            console.error(`[MCP] Connection failed for ${name}:`, e.message);
+        }
+    }
+
+    getGeminiTools() {
+        if (this.tools.length === 0) return [];
+        return [{
+            functionDeclarations: this.tools.map(t => ({
+                name: t.name,
+                description: t.description,
+                parameters: t.inputSchema
+            }))
+        }];
+    }
+
+    async executeTool(toolName, args, jobId = null) {
+        const tool = this.tools.find(t => t.name === toolName);
+        if (!tool) throw new Error(`Tool ${toolName} not found.`);
+        
+        if (jobId) streamLog(jobId, `[TOOL] Executing ${toolName}...`, 'system');
+        const client = this.clients.get(tool.serverName);
+        const result = await client.callTool({ name: toolName, arguments: args });
+        return result.content || result;
+    }
+}
+
+async function loadMCPServers() {
+    try {
+        const configPath = path.join(DATA_BASE, 'data', 'mcp-servers.json');
+        if (!fs.existsSync(configPath)) {
+            // Create default template for user
+            await fs.writeJson(configPath, {
+                servers: [
+                    { "name": "brave-search", "command": "npx", "args": ["-y", "@modelcontextprotocol/server-brave-search"], "enabled": false, "notes": "Set BRAVE_API_KEY in .env" }
+                ]
+            }, { spaces: 2 });
+            console.log('[MCP] Created default config template at data/mcp-servers.json');
+            return;
+        }
+
+        const config = await fs.readJson(configPath);
+        for (const s of config.servers) {
+            if (s.enabled) await mcp.connectServer(s.name, s);
+        }
+    } catch (e) {
+        console.error('[MCP] Failed to load servers:', e.message);
+    }
+}
+
+loadMCPServers();
 
 const app = express();
 const server = http.createServer(app);
@@ -46,9 +146,47 @@ const PORT = process.env.PORT || 3000;
 const DATA_BASE = process.env.DATA_DIR || __dirname;
 const BUILDS_DIR = path.join(DATA_BASE, 'builds');
 const AGENTS_DB_PATH = path.join(DATA_BASE, 'agents-db.json');
+const SUBS_DB_PATH = path.join(DATA_BASE, 'data', 'subscriptions.json');
 
 fs.ensureDirSync(BUILDS_DIR);
+fs.ensureDirSync(path.join(DATA_BASE, 'data'));
 if (!fs.existsSync(AGENTS_DB_PATH)) fs.writeJsonSync(AGENTS_DB_PATH, { agents: [] });
+if (!fs.existsSync(SUBS_DB_PATH)) fs.writeJsonSync(SUBS_DB_PATH, { subscriptions: {} });
+
+// ── Subscription Helpers ─────────────────────────────────────────────────────
+async function getSubscription(clientId) {
+    try {
+        const db = await fs.readJson(SUBS_DB_PATH);
+        const sub = db.subscriptions[clientId];
+        if (!sub) return { isPremium: false };
+        // Check expiry
+        if (sub.expiresAt && Date.now() > new Date(sub.expiresAt).getTime()) {
+            sub.status = 'expired';
+            db.subscriptions[clientId] = sub;
+            await fs.writeJson(SUBS_DB_PATH, db, { spaces: 2 });
+            return { isPremium: false, status: 'expired', ...sub };
+        }
+        return { isPremium: sub.status === 'active', ...sub };
+    } catch (e) {
+        console.error('[SUBS] Read error:', e.message);
+        return { isPremium: false };
+    }
+}
+
+async function activateSubscription(clientId, paymentId, orderId, plan = 'pro_monthly') {
+    const db = await fs.readJson(SUBS_DB_PATH);
+    db.subscriptions[clientId] = {
+        status: 'active',
+        plan,
+        paymentId,
+        orderId,
+        activatedAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+    };
+    await fs.writeJson(SUBS_DB_PATH, db, { spaces: 2 });
+    console.log(`[SUBS] Activated ${plan} for ${clientId}`);
+    return db.subscriptions[clientId];
+}
 
 console.log(`[STORAGE] Persistence Mode: ${process.env.DATA_DIR ? 'DISK-BASED' : 'EPHEMERAL'}`);
 console.log(`[STORAGE] Data Base: ${DATA_BASE}`);
@@ -94,6 +232,10 @@ app.get('/favicon.ico', (req, res) => res.redirect(301, '/favicon.png'));
 // Health check for Deployment (Render/Cloud Run)
 app.get('/health', (req, res) => res.json({ status: 'HEALTHY', timestamp: new Date() }));
 
+// Serving Legal Docs for App Store Compliance
+app.get('/privacy', (req, res) => res.sendFile(path.join(__dirname, 'privacy.html')));
+app.get('/terms', (req, res) => res.sendFile(path.join(__dirname, 'terms.html')));
+
 // ─────────────────────────────────────────────────────────────────────────────
 // GEMINI CLIENT
 // ─────────────────────────────────────────────────────────────────────────────
@@ -110,9 +252,6 @@ io.on('connection', (socket) => {
 
 /**
  * Emit a log event to a specific job's clients.
- * @param {string} jobId - The job ID to emit to.
- * @param {string} message - The log message.
- * @param {'system'|'success'|'error'|'agent'|'user'} type - Log type.
  */
 function streamLog(jobId, message, type = 'system') {
     io.emit(`job:${jobId}:log`, { message, type, ts: new Date().toLocaleTimeString() });
@@ -124,33 +263,27 @@ function streamProgress(jobId, value, label = '') {
     if (jobs[jobId]) jobs[jobId].progress = value;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CORE AI ENGINE — Hybrid Cascade with Multi-Provider Fallback
-// ─────────────────────────────────────────────────────────────────────────────
-const GITHUB_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions';
-
-const MODEL_CASCADE = [
-    // ── Gemini (Primary — using latest stable identifiers) ──
-    "gemini-2.0-flash-exp",
-    "gemini-2.0-flash-thinking-exp",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-pro-latest",
-    "github/gpt-4o-mini",
-    "github/gpt-4o",
-];
-
-/**
- * Emit a neural reasoning step to the client dashboard.
- */
 function streamThought(jobId, agent, message) {
     io.emit(`job:${jobId}:thought`, { agent, message, ts: new Date().toLocaleTimeString() });
 }
 
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
-/**
- * GitHub Models API Caller (OpenAI Compatible)
- */
+// ─────────────────────────────────────────────────────────────────────────────
+// CORE AI ENGINE — Hybrid Cascade with Multi-Provider Fallback
+// ─────────────────────────────────────────────────────────────────────────────
+const GITHUB_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions';
+
+const MODEL_CASCADE = [
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-pro-latest",
+    "gemini-1.5-flash",
+    "gemini-2.0-flash-thinking-exp",
+    "gemini-2.0-flash-exp",
+    "github/gpt-4o-mini",
+    "github/gpt-4o",
+];
+
 async function callGitHubAI(modelName, prompt, jobId = null) {
     const token = sanitizeEnv(process.env.GITHUB_TOKEN);
     if (!token || token === 'your_github_token_here') {
@@ -182,10 +315,9 @@ async function callGitHubAI(modelName, prompt, jobId = null) {
 
 async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
     const tag = agentName ? `[${agentName}]` : '[AI]';
+    const geminiTools = mcp.getGeminiTools();
     
-    // EXHAUSTIVE CASCADE ATTEMPT
     for (const modelId of MODEL_CASCADE) {
-        // Try both raw name and prefixed name for each model to bypass 404s
         const variations = modelId.startsWith('github/') ? [modelId] : [modelId, `models/${modelId}`];
         
         for (const modelName of variations) {
@@ -200,10 +332,37 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
                         text = await callGitHubAI(modelName, prompt, jobId);
                     } else {
                         if (jobId) streamLog(jobId, `${tag} Calling ${modelName}...`, 'system');
-                        const model = genAI.getGenerativeModel({ model: modelName });
-                        if (jobId) streamLog(jobId, `${tag} Agent is reasoning...`, 'agent');
-                        const result = await model.generateContent(prompt);
-                        text = result.response.text().trim();
+                        const model = genAI.getGenerativeModel({ 
+                            model: modelName,
+                            tools: geminiTools
+                        });
+
+                        const chat = model.startChat();
+                        let result = await chat.sendMessage(prompt);
+                        let response = result.response;
+                        
+                        let loopLimit = 5;
+                        while(response.functionCalls()?.length > 0 && loopLimit > 0) {
+                            loopLimit--;
+                            const calls = response.functionCalls();
+                            const toolResponses = [];
+
+                            for (const call of calls) {
+                                if (jobId) streamThought(jobId, agentName || 'System', `Executing tool: ${call.name}`);
+                                const toolOutput = await mcp.executeTool(call.name, call.args, jobId);
+                                toolResponses.push({
+                                    functionResponse: {
+                                        name: call.name,
+                                        response: { content: toolOutput }
+                                    }
+                                });
+                            }
+
+                            result = await chat.sendMessage(toolResponses);
+                            response = result.response;
+                        }
+
+                        text = response.text().trim();
                     }
 
                     text = text.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
@@ -217,6 +376,8 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
                 } catch (err) {
                     console.error(`[AI ATTEMPT FAILED] Model: ${modelName} | Error: ${err.message}`);
                     const isRateLimit = err.message.includes('429') || err.message.includes('quota') || err.message.includes('rate limit');
+                    const isNotFound  = err.message.includes('404') || err.message.includes('not found') || err.message.includes('Model not found');
+                    
                     if (isNotFound) {
                         console.warn(`[AON] Model ${modelName} not found, skipping.`);
                         break; 
@@ -249,11 +410,11 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
         return JSON.stringify({
             projectName: "Nexus Simulation",
             tagline: "AI Environment is disconnected - running in simulated state.",
+            type: "dashboard",
             modules: [{ id: "sim_1", name: "System Stabilizer", role: "Mock Logic", priority: "high", type: "dashboard" }],
             designSystem: { accentColor: "#00f2ff", complementary: "#9d50ff", cornerRadius: "12px", surfaceBlur: "16px" },
             dataRequirements: { endpoints: [], mockData: {} },
-            qaScore: 85,
-            complexity: "medium"
+            uiArchitecture: { layout: "sidebar_bento" }
         });
     }
 
@@ -563,12 +724,12 @@ app.post('/orchestrate', async (req, res) => {
         return res.status(500).json({ success: false, error: 'MISSING GEMINI_API_KEY in .env' });
     }
 
-    // 🛡️ SUBSCRIPTION GATE: Limit free users to 1 agent per device
+    // 🛡️ SUBSCRIPTION GATE: Server-side DB check (tamper-proof)
     try {
         const db = await fs.readJson(AGENTS_DB_PATH);
         const userAgents = db.agents.filter(a => a.clientId === clientId);
-        const isPremium = req.headers['x-subscription-pro'] === 'true';
-        if (!isPremium && userAgents.length >= 1) {
+        const sub = await getSubscription(clientId);
+        if (!sub.isPremium && userAgents.length >= 1) {
             return res.status(403).json({
                 success: false,
                 error: 'AGENT_LIMIT_REACHED',
@@ -608,7 +769,8 @@ async function runNexusPrimeSynthesis(jobId, goal, clientId) {
     streamLog(jobId, '🔀 ROUTING MISSION... Classifying goal type.', 'system');
     streamProgress(jobId, 5, 'ROUTING');
     const route = await routeMission(goal);
-    streamLog(jobId, `✅ ROUTE DETECTED: ${route.type.toUpperCase()} | Complexity: ${route.complexity}`, 'agent');
+    const routeType = (route?.type || 'dashboard').toUpperCase();
+    streamLog(jobId, `✅ ROUTE DETECTED: ${routeType} | Complexity: ${route?.complexity || 'moderate'}`, 'agent');
     io.emit(`job:${jobId}:route`, route);
     streamThought(jobId, 'Router', `Goal classified as ${route.type}. Setting ${route.complexity} complexity profile.`);
 
@@ -622,9 +784,16 @@ You are the "Aon AI Lead Orchestrator" - an elite software architect for a high-
 MISSION: Architect an industry-leading ${route.type} application for: "${goal}"
 
 DESIGN SYSTEM SPECIFICATION:
-- Spacing: 8px-based grid (4|8|16|24|32|48|64)
-- Typography: Primary (Outfit), Secondary (Inter)
 - Aesthetic: Modern High-Contrast Dark Mode (Glassmorphism, Bento-Grid, Premium Gradients)
+
+TOOL USAGE PROTOCOL:
+You have access to real-time tools. If you are unsure about an API, a design pattern, or need real data, USE YOUR TOOLS.
+1. THINK: What information do I need?
+2. ACT: Call the relevant tool.
+3. OBSERVE: Analyze the tool output.
+4. REPEAT or RESPOND.
+You MUST verify all key technical assumptions using tools if available.
+
 
 Return JSON (NO MARKDOWN WRAPPERS):
 {
@@ -708,6 +877,9 @@ STRICT RULES:
 6. Accessibility: Include aria-labels and proper role attributes for all modules.
 7. CRITICAL: NEVER use inline JavaScript handlers (NO onclick="...", NO onchange="..."). Your JS agent counterpart will attach all listeners via ID/Class.
 8. Structure for application type: ${route.type}.
+
+TOOL USAGE: You may use tools to find semantic ID names or best-practice HTML5 structure for complex components.
+
 `;
 
     const mockDataPrompt = `
@@ -725,6 +897,8 @@ Define the data architecture. Respond with ONLY a valid JSON object:
   "stateVariables": { "var": "default" }
 }
 Endpoints available: /live-data/crypto, /live-data/news, /search (POST with { query }).
+
+TOOL USAGE: Use tools to find real-world sample data or verify API schemas if available. Do not guess data structures.
     `;
 
     const structureHTML = await callAI(htmlAgentPrompt, 'HTML', jobId, 'HTML-AGENT');
@@ -771,6 +945,9 @@ STRICT RULES:
 - Use 'lucide.createIcons()' for premium iconography.
 - IMPORTANT: Use RELATIVE paths for all fetch calls (e.g., '/chat', '/live-data').
 - CRITICAL: All code must run without errors. Test every variable reference before writing it.
+
+TOOL USAGE: If implementing a complex logic (like a specific encryption or a math heavy algorithm), use tools to fetch the correct standard implementation.
+
 `;
 
     const cssAgentPrompt = `
@@ -1036,6 +1213,79 @@ Respond with ONLY valid JSON:
 
     console.log(`[NEXUS] JOB ${jobId} COMPLETED. FILE: ${filePath}`);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAYMENT API — Razorpay Integration
+// ─────────────────────────────────────────────────────────────────────────────
+const PLAN_AMOUNT = 79900; // ₹799 in paise
+const PLAN_CURRENCY = 'INR';
+
+app.post('/api/payment/create-order', async (req, res) => {
+    if (!razorpayInstance) {
+        return res.status(503).json({ error: 'PAYMENT_NOT_CONFIGURED', message: 'Razorpay keys are not configured on the server.' });
+    }
+    const clientId = req.headers['x-client-id'] || `anon-${Date.now()}`;
+    try {
+        const order = await razorpayInstance.orders.create({
+            amount: PLAN_AMOUNT,
+            currency: PLAN_CURRENCY,
+            receipt: `rcpt_${clientId}_${Date.now()}`,
+            notes: { clientId, plan: 'pro_monthly' }
+        });
+        console.log(`[PAYMENT] Order created: ${order.id} for ${clientId}`);
+        res.json({
+            success: true,
+            orderId: order.id,
+            amount: order.amount,
+            currency: order.currency,
+            keyId: process.env.RAZORPAY_KEY_ID.trim()
+        });
+    } catch (e) {
+        console.error('[PAYMENT] Order creation failed:', e.message);
+        res.status(500).json({ error: 'ORDER_FAILED', message: e.message });
+    }
+});
+
+app.post('/api/payment/verify', async (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const clientId = req.headers['x-client-id'] || req.body.clientId;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        return res.status(400).json({ error: 'MISSING_PARAMS', message: 'Missing payment verification parameters.' });
+    }
+
+    try {
+        // HMAC SHA256 signature verification (Razorpay standard)
+        const secret = (process.env.RAZORPAY_KEY_SECRET || '').trim();
+        const body = razorpay_order_id + '|' + razorpay_payment_id;
+        const expectedSignature = crypto.createHmac('sha256', secret).update(body).digest('hex');
+
+        if (expectedSignature !== razorpay_signature) {
+            console.error('[PAYMENT] Signature mismatch! Possible tampering.');
+            return res.status(400).json({ error: 'INVALID_SIGNATURE', message: 'Payment signature verification failed.' });
+        }
+
+        // Activate subscription on server
+        const sub = await activateSubscription(clientId, razorpay_payment_id, razorpay_order_id);
+        console.log(`[PAYMENT] ✅ Verified & activated for ${clientId}`);
+
+        res.json({
+            success: true,
+            message: 'Payment verified. Pro subscription activated!',
+            subscription: sub
+        });
+    } catch (e) {
+        console.error('[PAYMENT] Verification error:', e.message);
+        res.status(500).json({ error: 'VERIFY_FAILED', message: e.message });
+    }
+});
+
+app.get('/api/subscription/status', async (req, res) => {
+    const clientId = req.headers['x-client-id'] || req.query.clientId;
+    if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
+    const sub = await getSubscription(clientId);
+    res.json({ success: true, ...sub });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LIVE DATA BRIDGE
