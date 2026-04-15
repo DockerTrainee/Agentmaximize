@@ -41,12 +41,17 @@ process.on('uncaughtException', (err) => {
 const PORT = process.env.PORT || 3000;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STORAGE
+// STORAGE — Supports Persistent Disks (Render / Cloud Run)
 // ─────────────────────────────────────────────────────────────────────────────
-const BUILDS_DIR = path.join(__dirname, 'builds');
-const AGENTS_DB_PATH = path.join(__dirname, 'agents-db.json');
+const DATA_BASE = process.env.DATA_DIR || __dirname;
+const BUILDS_DIR = path.join(DATA_BASE, 'builds');
+const AGENTS_DB_PATH = path.join(DATA_BASE, 'agents-db.json');
+
 fs.ensureDirSync(BUILDS_DIR);
 if (!fs.existsSync(AGENTS_DB_PATH)) fs.writeJsonSync(AGENTS_DB_PATH, { agents: [] });
+
+console.log(`[STORAGE] Persistence Mode: ${process.env.DATA_DIR ? 'DISK-BASED' : 'EPHEMERAL'}`);
+console.log(`[STORAGE] Data Base: ${DATA_BASE}`);
 
 const jobs = {};
 global.IS_ON_QUOTA_RESTRICTION = false;
@@ -491,10 +496,9 @@ app.post('/api/self-heal', async (req, res) => {
         const projectType = 'automated-fix'; 
 
         // 🛡️ SUBSCRIPTION GATE: Limit free users to 1 agent
-        const dbPath = path.join(__dirname, 'agents-db.json');
         let currentAgents = [];
         try {
-            const dbData = await fs.readJson(dbPath);
+            const dbData = await fs.readJson(AGENTS_DB_PATH);
             currentAgents = dbData.agents || [];
         } catch (e) {}
 
@@ -872,7 +876,8 @@ OUTPUT: Raw CSS ONLY.
             if (!isExtension) {
                 handleCrash({ message: msg, stack: error?.stack, line, col });
             } else {
-                console.warn('[AON] Ignored external noise:', msg);
+                // SILENT PATCH: Ignore extension noise without blocking the user
+                console.warn('[AON] Neutralized external interference:', msg);
             }
             return false;
         };

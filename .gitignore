@@ -4,8 +4,6 @@ android/
 www/
 capacitor.config.json
 *.log
-agents-db.json
-builds/
 splash.png
 icon.png
 *.png
