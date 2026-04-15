@@ -499,7 +499,9 @@ app.post('/api/self-heal', async (req, res) => {
         } catch (e) {}
 
         const isPremium = req.headers['x-subscription-pro'] === 'true';
-        if (!isPremium && currentAgents.length >= 1) {
+        const isExistingAgent = currentAgents.some(a => a.id === jobId);
+
+        if (!isPremium && currentAgents.length >= 1 && !isExistingAgent) {
             return res.status(403).json({
                 error: 'AGENT_LIMIT_REACHED',
                 message: 'Free users are limited to 1 active agent. Upgrade to Pro for unlimited synthesis.'
@@ -864,7 +866,15 @@ OUTPUT: Raw CSS ONLY.
         const errorView = document.getElementById('error-details');
 
         window.onerror = function(msg, url, line, col, error) {
-            handleCrash({ message: msg, stack: error?.stack, line, col });
+            // INTERNATIONAL STANDARD: Filter out non-application errors (browser extensions, wallets, etc)
+            const isExtension = (url && (url.includes('chrome-extension') || url.includes('moz-extension'))) || 
+                                (msg && (msg.includes('Origin not allowed') || msg.includes('ExtensionContext')));
+            
+            if (!isExtension) {
+                handleCrash({ message: msg, stack: error?.stack, line, col });
+            } else {
+                console.warn('[AON] Ignored external noise:', msg);
+            }
             return false;
         };
 
