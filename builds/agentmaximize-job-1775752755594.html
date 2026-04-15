@@ -737,9 +737,35 @@
                     })
                 });
 
-                if (!response.ok) throw new Error('Network response was not ok');
-
                 const data = await response.json();
+
+                // Handle server-side AI errors (quota / unavailable)
+                if (!response.ok || data.error) {
+                    const isQuota = data.code === 'QUOTA_EXCEEDED';
+                    const icon = isQuota ? '⏳' : '⚠️';
+                    const title = isQuota ? 'AI Rate Limited' : 'AI Temporarily Unavailable';
+                    const msg = data.message || 'Something went wrong. Please try again.';
+                    const hint = isQuota
+                        ? 'The Gemini API free quota has been reached for this period. Please wait a few minutes and try again.'
+                        : 'The AI engine failed to respond. Check server logs or try again shortly.';
+
+                    elements.refinedOutput.innerHTML = `
+                        <div style="display:flex;flex-direction:column;gap:0.75rem;padding:1rem;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:12px;">
+                            <div style="display:flex;align-items:center;gap:0.6rem;">
+                                <span style="font-size:1.3rem;">${icon}</span>
+                                <strong style="color:#f87171;font-family:'Outfit',sans-serif;">${title}</strong>
+                            </div>
+                            <p style="color:#fca5a5;font-size:0.85rem;line-height:1.5;">${msg}</p>
+                            <p style="color:var(--text-muted);font-size:0.78rem;line-height:1.5;">${hint}</p>
+                            <button onclick="document.getElementById('aon-btn-1').click()"
+                                style="align-self:flex-start;padding:0.4rem 1rem;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:8px;cursor:pointer;font-size:0.8rem;font-family:'Inter',sans-serif;">
+                                ↺ Retry
+                            </button>
+                        </div>`;
+                    updateSystemStatus(title, true);
+                    return;
+                }
+
                 state.currentOptimizedResult = data.reply || "Optimization complete. No significant changes suggested.";
                 state.historyStack.push({ input: state.activeInput, output: state.currentOptimizedResult });
 
@@ -750,7 +776,11 @@
                 updateSystemStatus("System optimized successfully.");
             } catch (error) {
                 console.error('Optimization Error:', error);
-                updateUI(elements.refinedOutput, "Error connecting to optimization engine. Please try again.", true);
+                elements.refinedOutput.innerHTML = `
+                    <div style="display:flex;flex-direction:column;gap:0.6rem;padding:1rem;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:12px;">
+                        <strong style="color:#f87171;">⚠️ Connection Error</strong>
+                        <p style="color:var(--text-muted);font-size:0.82rem;">Could not reach the server. Make sure the Nexus server is running.</p>
+                    </div>`;
                 updateSystemStatus("Connection failed.", true);
             } finally {
                 setGeneratingState(false);

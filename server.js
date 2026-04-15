@@ -1048,19 +1048,14 @@ app.post('/chat', async (req, res) => {
         const reply = await callAI(prompt, 'Plain Text', null, 'CHAT-REPLY');
         res.json({ reply });
     } catch (e) {
-        console.error('[CHAT ROUTE FALLBACK]: AI Cascade exhausted. Returning simulated response.');
-        // GRACEFUL DEGRADATION: Return a helpful simulated response if AI is down/over quota
-        const simulatedReplies = [
-            "I'm operating in emergency power-save mode due to high neural traffic. I recommend sticking to the blueprint for now!",
-            "Neural sync is currently limited. Let's focus on the core modules of your mission.",
-            "I'm analyzing your request via backup protocols. The optimization lab suggests refining your primary goal.",
-            "System quota reached, but I'm still here! I've logged your request for full processing once the neural link stabilizes."
-        ];
-        const randomReply = simulatedReplies[Math.floor(Math.random() * simulatedReplies.length)];
-        res.json({ 
-            reply: `[Neural Backup]: ${randomReply}`,
-            isSimulated: true,
-            warning: "Gemini API Quota Exceeded. Using local heuristic fallback."
+        console.error('[CHAT] AI Cascade exhausted:', e.message);
+        const isQuota = e.message.includes('quota') || e.message.includes('429') || e.message.includes('rate limit');
+        res.status(503).json({
+            error: true,
+            code: isQuota ? 'QUOTA_EXCEEDED' : 'AI_UNAVAILABLE',
+            message: isQuota
+                ? 'The AI engine is currently rate-limited. Please wait a moment and try again.'
+                : 'The AI engine is temporarily unavailable. Please try again shortly.'
         });
     }
 });
