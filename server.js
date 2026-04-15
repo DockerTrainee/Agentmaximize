@@ -29,6 +29,13 @@ const crypto = require('crypto');
 dotenv.config();
 
 // ─────────────────────────────────────────────────────────────────────────────
+// STORAGE — Supports Persistent Disks (Render / Cloud Run)
+// ─────────────────────────────────────────────────────────────────────────────
+const DATA_BASE = process.env.DATA_DIR || __dirname;
+fs.ensureDirSync(path.join(DATA_BASE, 'data'));
+fs.ensureDirSync(path.join(DATA_BASE, 'builds'));
+
+// ─────────────────────────────────────────────────────────────────────────────
 // RAZORPAY CLIENT
 // ─────────────────────────────────────────────────────────────────────────────
 let razorpayInstance = null;
@@ -135,19 +142,6 @@ async function loadMCPServers() {
     }
 }
 
-// ── MCP Diagnostics API ──────────────────────────────────────────────
-app.get('/api/mcp-status', (req, res) => {
-    const servers = [];
-    mcp.clients.forEach((client, name) => {
-        servers.push({ name, active: true });
-    });
-    res.json({
-        totalTools: mcp.tools.length,
-        servers,
-        health: mcp.tools.length > 0 ? 'GOOD' : 'NO_TOOLS'
-    });
-});
-
 loadMCPServers();
 
 const app = express();
@@ -166,18 +160,18 @@ process.on('uncaughtException', (err) => {
 
 const PORT = process.env.PORT || 3000;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// STORAGE — Supports Persistent Disks (Render / Cloud Run)
-// ─────────────────────────────────────────────────────────────────────────────
-const DATA_BASE = process.env.DATA_DIR || __dirname;
-const BUILDS_DIR = path.join(DATA_BASE, 'builds');
-const AGENTS_DB_PATH = path.join(DATA_BASE, 'agents-db.json');
-const SUBS_DB_PATH = path.join(DATA_BASE, 'data', 'subscriptions.json');
-
-fs.ensureDirSync(BUILDS_DIR);
-fs.ensureDirSync(path.join(DATA_BASE, 'data'));
-if (!fs.existsSync(AGENTS_DB_PATH)) fs.writeJsonSync(AGENTS_DB_PATH, { agents: [] });
-if (!fs.existsSync(SUBS_DB_PATH)) fs.writeJsonSync(SUBS_DB_PATH, { subscriptions: {} });
+// ── MCP Diagnostics API ──────────────────────────────────────────────
+app.get('/api/mcp-status', (req, res) => {
+    const servers = [];
+    mcp.clients.forEach((client, name) => {
+        servers.push({ name, active: true });
+    });
+    res.json({
+        totalTools: mcp.tools.length,
+        servers,
+        health: mcp.tools.length > 0 ? 'GOOD' : 'NO_TOOLS'
+    });
+});
 
 // ── Subscription Helpers ─────────────────────────────────────────────────────
 async function getSubscription(clientId) {
