@@ -17,12 +17,16 @@ export const BillingManager = {
 
             // ── 2. If running inside Capacitor native app ────────────────
             if (window.Capacitor && window.Capacitor.isNative) {
-                const { Purchases } = await import('@revenuecat/purchases-capacitor');
-                const apiKey = "goog_SgNRYmUvIqWlpPzDxKcVqYvV"; // Placeholder — Replace with real RC Key
-                await Purchases.configure({ apiKey });
-                const info = await Purchases.getCustomerInfo();
-                this.isPremium = info.entitlements.active['pro'] !== undefined;
-                localStorage.setItem('nexus_is_premium', this.isPremium ? 'true' : 'false');
+                try {
+                    const { Purchases } = await import('@revenuecat/purchases-capacitor');
+                    const apiKey = "goog_SgNRYmUvIqWlpPzDxKcVqYvV"; // Placeholder — Replace with real RC Key
+                    await Purchases.configure({ apiKey });
+                    const info = await Purchases.getCustomerInfo();
+                    this.isPremium = info.entitlements.active['pro'] !== undefined;
+                    localStorage.setItem('nexus_is_premium', this.isPremium ? 'true' : 'false');
+                } catch (err) {
+                    console.error('[BILLING] Native Purchases Init Failed:', err.message);
+                }
             }
 
             console.log('[BILLING] Status:', this.isPremium ? 'PRO ✅' : 'FREE');
@@ -62,6 +66,7 @@ export const BillingManager = {
                     }
                 }
             } catch (e) {
+                console.error('[BILLING] Native Purchase Error:', e);
                 if (!e.userCancelled) alert('Purchase Failed: ' + e.message);
             }
             return false;

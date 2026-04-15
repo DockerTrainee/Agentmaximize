@@ -1,0 +1,28 @@
+{
+  "name": "Agent Maximize: AON AI",
+  "short_name": "AON AI",
+  "description": "The self-directed multi-agent factory that synthesizes intelligent applications.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#03030a",
+  "theme_color": "#00f2ff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "developer tools"],
+  "screenshots": [
+    {
+      "src": "splash.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Nexus Prime Launch Screen"
+    }
+  ]
+}

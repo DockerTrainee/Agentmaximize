@@ -9,10 +9,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     await BillingManager.init();
 
     // ═══════════════════════════════════════════════════════════════
-    // DEVICE ID — Centralized from BillingManager (v6.0)
+    // DEVICE ID — Unique per-user identifier for isolated agent library
     // ═══════════════════════════════════════════════════════════════
-    const clientId = localStorage.getItem('nexus_client_id');
-    console.log('[NEXUS] Operational with ID:', clientId);
+    let clientId = localStorage.getItem('nexus_client_id');
+    if (!clientId) {
+        clientId = crypto.randomUUID();
+        localStorage.setItem('nexus_client_id', clientId);
+    }
+    console.log('[NEXUS] Device ID:', clientId);
 
     // ═══════════════════════════════════════════════════════════════
     // NEXUS ELITE ENGINE: Haptics & Reasoning (v6.0)

@@ -115,12 +115,38 @@ async function loadMCPServers() {
 
         const config = await fs.readJson(configPath);
         for (const s of config.servers) {
-            if (s.enabled) await mcp.connectServer(s.name, s);
+            if (s.enabled) {
+                console.log(`[MCP] Connecting to ${s.name}...`);
+                try {
+                    // 5-second timeout for server handshake
+                    await Promise.race([
+                        mcp.connectServer(s.name, s),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Connection Timeout')), 8000))
+                    ]);
+                    console.log(`[MCP] ✅ ${s.name} ready.`);
+                } catch (err) {
+                    console.error(`[MCP] ❌ ${s.name} failed:`, err.message);
+                    // Do not throw, allow other servers to load
+                }
+            }
         }
     } catch (e) {
-        console.error('[MCP] Failed to load servers:', e.message);
+        console.error('[MCP] Config Load Failed:', e.message);
     }
 }
+
+// ── MCP Diagnostics API ──────────────────────────────────────────────
+app.get('/api/mcp-status', (req, res) => {
+    const servers = [];
+    mcp.clients.forEach((client, name) => {
+        servers.push({ name, active: true });
+    });
+    res.json({
+        totalTools: mcp.tools.length,
+        servers,
+        health: mcp.tools.length > 0 ? 'GOOD' : 'NO_TOOLS'
+    });
+});
 
 loadMCPServers();
 

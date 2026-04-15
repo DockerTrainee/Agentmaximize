@@ -1,0 +1,19 @@
+{
+  "servers": [
+    {
+      "name": "brave-search",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "enabled": false,
+      "notes": "Requires BRAVE_API_KEY in .env. Enables agents to perform web research during synthesis."
+    },
+    {
+      "name": "filesystem",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:/Users/rahul/Documents"],
+      "enabled": false,
+      "notes": "Enables agents to read/write local files (Careful: Security risk if enabled in prod)."
+    }
+  ],
+  "globalTimeout": 8000
+}
