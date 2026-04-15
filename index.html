@@ -19,6 +19,7 @@
 
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="capacitor.js"></script>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
@@ -149,9 +150,26 @@
                             </div>
                         </div>
                         <div class="terminal-body" id="log-terminal">
-                            <div class="log-line system">[NEXUS] REFLEXIVE ENGINE ONLINE.</div>
+                            <div class="log-line system">[NEXUS] REFLEXIVE ENGINE ONLINE. v6.0</div>
                             <div class="log-line system">[NEXUS] MULTI-AGENT PIPELINE READY.</div>
                             <div class="log-line user">[AON] Awaiting mission input...</div>
+                        </div>
+                    </div>
+
+                    <!-- 🌀 NEW: THOUGHT TIMELINE (Elite 6.0 Feature) -->
+                    <div class="nexus-card thought-card glass">
+                        <div class="card-header">
+                            <h2>NEURAL REASONING</h2>
+                            <div class="confidence-meter">
+                                <span class="conf-label">STABILITY</span>
+                                <div class="conf-track"><div id="global-confidence" class="conf-fill" style="width: 0%"></div></div>
+                            </div>
+                        </div>
+                        <div class="thought-timeline" id="thought-timeline">
+                            <div class="empty-state">
+                                <i data-lucide="brain-circuit"></i>
+                                <p>AWAITING COGNITION...</p>
+                            </div>
                         </div>
                     </div>
 

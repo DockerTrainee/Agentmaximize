@@ -132,15 +132,19 @@ const GITHUB_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions'
 const MODEL_CASCADE = [
     // ── Gemini (Primary — using latest stable identifiers) ──
     "gemini-2.0-flash-exp",
+    "gemini-2.0-flash-thinking-exp",
     "gemini-1.5-flash-latest",
-    "gemini-1.5-flash",
     "gemini-1.5-pro-latest",
-    "gemini-1.5-pro",
-    "gemini-1.0-pro",
-    // ── GitHub Models (Robust Fallback) ──
     "github/gpt-4o-mini",
     "github/gpt-4o",
 ];
+
+/**
+ * Emit a neural reasoning step to the client dashboard.
+ */
+function streamThought(jobId, agent, message) {
+    io.emit(`job:${jobId}:thought`, { agent, message, ts: new Date().toLocaleTimeString() });
+}
 
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
@@ -606,6 +610,7 @@ async function runNexusPrimeSynthesis(jobId, goal, clientId) {
     const route = await routeMission(goal);
     streamLog(jobId, `✅ ROUTE DETECTED: ${route.type.toUpperCase()} | Complexity: ${route.complexity}`, 'agent');
     io.emit(`job:${jobId}:route`, route);
+    streamThought(jobId, 'Router', `Goal classified as ${route.type}. Setting ${route.complexity} complexity profile.`);
 
     // ── PHASE 1: ORCHESTRATOR AGENT (Blueprint) ───────────────────────────────
     streamLog(jobId, '🏛️ ORCHESTRATOR AGENT: Architecting blueprint...', 'agent');
@@ -621,10 +626,12 @@ DESIGN SYSTEM SPECIFICATION:
 - Typography: Primary (Outfit), Secondary (Inter)
 - Aesthetic: Modern High-Contrast Dark Mode (Glassmorphism, Bento-Grid, Premium Gradients)
 
-Respond with ONLY valid JSON (no markdown wrapper):
+Return JSON (NO MARKDOWN WRAPPERS):
 {
   "projectName": "Project Name",
-  "tagline": "Premium one-line description",
+  "tagline": "Premium Slogan",
+  "confidenceScore": 95,
+  "reasoning": "Global strategy reasoning...",
   "designSystem": {
     "accentColor": "${route.primaryColor}",
     "complementary": "${route.secondaryColor}",
@@ -632,22 +639,25 @@ Respond with ONLY valid JSON (no markdown wrapper):
     "cornerRadius": "16px"
   },
   "modules": [
-    { "id": "mod_1", "name": "Module Name", "role": "Strategic purpose", "priority": "high|medium|low", "type": "chart|feed|control|display" }
+    { 
+      "id": "mod_1", 
+      "name": "Module Name", 
+      "role": "Strategic purpose", 
+      "priority": "high|medium|low", 
+      "type": "chart|feed|control|display",
+      "reasoning": "Why this specific module is needed...",
+      "confidence": 98
+    }
   ],
-  "dataStrategy": {
-    "liveSync": true,
-    "entities": ["entity1", "entity2"],
-    "charting": true
-  },
-  "uiArchitecture": {
-    "layout": "sidebar_bento|tabs_professional|split_dashboard",
-    "motionIntensity": "subtle|smooth|dynamic"
-  }
+  "dataStrategy": { "liveSync": true, "entities": ["entity1"], "charting": true },
+  "uiArchitecture": { "layout": "sidebar_bento|tabs_professional|split_dashboard" }
 }
     `;
     const blueprintText = await callAI(orchestratorPrompt, 'JSON', jobId, 'ORCHESTRATOR');
     const blueprint = JSON.parse(blueprintText);
     streamLog(jobId, `📋 BLUEPRINT READY: "${blueprint.projectName}"`, 'success');
+    streamThought(jobId, 'Orchestrator', `Phase 1 complete. ${blueprint.reasoning}`);
+    io.emit(`job:${jobId}:confidence`, blueprint.confidenceScore || 90);
     streamProgress(jobId, 28, 'BLUEPRINT COMPLETE (Awaiting Approval)');
     io.emit(`job:${jobId}:blueprint`, blueprint);
 
@@ -718,8 +728,11 @@ Endpoints available: /live-data/crypto, /live-data/news, /search (POST with { qu
     `;
 
     const structureHTML = await callAI(htmlAgentPrompt, 'HTML', jobId, 'HTML-AGENT');
+    streamThought(jobId, 'HTML Agent', 'Structured semantic layout with premium bento-grid patterns.');
+    
     await wait(800);
     const dataArchText = await callAI(mockDataPrompt, 'JSON', jobId, 'DATA-AGENT');
+    streamThought(jobId, 'Data Agent', 'Architecture mapped. Live endpoints and state variables initialized.');
 
     const cleanHTML = stripDocTags(structureHTML);
     let dataArch = {};
@@ -943,6 +956,7 @@ OUTPUT: Raw CSS ONLY.
 
     // ── PHASE 5: EVALUATOR-OPTIMIZER (QA Critic Agent) ───────────────────────
     streamLog(jobId, '🔍 QA CRITIC AGENT: Auditing output...', 'agent');
+    streamThought(jobId, 'QA Critic', 'Running comprehensive audit. Checking visual excellence and logical integrity.');
     streamProgress(jobId, 85, 'QA REVIEW');
 
     const qaPrompt = `
@@ -971,6 +985,7 @@ Respond with ONLY valid JSON:
     let finalApp = assembledApp;
     if (qaResult.score < 90) {
         streamLog(jobId, `🔄 REFINEMENT TRIGGERED: Score ${qaResult.score}/100 is below Maturity threshold.`, 'agent');
+        streamThought(jobId, 'Optimizer', `Polish required. Resolving ${qaResult.criticalIssues.length} logical gaps.`);
         const optimized = await runOptimizerPass(jobId, qaResult, cleanHTML, coreCSS, coreJS);
         
         // Re-assemble
@@ -979,6 +994,7 @@ Respond with ONLY valid JSON:
                                .replace(coreJS, optimized.js);
         
         streamLog(jobId, '✨ REFINEMENT COMPLETE: Premium Polish applied.', 'success');
+        streamThought(jobId, 'Optimizer', 'Refinement complete. System reached stability threshold.');
     }
 
     // UPDATE RECORD

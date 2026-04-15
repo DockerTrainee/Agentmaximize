@@ -19,42 +19,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('[NEXUS] Device ID:', clientId);
 
     // ═══════════════════════════════════════════════════════════════
-    // GLOBAL SYSTEM ERROR HANDLERS
+    // NEXUS ELITE ENGINE: Haptics & Reasoning (v6.0)
     // ═══════════════════════════════════════════════════════════════
-    window.onerror = function(msg, url, line, col, error) {
-        // Ignore errors from browser extensions and injected wallet scripts
-        const isExtension = url && (url.startsWith('chrome-extension://') || url.startsWith('moz-extension://'));
-        const isWallet = url && (url.includes('inpage.js') || url.includes('lockdown-install.js'));
-        if (isExtension || isWallet) {
-            console.warn('[NEXUS] Ignored extension error:', msg);
-            return true;
+    
+    const HapticsBridge = {
+        async impact(style = 'LIGHT') {
+            if (window.Capacitor && Capacitor.isPluginAvailable('Haptics')) {
+                try { await Capacitor.Plugins.Haptics.impact({ style }); } catch(e) {}
+            }
+        },
+        async notification(type = 'SUCCESS') {
+            if (window.Capacitor && Capacitor.isPluginAvailable('Haptics')) {
+                try { await Capacitor.Plugins.Haptics.notification({ type }); } catch(e) {}
+            }
         }
-        handleSystemCrash({ message: msg, stack: error?.stack, line, col, source: url });
-        return false;
     };
 
-    window.onunhandledrejection = function(event) {
-        const stack = event.reason?.stack || '';
-        const msg = event.reason?.message || '';
-        // Ignore extension and wallet promise rejections
-        if (stack.includes('chrome-extension://') || stack.includes('moz-extension://') ||
-            stack.includes('inpage.js') || stack.includes('lockdown-install') ||
-            msg.includes('Origin not allowed')) {
-            console.warn('[NEXUS] Ignored extension rejection:', msg);
-            return;
-        }
-        handleSystemCrash({ message: msg || 'Unhandled Rejection', stack });
-    };
+    const NeuralReasoning = {
+        timeline: document.getElementById('thought-timeline'),
+        globalConf: document.getElementById('global-confidence'),
+        
+        addStep(agent, message, time = new Date().toLocaleTimeString()) {
+            if (!this.timeline) return;
+            const empty = this.timeline.querySelector('.empty-state');
+            if (empty) empty.remove();
 
-    function handleSystemCrash(err) {
-        console.error('[NEXUS CRITICAL FAILURE]:', err);
-        const overlay = document.getElementById('system-crash-overlay');
-        const details = document.getElementById('system-error-details');
-        if (overlay && details) {
-            overlay.classList.remove('hidden');
-            details.innerText = `ERROR: ${err.message}\nLOCATION: ${err.source || 'internal'} (L${err.line}:${err.col})\n\nSTACK:\n${err.stack || 'No stack trace'}`;
+            const step = document.createElement('div');
+            step.className = 'thought-step';
+            step.innerHTML = `
+                <div class="step-marker"><div class="step-dot"></div><div class="step-line"></div></div>
+                <div class="step-content">
+                    <div class="step-header">
+                        <span class="step-agent">${agent.toUpperCase()}</span>
+                        <span class="step-time">${time}</span>
+                    </div>
+                    <div class="step-body">${message}</div>
+                </div>
+            `;
+            this.timeline.prepend(step);
+            HapticsBridge.impact('LIGHT');
+        },
+
+        updateConfidence(score) {
+            if (this.globalConf) {
+                this.globalConf.style.width = `${score}%`;
+            }
+        },
+
+        clear() {
+            if (this.timeline) this.timeline.innerHTML = '';
+            this.updateConfidence(0);
         }
-    }
+    };
 
     // UI Elements
     lucide.createIcons();
@@ -264,6 +280,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             addSquadAgent('MISSION ROUTER', 'Route: ' + route.type, 'orchestrator');
         });
 
+        socket.on(`job:${jobId}:thought`, (data) => {
+            NeuralReasoning.addStep(data.agent, data.message, data.ts);
+        });
+
+        socket.on(`job:${jobId}:confidence`, (score) => {
+            NeuralReasoning.updateConfidence(score);
+        });
+
         socket.on(`job:${jobId}:blueprint`, (blueprint) => {
             squadList.innerHTML = '';
             addSquadAgent('ORCHESTRATOR', blueprint.projectName, 'orchestrator');
@@ -293,6 +317,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 socket.emit('blueprint:approve', { jobId });
                 bpModal.classList.add('hidden');
                 addLog('🚀 Blueprint approved. Starting parallel synthesis...', 'success');
+                HapticsBridge.notification('SUCCESS');
             };
         }
         if (bpRejectBtn) {
@@ -316,6 +341,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (data.status === 'completed') {
                 setNodeState('output', 'done');
+                HapticsBridge.notification('SUCCESS');
                 finalizeMission(data.result);
             } else {
                 addLog(`[NEXUS] MISSION FAILED: ${data.error}`, 'error');
@@ -400,6 +426,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         missionTypeBadge.classList.add('hidden');
         updateProgress(0, 'INITIALIZING...');
         addLog(`[MISSION] "${goal}"`, 'user');
+        NeuralReasoning.clear();
+        HapticsBridge.impact('MEDIUM');
 
         // Check Agent Limit for Free Users
         const agentsRes = await fetch('/api/agents');
