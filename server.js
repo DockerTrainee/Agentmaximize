@@ -130,15 +130,16 @@ function streamProgress(jobId, value, label = '') {
 const GITHUB_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions';
 
 const MODEL_CASCADE = [
-    // ── Gemini (Primary — always try these first) ──
-    "gemini-3-flash-preview",
-    "gemini-2.0-flash",
+    // ── Gemini (Primary — using latest stable identifiers) ──
+    "gemini-2.0-flash-exp",
+    "gemini-1.5-flash-latest",
     "gemini-1.5-flash",
-    "gemini-1.5-flash-8b",
+    "gemini-1.5-pro-latest",
+    "gemini-1.5-pro",
     "gemini-1.0-pro",
-    // ── GitHub Models (Fallback — only if GITHUB_TOKEN has models scope) ──
-    "github/gpt-4o",
+    // ── GitHub Models (Robust Fallback) ──
     "github/gpt-4o-mini",
+    "github/gpt-4o",
 ];
 
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
@@ -212,13 +213,21 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
                 } catch (err) {
                     console.error(`[AI ATTEMPT FAILED] Model: ${modelName} | Error: ${err.message}`);
                     const isRateLimit = err.message.includes('429') || err.message.includes('quota') || err.message.includes('rate limit');
-                    const isNotFound = err.message.includes('404') || err.message.includes('not found');
-                    
-                    if (isNotFound) break; // Move to next variation/model
+                    if (isNotFound) {
+                        console.warn(`[AON] Model ${modelName} not found, skipping.`);
+                        break; 
+                    }
                     
                     if (isRateLimit) {
                         if (jobId) streamLog(jobId, `⚠️ ${modelName} quota reached. Moving to fallback...`, 'error');
-                        break; // Move to next model
+                        break; 
+                    }
+
+                    // 🛡️ NEW: Handle Forbidden/Auth errors as immediate skip signals
+                    const isAuthError = err.message.includes('403') || err.message.includes('401') || err.message.includes('Forbidden');
+                    if (isAuthError) {
+                        console.warn(`[AON] Auth error for ${modelName}, skipping.`);
+                        break;
                     }
                     
                     attempts++;

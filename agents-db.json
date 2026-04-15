@@ -32,6 +32,23 @@
       "createdAt": "2026-04-09T16:41:40.922Z",
       "primaryColor": "#6366F1",
       "secondaryColor": "#10B981"
+    },
+    {
+      "id": "komorebi-nexus-1",
+      "projectName": "Komorebi",
+      "tagline": "Zen Travel Intelligence & Stillness Seekers",
+      "goal": "Build a premium nature-themed travel and wellness system.",
+      "type": "dashboard",
+      "complexity": "elite",
+      "filePath": "builds/komorebi.html",
+      "qaScore": 98,
+      "modules": [
+        { "id": "k1", "name": "Stillness Search", "role": "Finds nature spots", "priority": "high" },
+        { "id": "k2", "name": "Zen Graphics", "role": "High-fidelity nature UI", "priority": "high" }
+      ],
+      "createdAt": "2026-04-15T15:45:00.000Z",
+      "primaryColor": "#2d5a27",
+      "secondaryColor": "#81c784"
     }
   ]
 }
