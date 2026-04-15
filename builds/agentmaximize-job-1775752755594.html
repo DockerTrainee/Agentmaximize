@@ -422,6 +422,116 @@
             padding: 1rem;
         }
 
+        /* ── Prompt History ─────────────────────────────────────────── */
+        .aon-history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .aon-history-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            padding: 0.65rem 0.8rem;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .aon-history-item:hover {
+            border-color: var(--secondary);
+            background: rgba(16, 185, 129, 0.06);
+        }
+
+        .aon-history-text {
+            flex: 1;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: var(--transition-fast);
+        }
+
+        .aon-history-item:hover .aon-history-text {
+            color: var(--text-main);
+        }
+
+        .aon-history-meta {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+
+        .aon-history-del {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            opacity: 0;
+            transition: var(--transition-fast);
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .aon-history-item:hover .aon-history-del {
+            opacity: 1;
+        }
+
+        .aon-history-del:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .aon-history-empty {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 1rem;
+            opacity: 0.6;
+        }
+
+        .aon-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .aon-history-header h3 {
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        .aon-clear-btn {
+            background: none;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #ef4444;
+            font-size: 0.68rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: var(--transition-fast);
+        }
+
+        .aon-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+
         /* ── Animations ────────────────────────────────────────────── */
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -492,6 +602,17 @@
         </section>
 
         <aside id="aon-sidebar">
+            <!-- Prompt History Card -->
+            <section class="aon-module-card" id="aon-history-card">
+                <div class="aon-history-header">
+                    <h3>Prompt History</h3>
+                    <button class="aon-clear-btn" id="aon-btn-clear-history">Clear All</button>
+                </div>
+                <div class="aon-history-list" id="aon-history-list">
+                    <p class="aon-history-empty">No prompts yet. Transform one to begin.</p>
+                </div>
+            </section>
+
             <section data-module="mod_1" class="aon-module-card">
                 <h3>Contextual Guidance Engine</h3>
                 <div class="aon-context-wrapper">
@@ -622,6 +743,9 @@
                 state.currentOptimizedResult = data.reply || "Optimization complete. No significant changes suggested.";
                 state.historyStack.push({ input: state.activeInput, output: state.currentOptimizedResult });
 
+                // Save to persistent history
+                addToHistory(state.activeInput, state.currentOptimizedResult);
+
                 renderRefinedOutput();
                 updateSystemStatus("System optimized successfully.");
             } catch (error) {
@@ -652,6 +776,93 @@
             elements.inputField.focus();
             elements.inputField.style.transform = "scale(1.02)";
             setTimeout(() => elements.inputField.style.transform = "scale(1)", 200);
+        };
+
+        /**
+         * PROMPT HISTORY — localStorage persistence
+         */
+        const HISTORY_KEY = 'aon_prompt_history';
+        const MAX_HISTORY = 50;
+
+        const loadHistory = () => {
+            try {
+                return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            } catch { return []; }
+        };
+
+        const saveHistory = (list) => {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+        };
+
+        const addToHistory = (rawInput, optimizedOutput) => {
+            const history = loadHistory();
+            // Avoid exact duplicate at top
+            if (history.length > 0 && history[0].raw === rawInput) return;
+            history.unshift({
+                id: Date.now(),
+                raw: rawInput,
+                output: optimizedOutput,
+                ts: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+            saveHistory(history.slice(0, MAX_HISTORY));
+            renderHistory();
+        };
+
+        const deleteHistoryItem = (id) => {
+            const history = loadHistory().filter(h => h.id !== id);
+            saveHistory(history);
+            renderHistory();
+        };
+
+        const clearHistory = () => {
+            if (!confirm('Clear all prompt history?')) return;
+            localStorage.removeItem(HISTORY_KEY);
+            renderHistory();
+        };
+
+        const renderHistory = () => {
+            const list = document.getElementById('aon-history-list');
+            if (!list) return;
+            const history = loadHistory();
+
+            if (history.length === 0) {
+                list.innerHTML = '<p class="aon-history-empty">No prompts yet. Transform one to begin.</p>';
+                return;
+            }
+
+            list.innerHTML = history.map(h => `
+                <div class="aon-history-item" data-id="${h.id}">
+                    <div style="flex:1; overflow:hidden;">
+                        <div class="aon-history-text" title="${h.raw.replace(/"/g, '&quot;')}">${h.raw}</div>
+                        <div class="aon-history-meta">${h.ts}</div>
+                    </div>
+                    <button class="aon-history-del" data-del="${h.id}" title="Remove">✕</button>
+                </div>
+            `).join('');
+
+            // Attach listeners
+            list.querySelectorAll('.aon-history-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (e.target.closest('[data-del]')) return; // Let delete handle it
+                    const entry = history.find(h => h.id === parseInt(item.dataset.id));
+                    if (entry) {
+                        applyPatternToInput(entry.raw);
+                        // Also restore the output if available
+                        if (entry.output) {
+                            state.currentOptimizedResult = entry.output;
+                            state.activeInput = entry.raw;
+                            renderRefinedOutput();
+                        }
+                    }
+                });
+            });
+
+            list.querySelectorAll('[data-del]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteHistoryItem(parseInt(btn.dataset.del));
+                });
+            });
         };
 
         const copyOptimizedPromptToClipboard = () => {
@@ -759,7 +970,10 @@
             // Initialize UI with mock data
             renderContextTips();
             renderSupportFeed();
+            renderHistory();
             updateSystemStatus("AgentMaximize Core Online");
+
+            document.getElementById('aon-btn-clear-history')?.addEventListener('click', clearHistory);
 
             // Initial refined output state
             elements.refinedOutput.textContent = "Enter a prompt and click Transform to see results.";
