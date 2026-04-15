@@ -84,6 +84,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const helpTrigger      = document.getElementById('help-trigger');
     const closeManualBtn   = document.getElementById('close-manual');
     const dismissManualBtn = document.getElementById('manual-dismiss');
+    
+    // Blueprint Elements
+    const bpModal          = document.getElementById('blueprint-modal');
+    const bpName           = document.getElementById('bp-name');
+    const bpDetails        = document.getElementById('bp-details');
+    const bpModuleCount    = document.getElementById('bp-module-count');
+    const bpApproveBtn     = document.getElementById('bp-approve');
+    const bpRejectBtn      = document.getElementById('bp-reject');
 
     const navItems = document.querySelectorAll('.nav-item');
 
@@ -260,7 +268,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             squadList.innerHTML = '';
             addSquadAgent('ORCHESTRATOR', blueprint.projectName, 'orchestrator');
             blueprint.modules.slice(0,4).forEach(m => addSquadAgent(m.name, m.role, 'data'));
+
+            // INTERNATIONAL STANDARD: Blueprint Review Modal
+            if (bpModal) {
+                bpName.textContent = blueprint.projectName;
+                bpModuleCount.textContent = blueprint.modules.length;
+                
+                let detailsHTML = `<p style="margin-bottom:1rem; color:var(--accent-cyan);">${blueprint.tagline}</p>`;
+                detailsHTML += `<div style="display:flex; flex-wrap:wrap; gap:5px;">`;
+                blueprint.modules.forEach(m => {
+                    detailsHTML += `<span class="bp-module-tag">${m.name}</span>`;
+                });
+                detailsHTML += `</div>`;
+                detailsHTML += `<div style="margin-top:1.5rem; color:var(--text-dim); font-size:0.75rem;">Design Scale: ${blueprint.designSystem.accentColor} | Radius: ${blueprint.designSystem.cornerRadius}</div>`;
+                
+                bpDetails.innerHTML = detailsHTML;
+                bpModal.classList.remove('hidden');
+            }
         });
+
+        // Blueprint Approval Logic
+        if (bpApproveBtn) {
+            bpApproveBtn.onclick = () => {
+                socket.emit('blueprint:approve', { jobId });
+                bpModal.classList.add('hidden');
+                addLog('🚀 Blueprint approved. Starting parallel synthesis...', 'success');
+            };
+        }
+        if (bpRejectBtn) {
+            bpRejectBtn.onclick = () => {
+                location.reload(); // Hard stop for redo
+            };
+        }
 
         socket.on(`job:${jobId}:qa`, (qa) => {
             addLog(`[QA CRITIC] Score: ${qa.score}/100 | ${qa.verdict}`, qa.score >= 60 ? 'success' : 'error');

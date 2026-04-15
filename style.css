@@ -25,12 +25,16 @@
     --sidebar-w: 270px;
     --easing: cubic-bezier(0.16, 1, 0.3, 1);
     --speed: 0.3s;
+
+    /* INTERNATIONAL STANDARDS: Fluid Typography & Shadows */
+    --font-size-base: clamp(0.85rem, 0.8vw + 0.1rem, 1.1rem);
+    --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 242, 255, 0.05);
 }
 
 /* ── Reset & Base ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: 16px; }
+html { font-size: 16px; scroll-behavior: smooth; }
 
 body {
     font-family: 'Inter', -apple-system, system-ui, sans-serif;
@@ -75,6 +79,7 @@ h1, h2, h3, h4 {
     backdrop-filter: blur(24px) saturate(200%);
     -webkit-backdrop-filter: blur(24px) saturate(200%);
     border: 1px solid var(--border);
+    box-shadow: var(--shadow-premium);
 }
 
 /* ═══════════════════════════════════════════════
@@ -230,12 +235,11 @@ h1, h2, h3, h4 {
     background: var(--accent-green);
     flex-shrink: 0;
 }
-.status-dot.pulsing { animation: status-pulse 2s infinite; }
+.status-dot.pulsing { animation: status-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
 @keyframes status-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(0,255,136,0.7); }
-    70% { box-shadow: 0 0 0 8px rgba(0,255,136,0); }
-    100% { box-shadow: 0 0 0 0 rgba(0,255,136,0); }
+    0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(0,255,136,0.7); }
+    50% { transform: scale(1.2); opacity: 0.8; box-shadow: 0 0 0 8px rgba(0,255,136,0); }
 }
 
 /* ═══════════════════════════════════════════════

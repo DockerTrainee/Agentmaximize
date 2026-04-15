@@ -591,7 +591,55 @@
         </div>
     </div>
 
+    <!-- Blueprint Approval Modal -->
+    <div id="blueprint-modal" class="nexus-overlay hidden">
+        <div class="overlay-panel glass-heavy">
+            <div class="overlay-header">
+                <div>
+                    <h2 id="bp-name">Mission Blueprint</h2>
+                    <p class="overlay-sub">Verify the architecture before full synthesis.</p>
+                </div>
+                <div class="badge badge-version">v6.0 ALPHA</div>
+            </div>
+            
+            <div id="bp-details" class="blueprint-viewer">
+                <!-- Dynamic content from script.js -->
+            </div>
+
+            <div class="overlay-stats">
+                <div class="stat-item">
+                    <div class="stat-label">MODULES</div>
+                    <div id="bp-module-count" class="stat-value">--</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">AI ENGINE</div>
+                    <div class="stat-value">GEMINI 3</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">EST. TIME</div>
+                    <div class="stat-value">~45s</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">STATUS</div>
+                    <div class="stat-value cyan">PENDING</div>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="display:flex; gap:1rem; margin-top:2rem;">
+                <button id="bp-approve" class="launch-btn" style="flex:2;">APPROVE & SYNTHESIZE 🚀</button>
+                <button id="bp-reject" class="action-btn" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; color:var(--text-dim); cursor:pointer;">REDO PROMPT</button>
+            </div>
+        </div>
+    </div>
+
     <style>
+        .blueprint-viewer {
+            background: rgba(0,0,0,0.3); border-radius: 16px; padding: 1.5rem;
+            max-height: 300px; overflow-y: auto; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem; border: 1px solid var(--border);
+        }
+        .bp-module-tag { display: inline-block; padding: 3px 10px; border-radius: 8px; background: rgba(0,242,255,0.1); color: var(--accent-cyan); margin: 4px; font-size: 0.7rem; border: 1px solid rgba(0,242,255,0.2); }
+    </style>
         .help-tab {
             background: none; border: none; color: var(--text-dim); padding: 0.8rem 1rem;
             font-size: 0.8rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent;
