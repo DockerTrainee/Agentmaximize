@@ -106,6 +106,8 @@ class MCPManager {
     }
 }
 
+const mcp = new MCPManager();
+
 async function loadMCPServers() {
     try {
         const configPath = path.join(DATA_BASE, 'data', 'mcp-servers.json');
