@@ -270,7 +270,9 @@ async function getSubscription(clientId) {
             await fs.writeJson(SUBS_DB_PATH, db, { spaces: 2 });
             return { isPremium: false, status: 'expired', ...sub };
         }
-        return { isPremium: sub.status === 'active', ...sub };
+        // In Trial or Active Status are both Premium
+        const isPremium = sub.status === 'active' || sub.status === 'trial';
+        return { isPremium, ...sub };
     } catch (e) {
         console.error('[SUBS] Read error:', e.message);
         return { isPremium: false };
@@ -298,8 +300,38 @@ console.log(`[STORAGE] Data Base: ${DATA_BASE}`);
 const jobs = {};
 global.IS_ON_QUOTA_RESTRICTION = false;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MIDDLEWARE
+app.post('/api/subscription/start-trial', async (req, res) => {
+    const clientId = req.headers['x-client-id'] || req.query.clientId;
+    if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
+
+    try {
+        const db = await fs.readJson(SUBS_DB_PATH);
+        const existing = db.subscriptions[clientId];
+
+        // Only allow trial if they never had a plan or trial before
+        if (existing) {
+            return res.status(400).json({ 
+                error: 'TRIAL_ALREADY_USED', 
+                message: 'A trial or subscription has already been activated for this account.' 
+            });
+        }
+
+        const trialExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        db.subscriptions[clientId] = {
+            status: 'trial',
+            plan: '7_day_trial',
+            activatedAt: new Date().toISOString(),
+            expiresAt: trialExpiry
+        };
+
+        await fs.writeJson(SUBS_DB_PATH, db, { spaces: 2 });
+        console.log(`[SUBS] 🎁 7-Day Trial activated for ${clientId}`);
+        res.json({ success: true, expiresAt: trialExpiry });
+    } catch (e) {
+        console.error('[SUBS] Trial activation error:', e.message);
+        res.status(500).json({ error: 'TRIAL_FAILED', message: e.message });
+    }
+});
 // ─────────────────────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));

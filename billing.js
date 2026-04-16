@@ -137,5 +137,31 @@ export const BillingManager = {
                 return false;
             }
         }
+    async startTrial() {
+        if (window.Capacitor && window.Capacitor.isNative) {
+            alert('Free trials are managed via the App Store. Please click "Start Free Trial" to begin your secure trial via Google Play.');
+            return false;
+        }
+
+        const clientId = localStorage.getItem('nexus_client_id');
+        try {
+            const res = await fetch('/api/subscription/start-trial', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-client-id': clientId }
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                this.isPremium = true;
+                localStorage.setItem('nexus_is_premium', 'true');
+                return true;
+            } else {
+                throw new Error(data.message || 'Trial activation failed');
+            }
+        } catch (e) {
+            console.error('[BILLING] Trial Error:', e);
+            alert(e.message);
+            return false;
+        }
     }
 };

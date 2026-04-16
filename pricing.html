@@ -166,7 +166,7 @@
             btn.textContent = 'Initializing Secure Checkout...';
 
             try {
-                const success = await BillingManager.purchasePro();
+                const success = await BillingManager.startTrial();
                 if (success) {
                     btn.textContent = '✅ Pro Activated!';
                     btn.style.background = 'linear-gradient(135deg, #00ff88 0%, #00b4d8 100%)';
