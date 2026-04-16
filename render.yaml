@@ -12,7 +12,11 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
-      - key: PORT
-        value: 3000
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: NODE_ENV
+        value: production
       - key: DATA_DIR
-        value: ./
+        value: ./data/

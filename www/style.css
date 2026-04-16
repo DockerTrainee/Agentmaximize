@@ -604,6 +604,30 @@ h1, h2, h3, h4 {
     border: 1px solid rgba(0,242,255,0.2);
     text-transform: uppercase;
 }
+.agent-card-type.system-badge {
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    color: white;
+    border: none;
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+}
+.agent-card.system-core {
+    border: 1px solid var(--accent-cyan);
+    box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.05);
+}
+.agent-card.system-core::before {
+    content: 'CORE INTELLIGENCE';
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    background: var(--bg-void);
+    color: var(--accent-cyan);
+    font-size: 0.55rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border: 1px solid var(--accent-cyan);
+    border-radius: 4px;
+    letter-spacing: 0.1em;
+}
 .agent-card-goal { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
 .agent-card-meta { display: flex; gap: 1rem; }
 .agent-meta-item { font-size: 0.7rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }

@@ -32,8 +32,86 @@ dotenv.config();
 // STORAGE — Supports Persistent Disks (Render / Cloud Run)
 // ─────────────────────────────────────────────────────────────────────────────
 const DATA_BASE = process.env.DATA_DIR || __dirname;
+const AGENTS_DB_PATH = path.join(DATA_BASE, 'agents-db.json');
+const SUBS_DB_PATH = path.join(DATA_BASE, 'data', 'subscriptions.json');
+const BUILDS_DIR = path.join(DATA_BASE, 'builds');
+
 fs.ensureDirSync(path.join(DATA_BASE, 'data'));
 fs.ensureDirSync(path.join(DATA_BASE, 'builds'));
+fs.ensureDirSync(path.join(DATA_BASE, 'system_agents'));
+
+if (!fs.existsSync(AGENTS_DB_PATH)) fs.writeJsonSync(AGENTS_DB_PATH, { agents: [] });
+if (!fs.existsSync(SUBS_DB_PATH)) fs.writeJsonSync(SUBS_DB_PATH, { subscriptions: {} });
+
+// ── SYSTEM AGENTS — Permanent entries ────────────────────────────────
+const SYSTEM_AGENTS = [
+    {
+        "id": "job-1775752755594",
+        "projectName": "Agent Maximize",
+        "tagline": "The Core Intelligence of AON AI — Specialized in high-fidelity synthesis.",
+        "goal": "how can i use this agent at it's best ?",
+        "type": "chatbot",
+        "complexity": "elite",
+        "filePath": "system_agents/agent_maximize.html",
+        "qaScore": 99,
+        "isSystem": true,
+        "modules": [
+            { "id": "mod_1", "name": "Contextual Guidance", "role": "Analyzes user intent", "priority": "high" },
+            { "id": "mod_2", "name": "Prompt Refinement", "role": "Transforms queries", "priority": "high" }
+        ],
+        "createdAt": "2026-04-16T09:21:30.411Z",
+        "primaryColor": "#6366F1",
+        "secondaryColor": "#10B981"
+    }
+];
+
+async function seedSystemAgents() {
+    try {
+        console.log('[SEED] Ensuring only Core Agent exists...');
+        let db;
+        try {
+            db = await fs.readJson(AGENTS_DB_PATH);
+        } catch (e) {
+            console.warn('[SEED] Registry missing, creating new one...');
+            db = { agents: [] };
+        }
+        
+        let updated = false;
+        
+        // 1. Remove non-system agents and old system agents (Full Reset to Only Agent Maximize)
+        const originalCount = db.agents.length;
+        db.agents = db.agents.filter(a => a.id === SYSTEM_AGENTS[0].id);
+        
+        if (db.agents.length !== originalCount) {
+            updated = true;
+            console.log(`[SEED] Pruned ${originalCount - db.agents.length} other agents.`);
+        }
+
+        // 2. Add or repair the core system agent
+        for (const sa of SYSTEM_AGENTS) {
+            const index = db.agents.findIndex(a => a.id === sa.id);
+            if (index === -1) {
+                db.agents.unshift(sa); 
+                updated = true;
+                console.log(`[SEED] Restored system agent: ${sa.projectName}`);
+            } else {
+                // Ensure name and system flags are correct
+                db.agents[index] = { ...db.agents[index], ...sa };
+                updated = true;
+                console.log(`[SEED] Hardened system agent: ${sa.projectName}`);
+            }
+        }
+        
+        if (updated) {
+            await fs.writeJson(AGENTS_DB_PATH, db, { spaces: 2 });
+            console.log('[SEED] Registry hardened successfully.');
+        }
+    } catch (err) {
+        console.error('[SEED] FAILURE:', err.message);
+    }
+}
+
+seedSystemAgents();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RAZORPAY CLIENT
@@ -149,7 +227,11 @@ loadMCPServers();
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { 
-    cors: { origin: "*", methods: ["GET", "POST"] } 
+    cors: { 
+        origin: ["http://localhost:3000", /\.onrender\.com$/, "https://agentmaximize.onrender.com"],
+        methods: ["GET", "POST"],
+        credentials: true
+    } 
 });
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -250,6 +332,11 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 // Redirect /favicon.ico → /favicon.png to stop 404 errors
 app.get('/favicon.ico', (req, res) => res.redirect(301, '/favicon.png'));
+
+// Capacitor Mock — Silences 404 console errors on web/render deployments
+app.get('/capacitor.js', (req, res) => {
+    res.type('application/javascript').send('/* Capacitor Native Bridge Mock (Web) */');
+});
 
 // Health check for Deployment (Render/Cloud Run)
 app.get('/health', (req, res) => res.json({ status: 'HEALTHY', timestamp: new Date() }));
@@ -651,13 +738,46 @@ app.get('/api/agents', async (req, res) => {
     try {
         const clientId = req.headers['x-client-id'];
         const db = await fs.readJson(AGENTS_DB_PATH);
-        // Filter to only return this user's agents
+        // Filter to only return this user's agents + all system agents
         const agents = clientId
-            ? db.agents.filter(a => a.clientId === clientId || !a.clientId)
+            ? db.agents.filter(a => a.isSystem || a.clientId === clientId || !a.clientId)
             : db.agents;
         res.json({ success: true, agents });
     } catch (e) {
-        res.json({ success: false, agents: [] });
+        console.error('[API] GET /api/agents Error:', e.message);
+        res.json({ success: false, agents: [], error: e.message });
+    }
+});
+
+app.get('/api/debug-status', async (req, res) => {
+    try {
+        const stats = {
+            status: 'ONLINE',
+            uptime: process.uptime(),
+            memory: process.memoryUsage(),
+            environment: process.env.NODE_ENV || 'development',
+            storage: {
+                dbExists: fs.existsSync(AGENTS_DB_PATH),
+                dbPath: AGENTS_DB_PATH,
+                baseDir: DATA_BASE,
+                persistence: process.env.DATA_DIR ? 'DISK' : 'EPHEMERAL'
+            }
+        };
+
+        // Aggressive error catching for filesystem ops to prevent 500
+        try {
+            stats.storage.dirContents = await fs.readdir(DATA_BASE);
+            stats.storage.systemAgentsExists = fs.existsSync(path.join(DATA_BASE, 'system_agents'));
+            if (stats.storage.systemAgentsExists) {
+                stats.storage.systemAgents = await fs.readdir(path.join(DATA_BASE, 'system_agents'));
+            }
+        } catch (fsErr) {
+            stats.storage.error = fsErr.message;
+        }
+
+        res.json(stats);
+    } catch (e) {
+        res.status(500).json({ error: e.message, stack: e.stack });
     }
 });
 
@@ -666,6 +786,12 @@ app.delete('/api/agents/:id', async (req, res) => {
         const clientId = req.headers['x-client-id'];
         const db = await fs.readJson(AGENTS_DB_PATH);
         const agent = db.agents.find(a => a.id === req.params.id);
+        
+        // Security: Block deletion of system agents
+        if (agent && agent.isSystem) {
+            return res.status(403).json({ success: false, error: 'Cannot delete core system agent.' });
+        }
+
         // Security: Only allow deletion of own agents
         if (agent && clientId && agent.clientId && agent.clientId !== clientId) {
             return res.status(403).json({ success: false, error: 'Forbidden: Not your agent.' });
@@ -1511,8 +1637,23 @@ server.listen(PORT, '0.0.0.0', () => {
 ║         AON AI — NEXUS PRIME v5.0  ONLINE             ║
 ║  Patterns: ClaudeCode | Anthropic | OpenHands | CrewAI ║
 ╠═══════════════════════════════════════════════════════╣
-║  HTTP:      http://localhost:${PORT}                     ║
-║  WebSocket: ws://localhost:${PORT}                       ║
+║  HTTP:      http://0.0.0.0:${PORT}                     ║
+║  WebSocket: ws://0.0.0.0:${PORT}                       ║
 ╚═══════════════════════════════════════════════════════╝
     `);
 });
+
+// Graceful Shutdown — Save DB before exit (Critical for Render/Cloud Run)
+const shutdown = async (signal) => {
+    console.log(`[SYSTEM] Received ${signal}. Shutting down gracefully...`);
+    try {
+        // Any final persistence logic (subscriptions already save on write, but good for safety)
+        process.exit(0);
+    } catch (e) {
+        console.error('[SYSTEM] Error during shutdown:', e);
+        process.exit(1);
+    }
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

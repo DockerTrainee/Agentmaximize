@@ -244,6 +244,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         socketStatusEl.style.color = '#ff5555';
         diagWS.textContent = 'OFFLINE';
         diagWS.className = 'diag-value';
+        addLog('[NEXUS] Lost connection to server. Attempting reconnection...', 'error');
+    });
+
+    socket.on('reconnecting', (attempt) => {
+        socketStatusEl.textContent = `WS: RECONNECTING (${attempt})`;
+        socketStatusEl.style.color = '#ffbd2e';
+        diagWS.textContent = 'RETRYING';
+    });
+
+    socket.on('reconnect', (attempt) => {
+        socketStatusEl.textContent = 'WS: RECONNECTED';
+        socketStatusEl.style.color = '#00ff88';
+        diagWS.textContent = 'ACTIVE';
+        addLog('[NEXUS] Connection restored successfully.', 'success');
     });
 
     function listenToJob(jobId) {
@@ -537,7 +551,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             agentsGrid.innerHTML = '';
             agents.forEach((agent, i) => {
                 const card = document.createElement('div');
-                card.className = 'agent-card';
+                card.className = agent.isSystem ? 'agent-card system-core' : 'agent-card';
                 card.style.animationDelay = `${i * 0.05}s`;
 
                 const qaColor = agent.qaScore >= 80 ? '#00ff88' : agent.qaScore >= 60 ? '#ffbd2e' : '#ff5555';
@@ -546,7 +560,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 card.innerHTML = `
                     <div class="agent-card-header">
                         <div class="agent-card-name">${agent.projectName}</div>
-                        <div class="agent-card-type">${agent.type || 'app'}</div>
+                        <div class="agent-card-type ${agent.isSystem ? 'system-badge' : ''}">${agent.isSystem ? 'CORE ENGINE' : (agent.type || 'app').toUpperCase()}</div>
                     </div>
                     <div class="agent-card-goal">${agent.tagline || agent.goal}</div>
                     <div class="qa-score-bar">
@@ -561,22 +575,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <a href="/${agent.filePath}" target="_blank" class="agent-btn launch">
                             <i data-lucide="rocket"></i> Launch
                         </a>
+                        ${!agent.isSystem ? `
                         <button class="agent-btn delete" data-id="${agent.id}">
                             <i data-lucide="trash-2"></i> Delete
-                        </button>
+                        </button>` : ''}
                     </div>
                 `;
 
-                card.querySelector('.delete').addEventListener('click', async (e) => {
-                    const id = e.currentTarget.getAttribute('data-id');
-                    if (confirm('Delete this agent?')) {
-                        const res = await fetch(`/api/agents/${id}`, { 
-                            method: 'DELETE',
-                            headers: { 'x-client-id': clientId }
-                        });
-                        loadAgentLibrary();
-                    }
-                });
+                const delBtn = card.querySelector('.delete');
+                if (delBtn) {
+                    delBtn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        if (confirm('Delete this agent?')) {
+                            const res = await fetch(`/api/agents/${id}`, { 
+                                method: 'DELETE',
+                                headers: { 'x-client-id': clientId }
+                            });
+                            loadAgentLibrary();
+                        }
+                    });
+                }
 
                 agentsGrid.appendChild(card);
             });

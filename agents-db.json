@@ -2,53 +2,31 @@
   "agents": [
     {
       "id": "job-1775752755594",
-      "projectName": "AgentMaximize",
-      "tagline": "Unlocking the full potential of your AI interactions through guided optimization.",
+      "projectName": "Agent Maximize",
+      "tagline": "The Core Intelligence of AON AI — Specialized in high-fidelity synthesis.",
       "goal": "how can i use this agent at it's best ?",
       "type": "chatbot",
-      "complexity": "simple",
-      "filePath": "builds/agentmaximize-job-1775752755594.html",
-      "qaScore": 80,
+      "complexity": "elite",
+      "filePath": "system_agents/agent_maximize.html",
+      "qaScore": 99,
+      "isSystem": true,
       "modules": [
         {
           "id": "mod_1",
-          "name": "Contextual Guidance Engine",
-          "role": "Analyzes user intent and provides real-time usage tips based on active context",
+          "name": "Contextual Guidance",
+          "role": "Analyzes user intent",
           "priority": "high"
         },
         {
           "id": "mod_2",
-          "name": "Prompt Refinement Lab",
-          "role": "Transforms basic user queries into high-performance system instructions",
+          "name": "Prompt Refinement",
+          "role": "Transforms queries",
           "priority": "high"
-        },
-        {
-          "id": "mod_3",
-          "name": "Interactive Support Hub",
-          "role": "Facilitates feature discovery and dynamic walkthroughs for new capabilities",
-          "priority": "medium"
         }
       ],
-      "createdAt": "2026-04-09T16:41:40.922Z",
+      "createdAt": "2026-04-16T09:21:30.411Z",
       "primaryColor": "#6366F1",
       "secondaryColor": "#10B981"
-    },
-    {
-      "id": "komorebi-nexus-1",
-      "projectName": "Komorebi",
-      "tagline": "Zen Travel Intelligence & Stillness Seekers",
-      "goal": "Build a premium nature-themed travel and wellness system.",
-      "type": "dashboard",
-      "complexity": "elite",
-      "filePath": "builds/komorebi.html",
-      "qaScore": 98,
-      "modules": [
-        { "id": "k1", "name": "Stillness Search", "role": "Finds nature spots", "priority": "high" },
-        { "id": "k2", "name": "Zen Graphics", "role": "High-fidelity nature UI", "priority": "high" }
-      ],
-      "createdAt": "2026-04-15T15:45:00.000Z",
-      "primaryColor": "#2d5a27",
-      "secondaryColor": "#81c784"
     }
   ]
 }
