@@ -1320,7 +1320,7 @@ TOOL USAGE: Use tools to find real-world sample data or verify API schemas if av
     const compactedHTML = compactContext(cleanHTML);
     streamThought(jobId, 'System Compactor', 'Executed Context Compaction. HTML AST compressed for higher agent IQ.');
 
-    const jsAgentPrompt = `
+    let jsAgentPrompt = `
 You are "JS Agent" - a Master of Interaction Design and System Logic.
 Write Enterprise JavaScript for: "${blueprint.projectName}"
 
