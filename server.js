@@ -193,6 +193,8 @@ async function loadMCPServers() {
             // Create default template for user
             await fs.writeJson(configPath, {
                 servers: [
+                    { "name": "sequential-thinking", "command": "npx", "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"], "enabled": true },
+                    { "name": "duckduckgo", "command": "npx", "args": ["-y", "@modelcontextprotocol/server-duckduckgo"], "enabled": true },
                     { "name": "brave-search", "command": "npx", "args": ["-y", "@modelcontextprotocol/server-brave-search"], "enabled": false, "notes": "Set BRAVE_API_KEY in .env" }
                 ]
             }, { spaces: 2 });
@@ -1078,20 +1080,12 @@ Return JSON ONLY:
     streamProgress(jobId, 20, 'BLUEPRINTING');
 
     const orchestratorPrompt = `
-You are the "Aon AI Lead Orchestrator" - an elite software architect for a high-end SaaS product.
+You are the "Aon AI Lead Orchestrator". 
+MISSION: Architect an industry-leading ${route.type} for: "${goal}"
 
-MISSION: Architect an industry-leading ${route.type} application for: "${goal}"
-
-DESIGN SYSTEM SPECIFICATION:
-- Aesthetic: Modern High-Contrast Dark Mode (Glassmorphism, Bento-Grid, Premium Gradients)
-
-TOOL USAGE PROTOCOL:
-You have access to real-time tools. If you are unsure about an API, a design pattern, or need real data, USE YOUR TOOLS.
-1. THINK: What information do I need?
-2. ACT: Call the relevant tool.
-3. OBSERVE: Analyze the tool output.
-4. REPEAT or RESPOND.
-You MUST verify all key technical assumptions using tools if available.
+TOOL USAGE PROTOCOL (MANDATORY):
+1. THINK: Use the 'sequential_thinking' tool for at least 3 steps to identify architectural risks and niche-specific requirements.
+2. GROUNDING: Use the 'search' tool to verify real-world standards for this mission.
 
 
 Return JSON (NO MARKDOWN WRAPPERS):
@@ -1162,11 +1156,14 @@ You are the "Aon AI PRD Architect". Define the "Source of Truth" for "${blueprin
 GOAL: ${goal} | BLUEPRINT: ${JSON.stringify(blueprint)}
 UX VIBE: ${JSON.stringify(uxVibe)}
 
+MANDATORY TOOL USAGE:
+1. GROUNDING: Use the 'search' tool to find real-world schemas, medical/financial standards, or API docs for this mission. Do not guess data contracts.
+
 TASKS:
-1. DATA CONTRACT: Detailed JSON schema for live data.
-2. UX FLOWS: Key interaction patterns (MUST match "${uxVibe.motion}" motion profile).
+1. DATA CONTRACT: Detailed JSON schema for live data (MUST be grounded in tool findings).
+2. UX FLOWS: Key interaction patterns.
 3. DOMAIN LOGIC: Solve the business logic.
-4. BRAND DNA: Define HSL colors based on the Mood Board: ${JSON.stringify(uxVibe.colorPalette)}.
+4. BRAND DNA: Define HSL based on the Mood Board: ${JSON.stringify(uxVibe.colorPalette)}.
 
 Respond with ONLY valid JSON.
     `;
