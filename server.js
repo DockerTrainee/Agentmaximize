@@ -564,6 +564,36 @@ function validateJS(jsCode, htmlContext) {
     }
 }
 
+/**
+ * AST Context Compaction (The Context Optimizer)
+ * Parses HTML and strips large internal objects (like SVGs or base64 images)
+ * to save LLM context window and speed up the Agent pipeline.
+ */
+function compactContext(htmlString) {
+    try {
+        const dom = new JSDOM(htmlString);
+        const doc = dom.window.document;
+        
+        // Strip heavy inner contents
+        doc.querySelectorAll('svg').forEach(el => el.innerHTML = '...[AON_COMPACTED_SVG]...');
+        doc.querySelectorAll('img').forEach(el => el.setAttribute('src', '[AON_COMPACTED_IMG]'));
+        doc.querySelectorAll('path').forEach(el => el.setAttribute('d', '...'));
+        
+        // Target long text nodes
+        const walk = doc.createTreeWalker(doc.body, 4, null, false);
+        let n;
+        while(n = walk.nextNode()) {
+            if(n.textContent.trim().length > 200) {
+                n.textContent = n.textContent.substring(0, 200) + '...[AON_COMPACTED_TEXT]';
+            }
+        }
+        
+        return doc.body.innerHTML || htmlString;
+    } catch (e) {
+        return htmlString;
+    }
+}
+
 async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
     const tag = agentName ? `[${agentName}]` : '[AI]';
     const geminiTools = mcp.getGeminiTools();
@@ -1246,12 +1276,15 @@ TOOL USAGE: Use tools to find real-world sample data or verify API schemas if av
     // ── PHASE 3: PARALLEL WORKERS — JS Logic + CSS Styling ───────────────────
     streamLog(jobId, '⚡ PARALLEL WORKERS DEPLOYING: JS Agent + CSS Agent...', 'agent');
 
+    const compactedHTML = compactContext(cleanHTML);
+    streamThought(jobId, 'System Compactor', 'Executed Context Compaction. HTML AST compressed for higher agent IQ.');
+
     const jsAgentPrompt = `
 You are "JS Agent" - a Master of Interaction Design and System Logic.
 Write Enterprise JavaScript for: "${blueprint.projectName}"
 
 CONTEXT:
-- HTML CONTENT: ${cleanHTML}
+- HTML CONTENT: ${compactedHTML}
 - PRD & DATA: ${JSON.stringify(prd)}
 - UX VIBE: ${uxVibe.visualVibe}
 
@@ -1268,7 +1301,7 @@ Build the Design System for: "${blueprint.projectName}"
 UX MOOD BOARD: ${JSON.stringify(uxVibe)}
 
 PRD THEME: ${JSON.stringify(prd.designGuide)}
-CONTEXT: ${cleanHTML}
+CONTEXT: ${compactedHTML}
 
 RULES:
 1. DEPTH: Use the AON V2 tokens (--glass, --shadow-premium, --accent-glow, --surface-noise).
