@@ -449,32 +449,69 @@ const AON_IDENTITY_CSS = `
     --accent-glow: ${PREMIUM_DESIGN_TOKENS.shadows.glow};
     --header-font: ${PREMIUM_DESIGN_TOKENS.typography.header};
     --body-font: ${PREMIUM_DESIGN_TOKENS.typography.body};
+    --surface-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 .aon-card {
+    position: relative;
     ${PREMIUM_DESIGN_TOKENS.glassmorphism}
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: 20px;
+    padding: 28px;
     box-shadow: var(--shadow-premium);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.aon-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: var(--surface-noise);
+    opacity: 0.03;
+    pointer-events: none;
+}
+
+.aon-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
 }
 
 .aon-card:hover {
-    transform: translateY(-5px) scale(1.01);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .aon-btn-premium {
+    position: relative;
     background: ${PREMIUM_DESIGN_TOKENS.colors.accent_gradient};
     color: white;
     border: none;
-    border-radius: 12px;
-    padding: 12px 24px;
-    font-weight: 600;
+    border-radius: 14px;
+    padding: 14px 28px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     cursor: pointer;
     box-shadow: var(--accent-glow);
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.aon-btn-premium:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.8);
+}
+
+@keyframes entranceFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.aon-entrance {
+    animation: entranceFadeIn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 `;
 
@@ -1007,9 +1044,38 @@ async function runNexusPrimeSynthesis(jobId, goal, clientId) {
     io.emit(`job:${jobId}:route`, route);
     streamThought(jobId, 'Router', `Goal classified as ${route.type}. Setting ${route.complexity} complexity profile.`);
 
+    // ── PHASE 0.5: UX DESIGN LEAD (The Mood Board) ──────────────────────────
+    streamLog(jobId, '🎨 UX DESIGN LEAD: Establishing premium visual identity...', 'agent');
+    streamProgress(jobId, 10, 'DESIGN STRATEGY');
+
+    const uxDesignPrompt = `
+You are the "Aon AI Visionary UX Lead". Your role is to define the "Visual Soul" for an app called: "${goal}"
+The current route is ${route.type}.
+
+TASKS:
+1. THEME: Choose a specific high-end aesthetic (e.g. "Sterile Medical Titanium", "Cyber-Vesta Dark", "Apple-Minimal White").
+2. COLOR THEORY: Precise HSL variables for Primary, Secondary, and Accent (must be high-contrast and professional).
+3. MOTION PROFILE: Define how elements enter (e.g. "Staggered Slide-up", "Elastic Fade").
+4. DEPTH STRATEGY: Define box-shadow and blur intensities (e.g. "Soft-Diffusion", "Sharp-Architectural").
+
+Return JSON ONLY:
+{
+  "themeName": "Theme Name",
+  "visualVibe": "Detailed description of the look/feel",
+  "colorPalette": { "primary": "hsl(x,y,z)", "surface": "hsl(x,y,z)", "accent": "hsl(x,y,z)" },
+  "motion": "elastic|smooth|sharp",
+  "depth": "deep|minimal|layered"
+}
+    `;
+
+    const uxVibeText = await callAI(uxDesignPrompt, 'JSON', jobId, 'UX-DESIGNER');
+    const uxVibe = JSON.parse(uxVibeText);
+    streamThought(jobId, 'UX Designer', `Visual identity locked: ${uxVibe.themeName}. Applying ${uxVibe.motion} motion and ${uxVibe.depth} depth strategy.`);
+    streamLog(jobId, '✅ UX DESIGNER: Mood Board initialized.', 'success');
+
     // ── PHASE 1: ORCHESTRATOR AGENT (Blueprint) ───────────────────────────────
     streamLog(jobId, '🏛️ ORCHESTRATOR AGENT: Architecting blueprint...', 'agent');
-    streamProgress(jobId, 15, 'BLUEPRINTING');
+    streamProgress(jobId, 20, 'BLUEPRINTING');
 
     const orchestratorPrompt = `
 You are the "Aon AI Lead Orchestrator" - an elite software architect for a high-end SaaS product.
@@ -1094,20 +1160,15 @@ Return JSON (NO MARKDOWN WRAPPERS):
     const prdPrompt = `
 You are the "Aon AI PRD Architect". Define the "Source of Truth" for "${blueprint.projectName}".
 GOAL: ${goal} | BLUEPRINT: ${JSON.stringify(blueprint)}
+UX VIBE: ${JSON.stringify(uxVibe)}
 
 TASKS:
 1. DATA CONTRACT: Detailed JSON schema for live data.
-2. UX FLOWS: Key interaction patterns.
+2. UX FLOWS: Key interaction patterns (MUST match "${uxVibe.motion}" motion profile).
 3. DOMAIN LOGIC: Solve the business logic.
-4. BRAND DNA: Define HSL colors and typography.
+4. BRAND DNA: Define HSL colors based on the Mood Board: ${JSON.stringify(uxVibe.colorPalette)}.
 
-Respond with ONLY valid JSON:
-{
-  "dataContract": { "example": "schema" },
-  "uxFlows": [{ "element": "id", "action": "behavior" }],
-  "domainLogic": "Logic explanation...",
-  "designGuide": { "primary_hsl": "hsl(220, 90%, 50%)", "secondary_hsl": "hsl(280, 80%, 60%)" }
-}
+Respond with ONLY valid JSON.
     `;
 
     const prdText = await callAI(prdPrompt, 'JSON', jobId, 'PRD-AGENT');
@@ -1123,13 +1184,14 @@ Respond with ONLY valid JSON:
 You are the "Aon AI HTML Agent". 
 Build the semantic layout for "${blueprint.projectName}".
 
+UX DESIGN STRATEGY: ${uxVibe.visualVibe}
 PRD CONTEXT: ${JSON.stringify(prd)}
 
 RULES:
-1. Use Aon Identity Classes (.aon-card, .aon-btn-premium).
-2. Use window.__AON_STATE__.config tokens for spacing/radius.
-3. No inline JS. Use semantic tags.
-4. Framework: High-fidelity Bento Grid.
+1. USE AON V2 CLASSES: .aon-card, .aon-btn-premium, .aon-entrance.
+2. ASYMMETRIC BENTO: Use grid-template-columns: repeat(12, 1fr) with varying spans (e.g. col-span-8, col-span-4) for premium depth.
+3. MOTION: Tag entrance modules with '.aon-entrance' and increasing animation-delay.
+4. DEPTH: Use layered containers (header, main, section).
 `;
 
     const mockDataPrompt = `
@@ -1170,36 +1232,34 @@ TOOL USAGE: Use tools to find real-world sample data or verify API schemas if av
     streamLog(jobId, '⚡ PARALLEL WORKERS DEPLOYING: JS Agent + CSS Agent...', 'agent');
 
     const jsAgentPrompt = `
-You are "JS Agent" - a Senior Software Engineer specializing in Vanilla JS.
+You are "JS Agent" - a Master of Interaction Design and System Logic.
 Write Enterprise JavaScript for: "${blueprint.projectName}"
-
-CONTEXT (MUST MATCH EXACTLY):
-- HTML STRUCTURE: ${cleanHTML}
-- DATA CONTRACT & PRD: ${JSON.stringify(prd)}
-
-RULES:
-1. Logic: Implement the 'domainLogic' from the PRD.
-2. Wiring: Attach events to the IDs/Classes in the provided HTML.
-3. State: Use window.__AON_STATE__.
-4. Premium: Use Chart.js and Lucide.
-5. Resilience: Errors must be caught and displayed in .aon-card elements.
-    `;
-
-    const cssAgentPrompt = `
-You are "CSS Agent" - a Master of UI/UX and High-Fidelity Design.
-Build the Design System for: "${blueprint.projectName}"
-PRD THEME: ${JSON.stringify(prd.designGuide)}
 
 CONTEXT:
 - HTML CONTENT: ${cleanHTML}
+- PRD & DATA: ${JSON.stringify(prd)}
+- UX VIBE: ${uxVibe.visualVibe}
 
 RULES:
-1. Identity: Use the Aon Identity System (--glass, --shadow-premium, --accent-glow).
-2. Layout: High-fidelity Bento Grid (grid-template-columns: repeat(12, 1fr)).
-3. Polish: Animations from Animate.css, smooth hover scales (1.02).
-4. Guide Modal: Provide a stunning, fullscreen or large-centered glassmorphism modal style for '.aon-guide-modal'. Highlight '.guide-feature' cards within it.
+1. INTERACTION DNA: Every click/hover MUST have a spring-animated feedback loop (use scale(0.98) on click, rotate(0.5deg) on hover).
+2. ENTRANCE: Implement staggered fade-ins for cards using the '.aon-entrance' class.
+3. DATA FLOW: Implement the 'domainLogic' from the PRD with real-time state updates.
+4. FEEDBACK: Use Toast-style notifications for all actions.
+`;
 
-OUTPUT: Raw CSS ONLY.
+    const cssAgentPrompt = `
+You are "CSS Agent" - a Master of High-Fidelity Professional Web Design.
+Build the Design System for: "${blueprint.projectName}"
+UX MOOD BOARD: ${JSON.stringify(uxVibe)}
+
+PRD THEME: ${JSON.stringify(prd.designGuide)}
+CONTEXT: ${cleanHTML}
+
+RULES:
+1. DEPTH: Use the AON V2 tokens (--glass, --shadow-premium, --accent-glow, --surface-noise).
+2. LAYOUT: Asymmetric Bento Grid. Use varying heights and spans for a professional, non-repetitive look.
+3. EDGE LIGHTING: Apply a subtle top-border highlight (rgba(255,255,255,0.1)) to all .aon-card elements.
+4. TEXTURES: Ensure the .aon-card::before noise overlay is applied for premium tactile feel.
 `;
 
     const coreJS = await callAI(jsAgentPrompt, 'JS', jobId, 'JS-AGENT');
