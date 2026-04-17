@@ -416,14 +416,67 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
 const GITHUB_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions';
 
 const MODEL_CASCADE = [
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-pro-latest",
-    "gemini-1.5-flash",
-    "gemini-2.0-flash-thinking-exp",
+    "gemini-2.0-flash-thinking-exp", // The 'Thinking' brain for elite reasoning
+    "gemini-1.5-pro-latest",         // The 'Savant' for high-fidelity code
     "gemini-2.0-flash-exp",
-    "github/gpt-4o-mini",
+    "gemini-1.5-flash-latest",
     "github/gpt-4o",
+    "github/gpt-4o-mini",
 ];
+
+const PREMIUM_DESIGN_TOKENS = {
+    glassmorphism: "backdrop-filter: blur(12px) saturate(180%); background: rgba(17, 25, 40, 0.75); border: 1px solid rgba(255, 255, 255, 0.125);",
+    shadows: {
+        soft: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
+        sharp: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+        glow: "0 0 15px rgba(99, 102, 241, 0.5)"
+    },
+    typography: {
+        header: "font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; font-weight: 800;",
+        body: "font-family: 'Inter', sans-serif; line-height: 1.6;"
+    },
+    colors: {
+        dark_surface: "#03030a",
+        card_surface: "#0a0a14",
+        accent_gradient: "linear-gradient(135deg, #6366F1 0%, #a855f7 100%)"
+    }
+};
+
+const AON_IDENTITY_CSS = `
+:root {
+    --glass: ${PREMIUM_DESIGN_TOKENS.glassmorphism};
+    --shadow-premium: ${PREMIUM_DESIGN_TOKENS.shadows.soft};
+    --accent-glow: ${PREMIUM_DESIGN_TOKENS.shadows.glow};
+    --header-font: ${PREMIUM_DESIGN_TOKENS.typography.header};
+    --body-font: ${PREMIUM_DESIGN_TOKENS.typography.body};
+}
+
+.aon-card {
+    ${PREMIUM_DESIGN_TOKENS.glassmorphism}
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow-premium);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.aon-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.aon-btn-premium {
+    background: ${PREMIUM_DESIGN_TOKENS.colors.accent_gradient};
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--accent-glow);
+    transition: all 0.2s ease;
+}
+`;
 
 async function callGitHubAI(modelName, prompt, jobId = null) {
     const token = sanitizeEnv(process.env.GITHUB_TOKEN);
@@ -694,11 +747,11 @@ ${JSON.stringify(critique, null, 2)}
 
 CURRENT ASSETS:
 --- HTML ---
-${html.substring(0, 2000)}
+${html}
 --- CSS ---
-${css.substring(0, 2000)}
+${css}
 --- JS ---
-${js.substring(0, 2000)}
+${js}
 
 TASK:
 1. Address ALL critical issues from the QA critique.
@@ -1034,32 +1087,49 @@ Return JSON (NO MARKDOWN WRAPPERS):
         });
     }
 
-    // ── PHASE 2: PARALLEL WORKERS — HTML + Data Analysis ─────────────────────
-    // INSPIRED BY: Anthropic's Parallelization Workflow
+    // ── PHASE 1.5: PRD AGENT (Architectural Master Blueprint) ─────────────────
+    streamLog(jobId, '🧠 PRD AGENT: Creating Source of Truth...', 'agent');
+    streamProgress(jobId, 32, 'SPECIFICATION');
+
+    const prdPrompt = `
+You are the "Aon AI PRD Architect". Define the "Source of Truth" for "${blueprint.projectName}".
+GOAL: ${goal} | BLUEPRINT: ${JSON.stringify(blueprint)}
+
+TASKS:
+1. DATA CONTRACT: Detailed JSON schema for live data.
+2. UX FLOWS: Key interaction patterns.
+3. DOMAIN LOGIC: Solve the business logic.
+4. BRAND DNA: Define HSL colors and typography.
+
+Respond with ONLY valid JSON:
+{
+  "dataContract": { "example": "schema" },
+  "uxFlows": [{ "element": "id", "action": "behavior" }],
+  "domainLogic": "Logic explanation...",
+  "designGuide": { "primary_hsl": "hsl(220, 90%, 50%)", "secondary_hsl": "hsl(280, 80%, 60%)" }
+}
+    `;
+
+    const prdText = await callAI(prdPrompt, 'JSON', jobId, 'PRD-AGENT');
+    const prd = JSON.parse(prdText);
+    streamThought(jobId, 'PRD Agent', 'Source of Truth locked. Color theory and data contracts initialized.');
+    streamLog(jobId, '✅ PRD AGENT: Specification complete.', 'success');
+
+    // ── PHASE 2: PARALLEL WORKERS ─────────────────────────────────────────────
     streamLog(jobId, '⚡ PARALLEL WORKERS DEPLOYING: HTML Agent + Data Agent...', 'agent');
-    streamProgress(jobId, 35, 'PARALLEL SYNTHESIS');
+    streamProgress(jobId, 45, 'SYNTHESIS');
 
     const htmlAgentPrompt = `
-You are "HTML Agent" - an expert in Semantic HTML5 and Enterprise UI Architecture.
-Build the BODY content for: "${blueprint.projectName}" (goal: ${goal})
+You are the "Aon AI HTML Agent". 
+Build the semantic layout for "${blueprint.projectName}".
 
-ARCHITECTURE:
-- Layout: ${blueprint.uiArchitecture.layout}
-- Design Tokens: Corresponds to Corner Radius ${blueprint.designSystem.cornerRadius}
-- Framework: Professional Bento-Grid implementation
+PRD CONTEXT: ${JSON.stringify(prd)}
 
-STRICT RULES:
-1. Output ONLY raw HTML fragment. NO <html>, <head>, <body> tags.
-2. Use Semantic HTML5: <main>, <section>, <article>, <aside>, <nav>, <header>.
-3. Include a "GUIDE" button (id="aon-guide-trigger") in the top nav or header.
-4. Include an "OPERATIONS MODAL" (id="aon-guide-modal") that is hidden by default.
-5. ZERO-PLACEHOLDER POLICY: Do not use "Loading..." or "Coming Soon" in static HTML.
-6. Accessibility: Include aria-labels and proper role attributes for all modules.
-7. CRITICAL: NEVER use inline JavaScript handlers (NO onclick="...", NO onchange="..."). Your JS agent counterpart will attach all listeners via ID/Class.
-8. Structure for application type: ${route.type}.
-
-TOOL USAGE: You may use tools to find semantic ID names or best-practice HTML5 structure for complex components.
-
+RULES:
+1. Use Aon Identity Classes (.aon-card, .aon-btn-premium).
+2. Use window.__AON_STATE__.config tokens for spacing/radius.
+3. No inline JS. Use semantic tags.
+4. Framework: High-fidelity Bento Grid.
 `;
 
     const mockDataPrompt = `
@@ -1100,66 +1170,47 @@ TOOL USAGE: Use tools to find real-world sample data or verify API schemas if av
     streamLog(jobId, '⚡ PARALLEL WORKERS DEPLOYING: JS Agent + CSS Agent...', 'agent');
 
     const jsAgentPrompt = `
-You are "JS Agent" - a Senior Software Engineer specializing in Vanilla JS and System Architecture.
+You are "JS Agent" - a Senior Software Engineer specializing in Vanilla JS.
 Write Enterprise JavaScript for: "${blueprint.projectName}"
 
-GOAL: ${goal} | CATEGORY: ${blueprint.modules.map(m => m.type).join(', ')}
+CONTEXT (MUST MATCH EXACTLY):
+- HTML STRUCTURE: ${cleanHTML}
+- DATA CONTRACT & PRD: ${JSON.stringify(prd)}
 
-ARCHITECTURE:
-1. Global State: ALWAYS use window.__AON_STATE__ = { data: {}, ui: { loading: false }, config: ${JSON.stringify(blueprint.designSystem)} };
-   - NEVER use a bare variable called "state". ALWAYS use window.__AON_STATE__.
-2. State updates: Use a helper: function setState(patch) { Object.assign(window.__AON_STATE__, patch); }
-3. Charting: IF modules include 'chart', implement Chart.js logic using the canvases provided.
-4. Error Resilience: Wrap ALL fetch/async calls in try/catch. If an API returns an error object, display the 'message' and 'suggestedAction' in a professional red alert box (bento-card style) within the target module.
-5. Micro-interactions: Use standard easing for all UI transitions. Include pulsing loaders during async operations.
-6. International Quality: Ensure all labels, tooltips, and error states are descriptive. Never show raw '500' or '404' errors to the user.
-
-STRICT RULES:
-- Output ONLY raw JavaScript. NO backticks, NO markdown.
-- DECLARE every variable with const/let/var before using it. NEVER reference undeclared variables.
-- DO NOT use React, Vue, or Angular patterns. This is VANILLA JS only.
-- POPULATE the UI immediately using the 'mockData' from Data Architect. DO NOT show empty states.
-- HYDRATE the "OPERATIONS MODAL" using the 'operations_manual' data.
-- IMPLEMENT real logic for every tap/click event mentioned in the HTML.
-- Hook into Bento-Grid article IDs.
-- Use 'lucide.createIcons()' for premium iconography.
-- IMPORTANT: Use RELATIVE paths for all fetch calls (e.g., '/chat', '/live-data').
-- CRITICAL: All code must run without errors. Test every variable reference before writing it.
-
-TOOL USAGE: If implementing a complex logic (like a specific encryption or a math heavy algorithm), use tools to fetch the correct standard implementation.
-
-`;
+RULES:
+1. Logic: Implement the 'domainLogic' from the PRD.
+2. Wiring: Attach events to the IDs/Classes in the provided HTML.
+3. State: Use window.__AON_STATE__.
+4. Premium: Use Chart.js and Lucide.
+5. Resilience: Errors must be caught and displayed in .aon-card elements.
+    `;
 
     const cssAgentPrompt = `
-You are "CSS Agent" - a Master of UI/UX and High-Fidelity Professional Web Design.
+You are "CSS Agent" - a Master of UI/UX and High-Fidelity Design.
 Build the Design System for: "${blueprint.projectName}"
+PRD THEME: ${JSON.stringify(prd.designGuide)}
 
-DESIGN TOKENS:
-- Primary: ${blueprint.designSystem.accentColor}
-- Secondary: ${blueprint.designSystem.complementary}
-- Corner: ${blueprint.designSystem.cornerRadius}
-- Blur: ${blueprint.designSystem.surfaceBlur}
+CONTEXT:
+- HTML CONTENT: ${cleanHTML}
 
-REQUIREMENTS:
-1. Use Professional Bento-Grid Layout: Use 'display: grid' with 'grid-template-columns: repeat(12, 1fr)'.
-2. Elevation: Implement multi-layered box-shadows (0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)).
-3. Glassmorphism: Use backdrop-filter for mesh surface effects.
-4. Typography Scales: Enforce professional 'clamp()' based font weights.
-5. Hover Effects: Interactive cards must scale (1.02) and glow on hover.
-6. Responsive: Mobile-first design that adapts to desktop ultra-wides.
-7. Scrollbars: Use thin, modern, invisible-until-hover gutter styles.
-8. Guide Modal: Provide a stunning, fullscreen or large-centered glassmorphism modal style for '.aon-guide-modal'. Highlight '.guide-feature' cards within it.
+RULES:
+1. Identity: Use the Aon Identity System (--glass, --shadow-premium, --accent-glow).
+2. Layout: High-fidelity Bento Grid (grid-template-columns: repeat(12, 1fr)).
+3. Polish: Animations from Animate.css, smooth hover scales (1.02).
+4. Guide Modal: Provide a stunning, fullscreen or large-centered glassmorphism modal style for '.aon-guide-modal'. Highlight '.guide-feature' cards within it.
 
 OUTPUT: Raw CSS ONLY.
 `;
 
     const coreJS = await callAI(jsAgentPrompt, 'JS', jobId, 'JS-AGENT');
-    await wait(1200);
+    streamThought(jobId, 'JS Agent', 'Neural logic hydrated. Event listeners and state management active.');
+    await wait(800);
     const coreCSS = await callAI(cssAgentPrompt, 'CSS', jobId, 'CSS-AGENT');
+    streamThought(jobId, 'CSS Agent', 'Design DNA applied. Premium glassmorphism and bento-grid layouts active.');
 
     streamLog(jobId, '✅ JS AGENT: Logic hydration complete.', 'success');
     streamLog(jobId, '✅ CSS AGENT: Design system applied.', 'success');
-    streamProgress(jobId, 75, 'AGENTS COMPLETE');
+    streamProgress(jobId, 85, 'AGENTS COMPLETE');
 
     // ── PHASE 4: ASSEMBLY ─────────────────────────────────────────────────────
     streamLog(jobId, '🔩 ASSEMBLER: Compiling unified application...', 'system');
@@ -1199,6 +1250,7 @@ OUTPUT: Raw CSS ONLY.
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        ${AON_IDENTITY_CSS}
         
         /* SELF-HEAL UI */
         #aon-self-heal-overlay {
