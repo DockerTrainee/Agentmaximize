@@ -25,6 +25,7 @@ const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const puppeteer = require('puppeteer');
 const { JSDOM } = require('jsdom');
 const vm = require('vm');
 
@@ -592,6 +593,46 @@ function compactContext(htmlString) {
     } catch (e) {
         return htmlString;
     }
+}
+
+/**
+ * The Virtual Browser - Renders the app locally and takes a snapshot.
+ */
+async function captureVirtualScreenshot(htmlContent) {
+    let browser;
+    try {
+        browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+        const page = await browser.newPage();
+        await page.setViewport({ width: 1440, height: 900 });
+        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+        
+        // Wait for entrance animations defined by AON DNA
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        const screenshotBuffer = await page.screenshot({ type: 'jpeg', quality: 80 });
+        return screenshotBuffer.toString('base64');
+    } catch (e) {
+        console.error('[PUPPETEER ERROR]', e);
+        return null;
+    } finally {
+        if (browser) await browser.close();
+    }
+}
+
+/**
+ * The Vision Critic - Evaluates screenshots for UI/UX flaws.
+ */
+async function callVisionAI(prompt, base64Image, jobId) {
+    if (jobId) streamLog(jobId, '[VISION-CRITIC] Calling gemini-1.5-pro for visual analysis...', 'system');
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const imagePart = {
+        inlineData: {
+            data: base64Image,
+            mimeType: "image/jpeg"
+        }
+    };
+    const result = await model.generateContent([prompt, imagePart]);
+    return result.response.text().trim();
 }
 
 async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
@@ -1295,7 +1336,7 @@ RULES:
 4. FEEDBACK: Use Toast-style notifications for all actions.
 `;
 
-    const cssAgentPrompt = `
+    let cssAgentPrompt = `
 You are "CSS Agent" - a Master of High-Fidelity Professional Web Design.
 Build the Design System for: "${blueprint.projectName}"
 UX MOOD BOARD: ${JSON.stringify(uxVibe)}
@@ -1309,6 +1350,7 @@ RULES:
 3. EDGE LIGHTING: Apply a subtle top-border highlight (rgba(255,255,255,0.1)) to all .aon-card elements.
 4. TEXTURES: Ensure the .aon-card::before noise overlay is applied for premium tactile feel.
 `;
+
     let coreJS = null;
     let jsAttempts = 0;
     while (jsAttempts < 3) {
@@ -1328,16 +1370,8 @@ RULES:
     }
     streamThought(jobId, 'JS Agent', 'Neural logic hydrated. Event listeners and state management active.');
     await wait(800);
-    const coreCSS = await callAI(cssAgentPrompt, 'CSS', jobId, 'CSS-AGENT');
-    streamThought(jobId, 'CSS Agent', 'Design DNA applied. Premium glassmorphism and bento-grid layouts active.');
 
-    streamLog(jobId, '✅ JS AGENT: Logic hydration complete.', 'success');
-    streamLog(jobId, '✅ CSS AGENT: Design system applied.', 'success');
-    streamProgress(jobId, 85, 'AGENTS COMPLETE');
-
-    // ── PHASE 4: ASSEMBLY ─────────────────────────────────────────────────────
-    streamLog(jobId, '🔩 ASSEMBLER: Compiling unified application...', 'system');
-    const assembledApp = `<!DOCTYPE html>
+    const buildAppTemplate = (cssContent, jsContent) => `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1399,7 +1433,7 @@ RULES:
             font-size: 11px; font-family: 'Outfit', sans-serif;
             opacity: 0.25; pointer-events: none; letter-spacing: 0.1em;
         }
-        ${coreCSS}
+        ${cssContent}
     </style>
 </head>
 <body>
@@ -1418,21 +1452,13 @@ RULES:
     (async () => {
         const JOB_ID = "${jobId}";
         const repairBtn = document.getElementById('repair-btn');
-        const repairPass = document.getElementById('repair-pass');
         const overlay = document.getElementById('aon-self-heal-overlay');
         const errorView = document.getElementById('error-details');
 
         window.onerror = function(msg, url, line, col, error) {
-            // INTERNATIONAL STANDARD: Filter out non-application errors (browser extensions, wallets, etc)
             const isExtension = (url && (url.includes('chrome-extension') || url.includes('moz-extension'))) || 
                                 (msg && (msg.includes('Origin not allowed') || msg.includes('ExtensionContext')));
-            
-            if (!isExtension) {
-                handleCrash({ message: msg, stack: error?.stack, line, col });
-            } else {
-                // SILENT PATCH: Ignore extension noise without blocking the user
-                console.warn('[AON] Neutralized external interference:', msg);
-            }
+            if (!isExtension) handleCrash({ message: msg, stack: error?.stack, line, col });
             return false;
         };
 
@@ -1440,11 +1466,10 @@ RULES:
             const reason = event.reason?.message || '';
             const stack = event.reason?.stack || '';
             const isExtension = reason.includes('Origin not allowed') || reason.includes('extension') || stack.includes('inpage.js');
-            
             if (!isExtension) {
                 handleCrash({ message: event.reason?.message || 'Unhandled Rejection', stack: event.reason?.stack });
             } else {
-                event.preventDefault(); // Silence extension-related promise noise
+                event.preventDefault();
             }
         };
 
@@ -1460,9 +1485,7 @@ RULES:
             try {
                 const res = await fetch('/api/self-heal', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         jobId: JOB_ID,
                         error: { message: errorView.innerText },
@@ -1484,15 +1507,51 @@ RULES:
         };
 
         try {
-            ${coreJS}
+            ${jsContent}
             if (typeof lucide !== 'undefined') lucide.createIcons();
-        } catch (e) {
+        } catch(e) {
             handleCrash(e);
         }
     })();
     </script>
 </body>
 </html>`;
+
+    let assembledApp = buildAppTemplate(coreCSS, coreJS);
+
+    // ── PHASE 3.5: VISION CRITIC (Visual Evaluation) ─────────────────────────
+    let visionAttempts = 0;
+    while(visionAttempts < 2) {
+        visionAttempts++;
+        streamThought(jobId, 'Vision Critic', `Capturing Virtual Snapshot using headless chromium (Pass ${visionAttempts})...`);
+        const snapshotBase64 = await captureVirtualScreenshot(assembledApp);
+        
+        if (snapshotBase64) {
+             const visionPrompt = `
+You are the Elite AON AI Vision Critic.
+Look at this screenshot of the newly generated web app.
+UX VIBE: ${uxVibe.visualVibe}
+GOAL: ${goal}
+
+Task: Identify major visual flaws (overlapping text, terrible contrast, broken grids, unprofessional spacing).
+If the UI looks perfect, beautiful, and premium, reply exactly with: "PERFECT".
+If it is flawed, list EXACTLY what CSS elements are chaotic and need fixing. Do not write full code, just instruct the CSS agent.
+`;
+             const critique = await callVisionAI(visionPrompt, snapshotBase64, jobId);
+             if (critique === 'PERFECT' || critique.includes('PERFECT')) {
+                 streamThought(jobId, 'Vision Critic', '✅ Visual Aesthetics Approved (PERFECT).');
+                 break;
+             } else {
+                 streamThought(jobId, 'System QA', `❌ Visual Flaw Detected: Critic requested changes. Retrying CSS...`);
+                 cssAgentPrompt += `\n\nCRITICAL UI FEEDBACK FROM VISION CRITIC:\nThe screenshot looks flawed: ${critique}\nRewrite the CSS carefully to fix these layout and color issues.`;
+                 coreCSS = await callAI(cssAgentPrompt, 'CSS', jobId, 'CSS-AGENT');
+                 assembledApp = buildAppTemplate(coreCSS, coreJS);
+             }
+        } else {
+             streamThought(jobId, 'Vision Critic', 'Snapshot failed or skipped, bypassing visual verification.');
+             break;
+        }
+    }
 
     // ── PHASE 5: EVALUATOR-OPTIMIZER (QA Critic Agent) ───────────────────────
     streamLog(jobId, '🔍 QA CRITIC AGENT: Auditing output...', 'agent');

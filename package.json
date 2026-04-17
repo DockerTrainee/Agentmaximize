@@ -17,6 +17,7 @@
     "express": "^4.21.0",
     "fs-extra": "^11.2.0",
     "jsdom": "^29.0.2",
+    "puppeteer": "^24.41.0",
     "razorpay": "^2.9.6",
     "socket.io": "^4.8.3"
   },
