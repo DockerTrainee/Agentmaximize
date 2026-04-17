@@ -25,6 +25,8 @@ const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const { JSDOM } = require('jsdom');
+const vm = require('vm');
 
 dotenv.config();
 
@@ -543,6 +545,22 @@ async function callGitHubAI(modelName, prompt, jobId = null) {
     } catch (err) {
         const errMsg = err.response?.data?.error?.message || err.message;
         throw new Error(`GitHub API Error: ${errMsg}`);
+    }
+}
+
+/**
+ * The AON AI Virtual Execution Sandbox.
+ * Runs generated JS locally to catch ReferenceErrors and SyntaxErrors.
+ */
+function validateJS(jsCode, htmlContext) {
+    try {
+        const dom = new JSDOM(htmlContext, { runScripts: "outside-only" });
+        const script = new vm.Script(jsCode);
+        const context = dom.getInternalVMContext();
+        script.runInContext(context, { timeout: 1000 });
+        return { valid: true, error: null };
+    } catch (err) {
+        return { valid: false, error: err.message };
     }
 }
 
@@ -1258,8 +1276,23 @@ RULES:
 3. EDGE LIGHTING: Apply a subtle top-border highlight (rgba(255,255,255,0.1)) to all .aon-card elements.
 4. TEXTURES: Ensure the .aon-card::before noise overlay is applied for premium tactile feel.
 `;
-
-    const coreJS = await callAI(jsAgentPrompt, 'JS', jobId, 'JS-AGENT');
+    let coreJS = null;
+    let jsAttempts = 0;
+    while (jsAttempts < 3) {
+        jsAttempts++;
+        coreJS = await callAI(jsAgentPrompt, 'JS', jobId, 'JS-AGENT');
+        streamThought(jobId, 'System Sandbox', `Evaluating generated Logic (Attempt ${jsAttempts})...`);
+        const validation = validateJS(coreJS, cleanHTML);
+        
+        if (validation.valid) {
+            streamThought(jobId, 'System Sandbox', '✅ Logic verified. No Reference or Syntax Errors found.');
+            break;
+        } else {
+            const errorMsg = `CRITICAL ERROR: The Sandbox caught an error in your code: ${validation.error}. Rewrite the code to fix this.`;
+            streamThought(jobId, 'System QA', `❌ Sandbox Error Caught: ${validation.error}. Retrying...`);
+            jsAgentPrompt += `\n\n${errorMsg}`;
+        }
+    }
     streamThought(jobId, 'JS Agent', 'Neural logic hydrated. Event listeners and state management active.');
     await wait(800);
     const coreCSS = await callAI(cssAgentPrompt, 'CSS', jobId, 'CSS-AGENT');
