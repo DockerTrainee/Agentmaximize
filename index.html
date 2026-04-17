@@ -24,6 +24,19 @@
     <script src="billing.js"></script>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css?v=1.1">
+    <script>
+        // SILENCE EXTENSION ERRORS (e.g. MetaMask/Phantom/AdBlock)
+        window.addEventListener('error', function(e) {
+            if (e.filename && (e.filename.includes('extension') || e.filename.includes('inpage.js') || e.filename.includes('chrome-extension'))) {
+                e.stopImmediatePropagation();
+            }
+        }, true);
+        window.addEventListener('unhandledrejection', function(e) {
+            if (e.reason && e.reason.stack && (e.reason.stack.includes('extension') || e.reason.stack.includes('inpage.js'))) {
+                e.preventDefault();
+            }
+        });
+    </script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#03030a">
 </head>

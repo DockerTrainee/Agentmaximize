@@ -1262,7 +1262,15 @@ OUTPUT: Raw CSS ONLY.
         };
 
         window.onunhandledrejection = function(event) {
-            handleCrash({ message: event.reason?.message || 'Unhandled Rejection', stack: event.reason?.stack });
+            const reason = event.reason?.message || '';
+            const stack = event.reason?.stack || '';
+            const isExtension = reason.includes('Origin not allowed') || reason.includes('extension') || stack.includes('inpage.js');
+            
+            if (!isExtension) {
+                handleCrash({ message: event.reason?.message || 'Unhandled Rejection', stack: event.reason?.stack });
+            } else {
+                event.preventDefault(); // Silence extension-related promise noise
+            }
         };
 
         function handleCrash(err) {
