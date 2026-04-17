@@ -136,7 +136,8 @@ export const BillingManager = {
                 alert(e.message);
                 return false;
             }
-        },
+        }
+    },
     async startTrial() {
         if (window.Capacitor && window.Capacitor.isNative) {
             alert('Free trials are managed via the App Store. Please click "Start Free Trial" to begin your secure trial via Google Play.');
