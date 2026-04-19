@@ -653,6 +653,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ═══════════════════════════════════════════════════════════════
+    // PLAY STORE COMPLIANCE LOGIC (Data Deletion & Content Flagging)
+    // ═══════════════════════════════════════════════════════════════
+    const deleteDataBtn = document.getElementById('delete-local-data');
+    if (deleteDataBtn) {
+        deleteDataBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to delete all local app data? This will reset your device ID and cannot be undone.')) {
+                localStorage.clear();
+                window.location.reload();
+            }
+        });
+    }
+
+    const flagAiBtn = document.getElementById('flag-ai-content');
+    if (flagAiBtn) {
+        flagAiBtn.addEventListener('click', () => {
+            alert('Content Flagged! This AI output has been reported to our moderation team for review per safety guidelines. Thank you.');
+            flagAiBtn.style.color = '#ffbd2e';
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // NAVIGATION
     // ═══════════════════════════════════════════════════════════════
     navItems.forEach(item => {

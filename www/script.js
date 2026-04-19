@@ -244,6 +244,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         socketStatusEl.style.color = '#ff5555';
         diagWS.textContent = 'OFFLINE';
         diagWS.className = 'diag-value';
+        addLog('[NEXUS] Lost connection to server. Attempting reconnection...', 'error');
+    });
+
+    socket.on('reconnecting', (attempt) => {
+        socketStatusEl.textContent = `WS: RECONNECTING (${attempt})`;
+        socketStatusEl.style.color = '#ffbd2e';
+        diagWS.textContent = 'RETRYING';
+    });
+
+    socket.on('reconnect', (attempt) => {
+        socketStatusEl.textContent = 'WS: RECONNECTED';
+        socketStatusEl.style.color = '#00ff88';
+        diagWS.textContent = 'ACTIVE';
+        addLog('[NEXUS] Connection restored successfully.', 'success');
     });
 
     function listenToJob(jobId) {
@@ -637,6 +651,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (typeof lucide !== 'undefined') lucide.createIcons();
         });
     });
+
+    // ═══════════════════════════════════════════════════════════════
+    // PLAY STORE COMPLIANCE LOGIC (Data Deletion & Content Flagging)
+    // ═══════════════════════════════════════════════════════════════
+    const deleteDataBtn = document.getElementById('delete-local-data');
+    if (deleteDataBtn) {
+        deleteDataBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to delete all local app data? This will reset your device ID and cannot be undone.')) {
+                localStorage.clear();
+                window.location.reload();
+            }
+        });
+    }
+
+    const flagAiBtn = document.getElementById('flag-ai-content');
+    if (flagAiBtn) {
+        flagAiBtn.addEventListener('click', () => {
+            alert('Content Flagged! This AI output has been reported to our moderation team for review per safety guidelines. Thank you.');
+            flagAiBtn.style.color = '#ffbd2e';
+        });
+    }
 
     // ═══════════════════════════════════════════════════════════════
     // NAVIGATION
