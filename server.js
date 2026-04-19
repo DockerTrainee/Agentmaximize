@@ -21,6 +21,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 const axios = require('axios');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Anthropic = require('@anthropic-ai/sdk');
 const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
 const Razorpay = require('razorpay');
@@ -423,6 +424,7 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
 const GITHUB_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions';
 
 const MODEL_CASCADE = [
+    "anthropic/claude-3-5-sonnet-20241022",
     "gemini-2.0-flash-thinking-exp", // The 'Thinking' brain for elite reasoning
     "gemini-1.5-pro-latest",         // The 'Savant' for high-fidelity code
     "gemini-2.0-flash-exp",
@@ -521,6 +523,24 @@ const AON_IDENTITY_CSS = `
     animation: entranceFadeIn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 `;
+
+async function callAnthropicAI(modelName, prompt, jobId = null) {
+    const token = sanitizeEnv(process.env.ANTHROPIC_API_KEY);
+    if (!token || token === 'your_anthropic_key_here') {
+        throw new Error('401 Unauthorized: ANTHROPIC_API_KEY not configured');
+    }
+
+    const cleanModelName = modelName.replace('anthropic/', '');
+    if (jobId) streamLog(jobId, `[ANTHROPIC] Calling ${cleanModelName}...`, 'system');
+
+    const anthropic = new Anthropic({ apiKey: token });
+    const response = await anthropic.messages.create({
+        model: cleanModelName,
+        max_tokens: 8192,
+        messages: [{ role: 'user', content: prompt }]
+    });
+    return response.content[0].text;
+}
 
 async function callGitHubAI(modelName, prompt, jobId = null) {
     const token = sanitizeEnv(process.env.GITHUB_TOKEN);
@@ -642,11 +662,12 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
     const geminiTools = mcp.getGeminiTools();
     
     for (const modelId of MODEL_CASCADE) {
-        const variations = modelId.startsWith('github/') ? [modelId] : [modelId, `models/${modelId}`];
+        const variations = (modelId.startsWith('github/') || modelId.startsWith('anthropic/')) ? [modelId] : [modelId, `models/${modelId}`];
         
         for (const modelName of variations) {
             let attempts = 0;
             const isGithub = modelName.startsWith('github/');
+            const isAnthropic = modelName.startsWith('anthropic/');
             const maxAttempts = 2;
             
             while (attempts < maxAttempts) {
@@ -654,6 +675,8 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
                     let text = '';
                     if (isGithub) {
                         text = await callGitHubAI(modelName, prompt, jobId);
+                    } else if (isAnthropic) {
+                        text = await callAnthropicAI(modelName, prompt, jobId);
                     } else {
                         if (jobId) streamLog(jobId, `${tag} Calling ${modelName}...`, 'system');
                         const model = genAI.getGenerativeModel({ 
