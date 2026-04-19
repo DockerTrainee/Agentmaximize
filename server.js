@@ -1351,6 +1351,8 @@ RULES:
 4. TEXTURES: Ensure the .aon-card::before noise overlay is applied for premium tactile feel.
 `;
 
+    let coreCSS = await callAI(cssAgentPrompt, 'CSS', jobId, 'CSS-AGENT');
+
     let coreJS = null;
     let jsAttempts = 0;
     while (jsAttempts < 3) {
