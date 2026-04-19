@@ -388,7 +388,7 @@ app.get('/terms', (req, res) => res.sendFile(path.join(__dirname, 'terms.html'))
 // ─────────────────────────────────────────────────────────────────────────────
 // GEMINI CLIENT
 // ─────────────────────────────────────────────────────────────────────────────
-const sanitizeEnv = (val) => (val || "").split(/[\s\r\n]/)[0].trim();
+const sanitizeEnv = (val) => (val || "").split(/[\s\r\n]/)[0].replace(/['"]/g, '').trim();
 const genAI = new GoogleGenerativeAI(sanitizeEnv(process.env.GEMINI_API_KEY));
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1839,9 +1839,7 @@ app.post('/chat', async (req, res) => {
         res.status(isQuota ? 429 : 503).json({
             error: true,
             code: isQuota ? 'QUOTA_EXCEEDED' : 'AI_UNAVAILABLE',
-            message: isQuota
-                ? 'The Gemini API quota has been reached. We are transitioning to secondary fallbacks shortly.'
-                : 'The AI engine is temporarily unavailable. This happens during high international traffic. Please try again.',
+            message: `API Feedback: ${e.message}`,
             suggestedAction: 'Wait 30 seconds and click Retry.'
         });
     }
