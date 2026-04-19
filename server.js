@@ -425,8 +425,8 @@ const GITHUB_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions'
 
 const MODEL_CASCADE = [
     "anthropic/claude-3-5-sonnet-20241022",
-    "gemini-2.0-flash-thinking-exp", // The 'Thinking' brain for elite reasoning
-    "gemini-1.5-pro-latest",         // The 'Savant' for high-fidelity code
+    "gemini-2.0-flash-thinking-exp", 
+    "gemini-1.5-pro-latest",         
     "gemini-2.0-flash-exp",
     "gemini-1.5-flash-latest",
     "github/gpt-4o",
@@ -434,20 +434,24 @@ const MODEL_CASCADE = [
 ];
 
 const PREMIUM_DESIGN_TOKENS = {
-    glassmorphism: "backdrop-filter: blur(12px) saturate(180%); background: rgba(17, 25, 40, 0.75); border: 1px solid rgba(255, 255, 255, 0.125);",
+    glassmorphism: "backdrop-filter: blur(16px) saturate(180%); background: rgba(10, 10, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.08);",
     shadows: {
-        soft: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
-        sharp: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-        glow: "0 0 15px rgba(99, 102, 241, 0.5)"
+        soft: "0 10px 40px -10px rgba(0,0,0,0.5)",
+        sharp: "0 2px 4px rgba(0,0,0,0.1)",
+        glow: "0 0 20px rgba(99, 102, 241, 0.3)"
     },
     typography: {
-        header: "font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; font-weight: 800;",
-        body: "font-family: 'Inter', sans-serif; line-height: 1.6;"
+        header: "font-family: 'Outfit', sans-serif; letter-spacing: -0.035em; font-weight: 800; line-height: 1.1;",
+        body: "font-family: 'Inter', sans-serif; line-height: 1.625; letter-spacing: -0.011em;"
     },
     colors: {
-        dark_surface: "#03030a",
-        card_surface: "#0a0a14",
+        dark_surface: "#020205",
+        card_surface: "rgba(15, 15, 25, 0.6)",
         accent_gradient: "linear-gradient(135deg, #6366F1 0%, #a855f7 100%)"
+    },
+    transitions: {
+        spring: "all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+        smooth: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
     }
 };
 
@@ -461,14 +465,25 @@ const AON_IDENTITY_CSS = `
     --surface-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
+.aon-grid-elite {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(clamp(280px, 30vw, 450px), 1fr));
+    gap: 24px;
+    width: 100%;
+    padding: 20px 0;
+}
+
 .aon-card {
     position: relative;
     ${PREMIUM_DESIGN_TOKENS.glassmorphism}
-    border-radius: 20px;
-    padding: 28px;
+    border-radius: 24px;
+    padding: 32px;
     box-shadow: var(--shadow-premium);
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: ${PREMIUM_DESIGN_TOKENS.transitions.spring};
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .aon-card::before {
@@ -476,7 +491,7 @@ const AON_IDENTITY_CSS = `
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     background-image: var(--surface-noise);
-    opacity: 0.03;
+    opacity: 0.04;
     pointer-events: none;
 }
 
@@ -484,13 +499,13 @@ const AON_IDENTITY_CSS = `
     content: '';
     position: absolute;
     top: 0; left: 0; width: 100%; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
 }
 
 .aon-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-10px) scale(1.01);
+    box-shadow: 0 30px 60px -12px rgba(0,0,0,0.7), 0 18px 36px -18px rgba(0,0,0,0.7);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .aon-btn-premium {
@@ -498,29 +513,31 @@ const AON_IDENTITY_CSS = `
     background: ${PREMIUM_DESIGN_TOKENS.colors.accent_gradient};
     color: white;
     border: none;
-    border-radius: 14px;
-    padding: 14px 28px;
-    font-weight: 700;
+    border-radius: 12px;
+    padding: 16px 32px;
+    font-size: 0.95rem;
+    ${PREMIUM_DESIGN_TOKENS.typography.header}
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     cursor: pointer;
     box-shadow: var(--accent-glow);
-    transition: all 0.3s ease;
+    transition: ${PREMIUM_DESIGN_TOKENS.transitions.smooth};
     overflow: hidden;
 }
 
 .aon-btn-premium:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 25px rgba(99, 102, 241, 0.8);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.6);
+    filter: brightness(1.1);
 }
 
 @keyframes entranceFadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(30px); filter: blur(10px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 
 .aon-entrance {
-    animation: entranceFadeIn 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    animation: entranceFadeIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 `;
 
@@ -1165,14 +1182,16 @@ async function runNexusPrimeSynthesis(jobId, goal, clientId) {
     streamProgress(jobId, 10, 'DESIGN STRATEGY');
 
     const uxDesignPrompt = `
-You are the "Aon AI Visionary UX Lead". Your role is to define the "Visual Soul" for an app called: "${goal}"
+You are the "Antigravity-Class UX Visionary". Your role is to define the "Visual Soul" for an app called: "${goal}"
 The current route is ${route.type}.
 
+MISSION: Design a high-fidelity, professional SaaS aesthetic.
+
 TASKS:
-1. THEME: Choose a specific high-end aesthetic (e.g. "Sterile Medical Titanium", "Cyber-Vesta Dark", "Apple-Minimal White").
-2. COLOR THEORY: Precise HSL variables for Primary, Secondary, and Accent (must be high-contrast and professional).
-3. MOTION PROFILE: Define how elements enter (e.g. "Staggered Slide-up", "Elastic Fade").
-4. DEPTH STRATEGY: Define box-shadow and blur intensities (e.g. "Soft-Diffusion", "Sharp-Architectural").
+1. THEME: Define a specific premium aesthetic (e.g. "Linear-Elite Dark", "Stripe-Pristine White", "Cyber-Vesta Glass").
+2. COLOR THEORY: Precise HSL variables for Primary, Secondary, and Accent (Avoid generic colors. Use deep blacks, sophisticated grays, and vibrant primary accents).
+3. SPATIAL LOGIC: Define container padding, inner-card gaps, and border-thickness for maximum "Airyness".
+4. MOTION ARCHITECTURE: Define the spring curve and entrance stagger strategy.
 
 Return JSON ONLY:
 {
@@ -1180,7 +1199,8 @@ Return JSON ONLY:
   "visualVibe": "Detailed description of the look/feel",
   "colorPalette": { "primary": "hsl(x,y,z)", "surface": "hsl(x,y,z)", "accent": "hsl(x,y,z)" },
   "motion": "elastic|smooth|sharp",
-  "depth": "deep|minimal|layered"
+  "depth": "deep|minimal|layered",
+  "spacingProfile": "airy|compact|balanced"
 }
     `;
 
@@ -1292,17 +1312,18 @@ Respond with ONLY valid JSON.
     streamProgress(jobId, 45, 'SYNTHESIS');
 
     const htmlAgentPrompt = `
-You are the "Aon AI HTML Agent". 
+You are the "Antigravity-Class HTML Architect". 
 Build the semantic layout for "${blueprint.projectName}".
 
 UX DESIGN STRATEGY: ${uxVibe.visualVibe}
 PRD CONTEXT: ${JSON.stringify(prd)}
 
 RULES:
-1. USE AON V2 CLASSES: .aon-card, .aon-btn-premium, .aon-entrance.
-2. ASYMMETRIC BENTO: Use grid-template-columns: repeat(12, 1fr) with varying spans (e.g. col-span-8, col-span-4) for premium depth.
-3. MOTION: Tag entrance modules with '.aon-entrance' and increasing animation-delay.
-4. DEPTH: Use layered containers (header, main, section).
+1. USE ELITE CLASSES: Use '.aon-grid-elite' as the primary layout container. Use '.aon-card' for all content modules.
+2. FLUID BENTO: DO NOT use static column spans if they result in narrow boxes. Use '.aon-grid-elite' which handles auto-stacking via minmax(320px, 1fr).
+3. SEMANTIC HIERARCHY: Every module must have a clear <h1> or <h2> using the '--header-font'.
+4. MOTION: Tag main entrance modules with '.aon-entrance' and increasing animation-delay.
+5. NO SQUISH: Ensure modules have enough breathing room. Use 32px padding inside cards.
 `;
 
     const mockDataPrompt = `
@@ -1314,18 +1335,13 @@ Define the data architecture. Respond with ONLY a valid JSON object:
 {
   "endpoints": [{ "id": "id", "path": "/path" }],
   "mockData": { "key": "value" },
-  "operations_manual": [
-    { "feature": "Name", "action": "How to use", "value_prop": "Why it matters" }
-  ],
   "stateVariables": { "var": "default" }
 }
 Endpoints available: /live-data/crypto, /live-data/news, /search (POST with { query }).
-
-TOOL USAGE: Use tools to find real-world sample data or verify API schemas if available. Do not guess data structures.
     `;
 
     const structureHTML = await callAI(htmlAgentPrompt, 'HTML', jobId, 'HTML-AGENT');
-    streamThought(jobId, 'HTML Agent', 'Structured semantic layout with premium bento-grid patterns.');
+    streamThought(jobId, 'HTML Agent', 'Structured semantic layout with premium fluid bento-grid patterns.');
     
     await wait(800);
     const dataArchText = await callAI(mockDataPrompt, 'JSON', jobId, 'DATA-AGENT');
@@ -1362,18 +1378,18 @@ RULES:
 `;
 
     let cssAgentPrompt = `
-You are "CSS Agent" - a Master of High-Fidelity Professional Web Design.
-Build the Design System for: "${blueprint.projectName}"
+You are the "Antigravity-Class Design Engineer". 
+Build the Luxury Design System for: "${blueprint.projectName}"
 UX MOOD BOARD: ${JSON.stringify(uxVibe)}
-
 PRD THEME: ${JSON.stringify(prd.designGuide)}
 CONTEXT: ${compactedHTML}
 
 RULES:
-1. DEPTH: Use the AON V2 tokens (--glass, --shadow-premium, --accent-glow, --surface-noise).
-2. LAYOUT: Asymmetric Bento Grid. Use varying heights and spans for a professional, non-repetitive look.
-3. EDGE LIGHTING: Apply a subtle top-border highlight (rgba(255,255,255,0.1)) to all .aon-card elements.
-4. TEXTURES: Ensure the .aon-card::before noise overlay is applied for premium tactile feel.
+1. SPATIAL HYGIENE: EVERY container MUST have enough breathing room. Use 'gap: 24px' in the grid.
+2. ELITE GRID: Strictly use '.aon-grid-elite' for the main wrapper. Never allow a column to be smaller than 320px wide (use min-width: 320px logic).
+3. DEPTH LAYERING: Use '--glass' and '--shadow-premium' for a deep, high-fidelity SaaS look.
+4. TYPOGRAPHY: Use '--header-font' for all headings. Ensure a 1.625 line-height for body text using '--body-font'. High-contrast only.
+5. NO SQUISH: If you use flexbox, you MUST use 'flex-wrap: wrap'. Forbid any layout that squishes text into narrow vertical slivers.
 `;
 
     let coreCSS = await callAI(cssAgentPrompt, 'CSS', jobId, 'CSS-AGENT');
@@ -1555,14 +1571,17 @@ RULES:
         
         if (snapshotBase64) {
              const visionPrompt = `
-You are the Elite AON AI Vision Critic.
-Look at this screenshot of the newly generated web app.
-UX VIBE: ${uxVibe.visualVibe}
-GOAL: ${goal}
+You are the "Antigravity Visual Auditor". 
+Review the Virtual Snapshot for "${blueprint.projectName}".
 
-Task: Identify major visual flaws (overlapping text, terrible contrast, broken grids, unprofessional spacing).
-If the UI looks perfect, beautiful, and premium, reply exactly with: "PERFECT".
-If it is flawed, list EXACTLY what CSS elements are chaotic and need fixing. Do not write full code, just instruct the CSS agent.
+AUDIT CRITERIA:
+1. THE SQUISH: Are any cards narrow or vertically squished? (REJECT if true).
+2. THE OVERFLOW: Is any text cutting off or overlapping? (REJECT if true).
+3. THE VIBE: Does it look like a $1M SaaS product? (REJECT if it looks like a basic 2010 website).
+4. CONTRAST: Is everything readable?
+
+If the UI is perfect and elite, reply EXACTLY with: "PERFECT".
+Otherwise, provide RUTHLESS CSS instructions to fix the spatial failure.
 `;
              const critique = await callVisionAI(visionPrompt, snapshotBase64, jobId);
              if (critique === 'PERFECT' || critique.includes('PERFECT')) {
