@@ -364,6 +364,8 @@ app.use((err, req, res, next) => {
 // Auth Middleware — password system removed, open access
 const authMiddleware = (req, res, next) => next();
 
+app.use('/builds', express.static(path.join(DATA_BASE, 'builds')));
+app.use('/system_agents', express.static(path.join(DATA_BASE, 'system_agents')));
 app.use(express.static(__dirname));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
