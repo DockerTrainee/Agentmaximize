@@ -939,6 +939,8 @@ h1, h2, h3, h4 {
 #help-trigger {
     cursor: pointer;
     transition: all 0.2s;
+    position: relative;
+    z-index: 10000;
 }
 
 #help-trigger:hover {
@@ -1081,7 +1083,7 @@ h1, h2, h3, h4 {
     display: none;
     position: fixed;
     inset: 0;
-    z-index: 9999;
+    z-index: 10002;
     background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(8px);
     align-items: center;
