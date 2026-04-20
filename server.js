@@ -674,6 +674,37 @@ async function callVisionAI(prompt, base64Image, jobId) {
     return result.response.text().trim();
 }
 
+/**
+ * The Optimizer Pass - Recursive refinement of low-score agents.
+ */
+async function runOptimizerPass(jobId, qaResult, html, css, js) {
+    const prompt = `
+You are the "Aon AI optimizer". You have been tasked with fixing logical gaps or visual flaws in an application.
+QA SCORE: ${qaResult.score}/100
+CRITICAL ISSUES: ${qaResult.criticalIssues.join(', ')}
+
+CURRENT CODE:
+HTML: ${html.substring(0, 1000)}...
+CSS: ${css.substring(0, 1000)}...
+JS: ${js.substring(0, 1000)}...
+
+Respond with a JSON object containing the improved code:
+{
+  "html": "...",
+  "css": "...",
+  "js": "..."
+}
+Respond ONLY with JSON.
+`;
+    try {
+        const resultText = await callAI(prompt, 'JSON', jobId, 'OPTIMIZER');
+        return JSON.parse(resultText);
+    } catch (e) {
+        console.error('[OPTIMIZER ERROR]', e.message);
+        return { html, css, js };
+    }
+}
+
 async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
     const tag = agentName ? `[${agentName}]` : '[AI]';
     const geminiTools = mcp.getGeminiTools();
@@ -1414,7 +1445,7 @@ RULES:
     streamThought(jobId, 'JS Agent', 'Neural logic hydrated. Event listeners and state management active.');
     await wait(800);
 
-    const buildAppTemplate = (cssContent, jsContent) => `<!DOCTYPE html>
+    const buildAppTemplate = (cssContent, jsContent, htmlContent) => `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1428,15 +1459,15 @@ RULES:
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
         :root {
-            --primary: ${blueprint.designSystem.accentColor};
-            --secondary: ${blueprint.designSystem.complementary};
+            --primary: ${blueprint.designSystem?.accentColor || '#6366F1'};
+            --secondary: ${blueprint.designSystem?.complementary || '#a855f7'};
             --bg: #050507;
             --surface: rgba(15,15,20,0.85);
             --border: rgba(255,255,255,0.08);
             --text: #f0f0f5;
             --text-muted: rgba(255,255,255,0.5);
             --error: #ef4444;
-            --radius: ${blueprint.designSystem.cornerRadius};
+            --radius: ${blueprint.designSystem?.cornerRadius || '16px'};
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -1476,7 +1507,9 @@ RULES:
             font-size: 11px; font-family: 'Outfit', sans-serif;
             opacity: 0.25; pointer-events: none; letter-spacing: 0.1em;
         }
-        ${cssContent}
+        
+        /* {{AON_CSS}} */
+        ${cssContent || ''}
     </style>
 </head>
 <body>
@@ -1489,7 +1522,9 @@ RULES:
         </div>
     </div>
 
-    ${cleanHTML}
+    <!-- {{AON_HTML}} -->
+    ${htmlContent || ''}
+
     <div class="aon-watermark">⚡ AON AI FACTORY v6.0 Alpha</div>
     <script>
     (async () => {
@@ -1550,7 +1585,8 @@ RULES:
         };
 
         try {
-            ${jsContent}
+            /* {{AON_JS}} */
+            ${jsContent || ''}
             if (typeof lucide !== 'undefined') lucide.createIcons();
         } catch(e) {
             handleCrash(e);
@@ -1560,7 +1596,7 @@ RULES:
 </body>
 </html>`;
 
-    let assembledApp = buildAppTemplate(coreCSS, coreJS);
+    let assembledApp = buildAppTemplate(coreCSS, coreJS, cleanHTML);
 
     // ── PHASE 3.5: VISION CRITIC (Visual Evaluation) ─────────────────────────
     let visionAttempts = 0;
@@ -1591,7 +1627,7 @@ Otherwise, provide RUTHLESS CSS instructions to fix the spatial failure.
                  streamThought(jobId, 'System QA', `❌ Visual Flaw Detected: Critic requested changes. Retrying CSS...`);
                  cssAgentPrompt += `\n\nCRITICAL UI FEEDBACK FROM VISION CRITIC:\nThe screenshot looks flawed: ${critique}\nRewrite the CSS carefully to fix these layout and color issues.`;
                  coreCSS = await callAI(cssAgentPrompt, 'CSS', jobId, 'CSS-AGENT');
-                 assembledApp = buildAppTemplate(coreCSS, coreJS);
+                 assembledApp = buildAppTemplate(coreCSS, coreJS, cleanHTML);
              }
         } else {
              streamThought(jobId, 'Vision Critic', 'Snapshot failed or skipped, bypassing visual verification.');
@@ -1633,13 +1669,17 @@ Respond with ONLY valid JSON:
         streamThought(jobId, 'Optimizer', `Polish required. Resolving ${qaResult.criticalIssues.length} logical gaps.`);
         const optimized = await runOptimizerPass(jobId, qaResult, cleanHTML, coreCSS, coreJS);
         
-        // Re-assemble
-        finalApp = assembledApp.replace(cleanHTML, optimized.html)
-                               .replace(coreCSS, optimized.css)
-                               .replace(coreJS, optimized.js);
+        // Re-assemble with high-fidelity polish
+        finalApp = buildAppTemplate(optimized.css, optimized.js, optimized.html);
         
         streamLog(jobId, '✨ REFINEMENT COMPLETE: Premium Polish applied.', 'success');
         streamThought(jobId, 'Optimizer', 'Refinement complete. System reached stability threshold.');
+    }
+
+    // FINAL SANITY CHECK
+    if (!finalApp || finalApp.length < 100 || finalApp.includes('undefined')) {
+        streamLog(jobId, '⚠️ SYSTEM ERROR: Corrupted build detected. Falling back to non-optimized version.', 'error');
+        finalApp = assembledApp;
     }
 
     // UPDATE RECORD
@@ -1873,7 +1913,7 @@ app.post('/vision-analyze', async (req, res) => {
 
     const prompt = 'Identify the primary object in this image. Reply with ONLY its name (e.g., "Server Rack"). Keep it brief.';
     try {
-        const objectName = await callAIVision(prompt, imageBase64);
+        const objectName = await callVisionAI(prompt, imageBase64);
         res.json({ objectName: objectName.replace(/[.\s]+$/g, '') });
     } catch (e) {
         console.warn(`[VISION FALLBACK] Using simulated detection: ${e.message}`);
@@ -1921,7 +1961,7 @@ STUDY NOTES:
 If the image is blurry or text is not clearly visible, describe what you can see and provide whatever partial extraction is possible.`;
 
     try {
-        const notes = await callAIVision(prompt, imageBase64);
+        const notes = await callVisionAI(prompt, imageBase64);
         res.json({ notes });
     } catch (e) {
         console.error('[BOOK EXTRACT ERROR]:', e.message);
