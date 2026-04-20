@@ -491,6 +491,22 @@
             }
         };
 
+        const updateSubscriptionUI = (data) => {
+            if (data.isExpired && data.status !== 'pro') {
+                elements.paywall.style.display = 'flex';
+                elements.subTag.innerText = "Trial Expired";
+                elements.subTag.className = "sub-badge sub-expired";
+                elements.transformBtn.disabled = true;
+                elements.transformBtn.innerText = "Subscription Required";
+            } else if (data.status === 'trial') {
+                elements.subTag.innerText = `Trial: ${data.daysLeft} days left`;
+                elements.subTag.className = "sub-badge sub-trial";
+            } else if (data.status === 'pro' || data.status === 'unlimited') {
+                elements.subTag.innerText = "Prime Plan";
+                elements.subTag.className = "sub-badge sub-pro";
+            }
+        };
+
         const checkSubscription = async () => {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/subscription/status?clientId=${state.clientId}`);
@@ -498,29 +514,21 @@
                 state.subscription = data;
 
                 if (data.status === 'none' && data.trialAvailable) {
-                    // Automatically Start Trial
-                    await fetch(`${BACKEND_URL}/api/subscription/start-trial`, {
+                    console.log("[SUBS] Starting fresh trial...");
+                    const trialRes = await fetch(`${BACKEND_URL}/api/subscription/start-trial`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ clientId: state.clientId })
                     });
-                    location.reload();
+                    const trialData = await trialRes.json();
+                    if (trialData.success) {
+                        state.subscription = { status: 'trial', isExpired: false, daysLeft: 7 };
+                        updateSubscriptionUI(state.subscription);
+                    }
                     return;
                 }
 
-                if (data.isExpired && data.status !== 'pro') {
-                    elements.paywall.style.display = 'flex';
-                    elements.subTag.innerText = "Trial Expired";
-                    elements.subTag.className = "sub-badge sub-expired";
-                    elements.transformBtn.disabled = true;
-                    elements.transformBtn.innerText = "Subscription Required";
-                } else if (data.status === 'trial') {
-                    elements.subTag.innerText = `Trial: ${data.daysLeft} days left`;
-                    elements.subTag.className = "sub-badge sub-trial";
-                } else if (data.status === 'pro' || data.status === 'unlimited') {
-                    elements.subTag.innerText = "Prime Plan";
-                    elements.subTag.className = "sub-badge sub-pro";
-                }
+                updateSubscriptionUI(data);
             } catch (e) {
                 console.error('Sub check fail:', e);
             }
