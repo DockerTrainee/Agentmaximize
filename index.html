@@ -449,6 +449,9 @@
             <h2>Trial Period Completed</h2>
             <p>Your 7-day elite optimization trial has concluded. Upgrade to Prime for unlimited high-fidelity prompt synthesis.</p>
             <button id="upgrade-btn" class="premium-btn">Upgrade to Prime Monthly</button>
+            <div style="margin-top: 1rem;">
+                <button id="reset-trial-btn" style="background: transparent; border: 1px dashed rgba(255,255,255,0.2); color: var(--text-muted); font-size: 10px; padding: 4px 8px; cursor: pointer;">[DEV] Emergency Trial Reset</button>
+            </div>
             <div style="margin-top: 1.5rem;">
                 <a href="#" id="restore-btn" style="color: var(--text-muted); font-size: 0.9rem; text-decoration: none;">Restore Purchases</a>
             </div>
@@ -597,7 +600,12 @@
 
         elements.upgradeBtn.onclick = async () => {
             alert("Redirecting to Google Play Store...");
-            // Integration with RevenueCat Purchases would go here
+        };
+
+        document.getElementById('reset-trial-btn').onclick = () => {
+            localStorage.removeItem('aon_client_id');
+            alert("Trial ID Reset. Refreshing...");
+            location.reload();
         };
 
         renderHistory();
