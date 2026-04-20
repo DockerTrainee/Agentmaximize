@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<!-- AON AI — NEXUS PRIME v5.0 | Architected from Claude Code, Anthropic, OpenHands, CrewAI patterns -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <title>Aon AI | NEXUS PRIME — AI Automating AI</title>
+    <meta name="description" content="Aon AI Nexus Prime — The self-directed multi-agent factory that synthesizes intelligent applications from a single goal.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Inter:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="capacitor.js"></script>
+    <script src="script.js?v=1.1"></script>
+    <script src="billing.js"></script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css?v=1.1">
+    <script>
+        // SILENCE EXTENSION ERRORS (e.g. MetaMask/Phantom/AdBlock)
+        window.addEventListener('error', function(e) {
+            if (e.filename && (e.filename.includes('extension') || e.filename.includes('inpage.js') || e.filename.includes('chrome-extension'))) {
+                e.stopImmediatePropagation();
+            }
+        }, true);
+        window.addEventListener('unhandledrejection', function(e) {
+            if (e.reason && e.reason.stack && (e.reason.stack.includes('extension') || e.reason.stack.includes('inpage.js'))) {
+                e.preventDefault();
+            }
+        });
+    </script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#03030a">
+</head>
+<body>
+    <!-- Animated Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <div id="app" class="nexus-layout">
+        <!-- ══════════════════ SIDEBAR ══════════════════ -->
+        <aside class="nexus-sidebar glass-heavy">
+            <div class="sidebar-header">
+                <div class="logo-cluster">
+                    <div class="logo-orb" id="logo-orb"></div>
+                    <div>
+                        <h1 class="logo-text">AON <span>AI</span></h1>
+                        <p class="logo-sub">NEXUS PRIME v5.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" id="nav-nexus" data-view="nexus">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>COMMAND HUB</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-agents" data-view="agents">
+                    <i data-lucide="bot"></i>
+                    <span>AGENT LIBRARY</span>
+                    <span class="nav-badge" id="agent-count-badge">0</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-pipeline" data-view="pipeline">
+                    <i data-lucide="git-branch"></i>
+                    <span>PIPELINE</span>
+                </a>
+                <a href="#" class="nav-item" id="nav-analytics" data-view="analytics">
+                    <i data-lucide="activity"></i>
+                    <span>DIAGNOSTICS</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <div class="status-row">
+                        <span class="status-dot pulsing"></span>
+                        <span class="status-label">NEXUS: ONLINE</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-dot socket-dot"></span>
+                        <span class="status-label" id="socket-status">WS: CONNECTING...</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-dot" style="background: #9d50ff;"></span>
+                        <span class="status-label">GEMINI FLASH ACTIVE</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ══════════════════ MAIN CONTENT ══════════════════ -->
+        <main class="nexus-main">
+            <!-- Header / Mission Input -->
+            <header class="nexus-header">
+                <div class="mission-input-group glass">
+                    <div class="mission-icon"><i data-lucide="target"></i></div>
+                    <div class="mission-input-wrap">
+                        <input type="text" id="goal-input"
+                            placeholder="DEFINE YOUR MISSION — e.g. 'Build a real-time crypto trading dashboard'"
+                            autocomplete="off" spellcheck="false">
+                        <div class="mission-type-badge hidden" id="mission-type-badge">
+                            <span id="mission-type-text">DASHBOARD</span>
+                        </div>
+                    </div>
+                    <button id="initialize-btn" class="launch-btn">
+                        <i data-lucide="zap"></i>
+                        <span>DEPLOY</span>
+                    </button>
+                </div>
+                <div class="header-actions">
+                    <div class="action-chip glass" id="help-trigger" title="Platform Manual">
+                        <i data-lucide="help-circle"></i>
+                        <span>HELP</span>
+                    </div>
+                    <div class="action-chip glass" id="model-indicator">
+                        <i data-lucide="cpu"></i>
+                        <span>MULTI-AGENT</span>
+                    </div>
+                    <div class="user-avatar" id="user-avatar-btn">R</div>
+                </div>
+            </header>
+
+            <!-- ── VIEW: COMMAND HUB ── -->
+            <section class="view-content active" id="view-nexus">
+                <div class="nexus-grid">
+
+                    <!-- Central Orb / Status Card -->
+                    <div class="nexus-card orb-card glass span-2">
+                        <div class="card-header">
+                            <h2>NEXUS CORE</h2>
+                            <div class="card-badges">
+                                <span class="badge badge-stable">STABLE</span>
+                                <span class="badge badge-version">v5.0</span>
+                            </div>
+                        </div>
+                        <div class="orb-stage">
+                            <canvas id="orb-canvas"></canvas>
+                            <div class="orb-info">
+                                <p id="current-task" class="orb-task-text">AWAITING MISSION...</p>
+                                <div class="progress-wrap">
+                                    <div class="progress-track">
+                                        <div class="progress-fill" id="nexus-progress"></div>
+                                    </div>
+                                    <span class="progress-label" id="progress-label">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terminal Log -->
+                    <div class="nexus-card terminal-card glass">
+                        <div class="card-header">
+                            <h2>AUTONOMY ENGINE</h2>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <button id="flag-ai-content" title="Report Offensive AI Content" style="background: none; border: none; color: var(--text-dim); cursor: pointer; transition: color 0.2s;"><i data-lucide="flag" style="width: 14px; height: 14px;"></i></button>
+                                <div class="terminal-dots">
+                                    <span class="t-dot red"></span>
+                                    <span class="t-dot yellow"></span>
+                                    <span class="t-dot green"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="terminal-body" id="log-terminal">
+                            <div class="log-line system">[NEXUS] REFLEXIVE ENGINE ONLINE. v6.0</div>
+                            <div class="log-line system">[NEXUS] MULTI-AGENT PIPELINE READY.</div>
+                            <div class="log-line user">[AON] Awaiting mission input...</div>
+                        </div>
+                    </div>
+
+                    <!-- 🌀 NEW: THOUGHT TIMELINE (Elite 6.0 Feature) -->
+                    <div class="nexus-card thought-card glass">
+                        <div class="card-header">
+                            <h2>NEURAL REASONING</h2>
+                            <div class="confidence-meter">
+                                <span class="conf-label">STABILITY</span>
+                                <div class="conf-track"><div id="global-confidence" class="conf-fill" style="width: 0%"></div></div>
+                            </div>
+                        </div>
+                        <div class="thought-timeline" id="thought-timeline">
+                            <div class="empty-state">
+                                <i data-lucide="brain-circuit"></i>
+                                <p>AWAITING COGNITION...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Squad / Modules Card -->
+                    <div class="nexus-card squad-card glass">
+                        <div class="card-header">
+                            <h2>DEPLOYED SQUAD</h2>
+                        </div>
+                        <div class="squad-list" id="squad-list">
+                            <div class="empty-state">
+                                <i data-lucide="radio"></i>
+                                <p>SQUAD OFFLINE</p>
+                                <small>Deploy a mission to activate agents</small>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ── VIEW: AGENT LIBRARY ── -->
+            <section class="view-content hidden" id="view-agents">
+                <div class="section-header">
+                    <h2>AGENT LIBRARY</h2>
+                    <p>All synthesized applications — click to launch or manage.</p>
+                </div>
+                <div class="agents-grid" id="agents-grid">
+                    <div class="empty-state full-width">
+                        <i data-lucide="archive"></i>
+                        <p>NO AGENTS DEPLOYED YET</p>
+                        <small>Run a mission to create your first agent.</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── VIEW: PIPELINE ── -->
+            <section class="view-content hidden" id="view-pipeline">
+                <div class="section-header">
+                    <h2>MULTI-AGENT PIPELINE</h2>
+                    <p>Real-time view of the Orchestrator-Workers synthesis topology.</p>
+                </div>
+                <div class="pipeline-view">
+                    <div class="pipeline-graph" id="pipeline-graph">
+                        <!-- PHASE 0: Router -->
+                        <div class="pipeline-phase">
+                            <div class="pipeline-node " id="node-router">
+                                <div class="node-icon"><i data-lucide="git-branch"></i></div>
+                                <div class="node-label">MISSION ROUTER</div>
+                                <div class="node-sub">Classifies goal type</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow"><i data-lucide="arrow-right"></i></div>
+
+                        <!-- PHASE 1: Orchestrator -->
+                        <div class="pipeline-phase">
+                            <div class="pipeline-node" id="node-orchestrator">
+                                <div class="node-icon"><i data-lucide="crown"></i></div>
+                                <div class="node-label">ORCHESTRATOR</div>
+                                <div class="node-sub">Blueprints the app</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow"><i data-lucide="arrow-right"></i></div>
+
+                        <!-- PHASE 2: Parallel Workers -->
+                        <div class="pipeline-phase parallel">
+                            <div class="pipeline-node" id="node-html">
+                                <div class="node-icon"><i data-lucide="code-2"></i></div>
+                                <div class="node-label">HTML AGENT</div>
+                                <div class="node-sub">Semantic structure</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                            <div class="pipeline-node" id="node-data">
+                                <div class="node-icon"><i data-lucide="database"></i></div>
+                                <div class="node-label">DATA AGENT</div>
+                                <div class="node-sub">Live data layer</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow"><i data-lucide="arrow-right"></i></div>
+
+                        <!-- PHASE 3: Parallel Workers -->
+                        <div class="pipeline-phase parallel">
+                            <div class="pipeline-node" id="node-js">
+                                <div class="node-icon"><i data-lucide="braces"></i></div>
+                                <div class="node-label">JS AGENT</div>
+                                <div class="node-sub">Logic & interactivity</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                            <div class="pipeline-node" id="node-css">
+                                <div class="node-icon"><i data-lucide="palette"></i></div>
+                                <div class="node-label">CSS AGENT</div>
+                                <div class="node-sub">Design system</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow"><i data-lucide="arrow-right"></i></div>
+
+                        <!-- PHASE 4: QA Critic -->
+                        <div class="pipeline-phase">
+                            <div class="pipeline-node" id="node-qa">
+                                <div class="node-icon"><i data-lucide="shield-check"></i></div>
+                                <div class="node-label">QA CRITIC</div>
+                                <div class="node-sub">Evaluator-optimizer</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-arrow"><i data-lucide="arrow-right"></i></div>
+
+                        <!-- PHASE 5: Output -->
+                        <div class="pipeline-phase">
+                            <div class="pipeline-node output-node" id="node-output">
+                                <div class="node-icon"><i data-lucide="rocket"></i></div>
+                                <div class="node-label">LIVE AGENT</div>
+                                <div class="node-sub">Deployed & running</div>
+                                <div class="node-status idle">IDLE</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pipeline-log glass" id="pipeline-log">
+                        <div class="log-line system">[NEXUS] Pipeline visualization ready.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── VIEW: DIAGNOSTICS ── -->
+            <section class="view-content hidden" id="view-analytics">
+                <div class="section-header">
+                    <h2>SYSTEM DIAGNOSTICS</h2>
+                </div>
+                <div class="diagnostics-grid">
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">REFLEXIVE LOOP</div>
+                        <div class="diag-value cyan">ACTIVE</div>
+                        <div class="diag-sub">Orchestrator → Workers → QA Critic</div>
+                    </div>
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">PARALLELIZATION</div>
+                        <div class="diag-value purple">ENABLED</div>
+                        <div class="diag-sub">HTML+Data | JS+CSS simultaneous</div>
+                    </div>
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">GOAL ROUTER</div>
+                        <div class="diag-value cyan">ACTIVE</div>
+                        <div class="diag-sub">6 mission types classified</div>
+                    </div>
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">WEBSOCKET</div>
+                        <div class="diag-value" id="diag-ws">CONNECTING</div>
+                        <div class="diag-sub">Real-time telemetry stream</div>
+                    </div>
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">AGENT REGISTRY</div>
+                        <div class="diag-value purple" id="diag-agents">0 AGENTS</div>
+                        <div class="diag-sub">Persistent local storage</div>
+                    </div>
+                    <div class="nexus-card glass diag-card">
+                        <div class="diag-label">AI BACKBONE</div>
+                        <div class="diag-value cyan">GEMINI FLASH</div>
+                        <div class="diag-sub">4-model cascade fallback</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ══════════════════ MISSION SUCCESS OVERLAY ══════════════════ -->
+    <div id="nexus-overlay" class="nexus-overlay hidden">
+        <div class="overlay-panel glass-heavy">
+            <div class="overlay-header">
+                <div>
+                    <h2 id="overlay-title">MISSION COMPLETE</h2>
+                    <p id="overlay-subtitle" class="overlay-sub"></p>
+                </div>
+                <button class="close-btn" id="close-overlay"><i data-lucide="x"></i></button>
+            </div>
+            <div class="overlay-body">
+                <div class="overlay-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">TYPE</div>
+                        <div class="stat-value" id="overlay-type">-</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">QA SCORE</div>
+                        <div class="stat-value" id="overlay-qa">-</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">COMPLEXITY</div>
+                        <div class="stat-value" id="overlay-complexity">-</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">AGENTS USED</div>
+                        <div class="stat-value" id="overlay-agents">5</div>
+                    </div>
+                </div>
+                <div class="overlay-modules" id="overlay-modules"></div>
+                <div class="overlay-actions">
+                    <a id="overlay-launch-btn" href="#" target="_blank" class="action-btn primary-btn">
+                        <i data-lucide="rocket"></i> LAUNCH APPLICATION
+                    </a>
+                    <button class="action-btn secondary-btn" id="overlay-close-btn">
+                        <i data-lucide="x-circle"></i> CLOSE
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════ GLOBAL SYSTEM CRASH OVERLAY ══════════════════ -->
+    <div id="system-crash-overlay" class="nexus-overlay hidden" style="background: rgba(15, 0, 0, 0.95);">
+        <div class="overlay-panel glass-heavy" style="border-color: #ff3333; box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);">
+            <div class="overlay-header">
+                <div>
+                    <h2 style="color: #ff3333; font-weight: 900;"><i data-lucide="alert-triangle"></i> CENTRAL NEXUS INSTABILITY</h2>
+                    <p class="overlay-sub">A critical runtime failure has been detected in the Central Orchestrator.</p>
+                </div>
+            </div>
+            <div class="overlay-body">
+                <div id="system-error-details" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; color: #ff9d9d; margin-bottom: 20px; max-height: 200px; overflow: auto; border: 1px solid rgba(255,0,0,0.2);"></div>
+                
+
+                <div class="overlay-actions">
+                    <button id="repair-system-btn" class="launch-btn" style="background: linear-gradient(135deg, #ff4444, #9d50ff); width: 100%;">
+                        <i data-lucide="wrench"></i> INITIATE EMERGENCY REPAIR
+                    </button>
+                    <button class="action-btn secondary-btn" id="hide-crash-overlay" style="margin-top: 10px; width: 100%;">IGNORE (Risky)</button>
+                </div>
+                <p style="text-align: center; font-size: 0.65rem; color: #ff6666; margin-top: 1rem; opacity: 0.7;">WARNING: This action will rewrite core system files using Neural Synthesis.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════ PLATFORM MANUAL MODAL ══════════════════ -->
+    <div id="manual-modal" class="nexus-modal">
+        <div class="modal-content glass-heavy mission-manual animate__animated animate__zoomIn" style="max-width:800px; max-height:88vh; overflow:hidden; display:flex; flex-direction:column; border-color: rgba(0, 242, 255, 0.3);">
+
+            <!-- Header -->
+            <div class="modal-header" style="flex-shrink:0; background: linear-gradient(180deg, rgba(0, 242, 255, 0.05) 0%, transparent 100%); border-bottom: none; padding-bottom: 0.5rem;">
+                <div class="header-main" style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="background: rgba(0,242,255,0.1); padding: 10px; border-radius: 10px; border: 1px solid rgba(0,242,255,0.2);">
+                        <i data-lucide="cpu" style="color: var(--accent-cyan); width: 28px; height: 28px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-weight: 800; letter-spacing: 1px; font-size: 1.4rem;">NEXUS COMMAND CENTER</h2>
+                        <p style="color: var(--accent-purple); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px;">System Protocols & Telemetry</p>
+                    </div>
+                </div>
+                <button class="modal-close" id="close-manual" style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;"><i data-lucide="x"></i></button>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div style="display:flex; gap:1rem; padding:0 2rem; border-bottom:1px solid rgba(0, 242, 255, 0.1); flex-shrink:0; overflow-x:auto;">
+                <button class="help-tab active" data-tab="start" style="display: flex; gap: 0.5rem; align-items: center; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; font-size: 0.75rem;"><i data-lucide="terminal" style="width: 14px;"></i> CORE ENGINE</button>
+                <button class="help-tab" data-tab="agents" style="display: flex; gap: 0.5rem; align-items: center; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; font-size: 0.75rem;"><i data-lucide="shield-check" style="width: 14px;"></i> AGENT PROTOCOLS</button>
+                <button class="help-tab" data-tab="support" style="display: flex; gap: 0.5rem; align-items: center; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; font-size: 0.75rem;; color: var(--accent-cyan);"><i data-lucide="headset" style="width: 14px;"></i> OPERATIONAL SUPPORT</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="manual-body" style="overflow-y:auto; flex:1; background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wMSkiLz48L3N2Zz4=');">
+
+                <!-- TAB: CORE ENGINE -->
+                <div class="help-tab-content active" id="tab-start">
+                    <div style="padding:2rem;">
+                        <p style="color:var(--text-dim); margin-bottom:2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; opacity: 0.8;">// INITIALIZING SYNTHESIS SEQUENCE...</p>
+                        <div style="display:flex; flex-direction:column; gap:1.2rem;">
+                            
+                            <div class="manual-step" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); padding: 1.2rem;">
+                                <div class="step-number" style="background: rgba(0,242,255,0.05); color: var(--accent-cyan); border: 1px solid rgba(0,242,255,0.2);"><i data-lucide="crosshair" style="width: 16px;"></i></div>
+                                <div>
+                                    <h4 style="color: #fff; letter-spacing: 0.5px; font-size: 1rem;">Declare Mission Vector</h4>
+                                    <p style="margin-top: 0.5rem; line-height: 1.5; font-size: 0.9rem;">Input explicit parameters into the prompt. Precision yields higher QA scores. <br><em style="color: var(--accent-cyan);">"Deploy a realtime finance tracker with integrated analytics charts."</em></p>
+                                </div>
+                            </div>
+
+                            <div class="manual-step" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); padding: 1.2rem;">
+                                <div class="step-number" style="background: rgba(157,80,255,0.05); color: var(--accent-purple); border: 1px solid rgba(157,80,255,0.2);"><i data-lucide="zap" style="width: 16px;"></i></div>
+                                <div>
+                                    <h4 style="color: #fff; letter-spacing: 0.5px; font-size: 1rem;">Trigger Multi-Agent Deployment</h4>
+                                    <p style="margin-top: 0.5rem; line-height: 1.5; font-size: 0.9rem;">Execute the 'DEPLOY' command. The Orchestrator establishes a neural link with 5 parallel workers to architect the infrastructure.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="manual-step" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); padding: 1.2rem;">
+                                <div class="step-number" style="background: rgba(0,255,136,0.05); color: #00ff88; border: 1px solid rgba(0,255,136,0.2);"><i data-lucide="rocket" style="width: 16px;"></i></div>
+                                <div>
+                                    <h4 style="color: #fff; letter-spacing: 0.5px; font-size: 1rem;">Initialize Live Instance</h4>
+                                    <p style="margin-top: 0.5rem; line-height: 1.5; font-size: 0.9rem;">Upon QA Critic verification, the build propagates to the Local Registry. Access via 'AGENT LIBRARY' to launch the live instance.</p>
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <div class="manual-tip-box" style="border-radius: 8px; background: rgba(0,242,255,0.02); border: 1px solid rgba(0,242,255,0.1); border-left: 2px solid var(--accent-cyan); padding: 1rem; margin-top: 1.5rem;">
+                            <i data-lucide="terminal" style="color: var(--accent-cyan);"></i>
+                            <div>
+                                <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent-cyan); opacity: 0.8; letter-spacing: 0.5px;">SYSTEM.LOG // Optimizing commands requires specific module declarations and preferred UI tokens (e.g. 'glassmorphism').</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: AGENT PROTOCOLS -->
+                <div class="help-tab-content" id="tab-agents">
+                    <div style="padding:2rem;">
+                        <p style="color:var(--text-dim); margin-bottom:2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; opacity: 0.8;">// AVAILABLE SYNTHESIS ARCHITECTURES</p>
+                        <div class="manual-grid" style="grid-template-columns: 1fr; gap: 1rem;">
+                            
+                            <div class="manual-card" style="display: flex; gap: 1.5rem; align-items: flex-start; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); padding: 1.5rem; transition: transform 0.2s; cursor: crosshair;">
+                                <div style="background: rgba(0,242,255,0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(0,242,255,0.1);"><i data-lucide="layout-dashboard" style="color: var(--accent-cyan); width: 28px; height: 28px;"></i></div>
+                                <div style="flex: 1;">
+                                    <h3 style="margin: 0; font-size: 1rem; letter-spacing: 1px; color: #fff;">DASHBOARD PROTOCOL</h3>
+                                    <p style="margin: 8px 0 0; font-size: 0.9rem; color: var(--text-dim); line-height: 1.5;">Analytics, KPI telemetry, and complex data visualization interfaces. The Data Agent prioritizes Chart.js logic.</p>
+                                </div>
+                            </div>
+
+                            <div class="manual-card" style="display: flex; gap: 1.5rem; align-items: flex-start; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); padding: 1.5rem; transition: transform 0.2s; cursor: crosshair;">
+                                <div style="background: rgba(157,80,255,0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(157,80,255,0.1);"><i data-lucide="bot" style="color: var(--accent-purple); width: 28px; height: 28px;"></i></div>
+                                <div style="flex: 1;">
+                                    <h3 style="margin: 0; font-size: 1rem; letter-spacing: 1px; color: #fff;">CONVERSATIONAL AGENT</h3>
+                                    <p style="margin: 8px 0 0; font-size: 0.9rem; color: var(--text-dim); line-height: 1.5;">Chat interfaces, support heuristics, and interactive companion applications. Built using high-speed socket emulation.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="manual-card" style="display: flex; gap: 1.5rem; align-items: flex-start; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); padding: 1.5rem; transition: transform 0.2s; cursor: crosshair;">
+                                <div style="background: rgba(0,255,136,0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(0,255,136,0.1);"><i data-lucide="binary" style="color: #00ff88; width: 28px; height: 28px;"></i></div>
+                                <div style="flex: 1;">
+                                    <h3 style="margin: 0; font-size: 1rem; letter-spacing: 1px; color: #fff;">UTILITY MATRIX</h3>
+                                    <p style="margin: 8px 0 0; font-size: 0.9rem; color: var(--text-dim); line-height: 1.5;">Calculators, format converters, and specialized micro-tools. Pure Vanilla JS emphasis for zero-latency execution.</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: OPERATIONAL SUPPORT -->
+                <div class="help-tab-content" id="tab-support">
+                    <div style="padding:4rem 2rem; text-align: center; border-radius: 8px;">
+                        
+                        <div style="position: relative; display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0, 242, 255, 0.2); border-radius: 50%; margin-bottom: 2rem; box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);">
+                            <i data-lucide="shield-alert" style="color: var(--accent-cyan); width: 36px; height: 36px;"></i>
+                            <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px dashed rgba(0, 242, 255, 0.3); animation: spin 10s linear infinite;"></div>
+                        </div>
+
+                        <h3 style="margin: 0 0 1rem; letter-spacing: 2px; font-weight: 800; font-size: 1.4rem; color: #fff;">AON ADMINISTRATION</h3>
+                        <p style="color: var(--text-dim); font-size: 0.95rem; line-height: 1.6; margin-bottom: 2.5rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+                            For direct operational queries, escalated algorithmic anomalies, or enterprise integration protocols, establish a secure link with the Lead Administrator.
+                        </p>
+                        
+                        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(0,242,255,0.15); border-radius: 16px; padding: 2rem; max-width: 500px; margin: 0 auto; backdrop-filter: blur(10px);">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                                <div style="width: 8px; height: 8px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 10px #00ff88;"></div>
+                                <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #00ff88; margin: 0; text-transform: uppercase;">Connection Open</p>
+                            </div>
+                            
+                            <a href="mailto:Raj.bans@ymail.com" style="display: flex; align-items: center; justify-content: center; gap: 1rem; background: linear-gradient(135deg, rgba(0,242,255,0.1), rgba(157,80,255,0.1)); border: 1px solid var(--accent-cyan); color: #fff; text-decoration: none; padding: 1.2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease; box-shadow: 0 0 25px rgba(0, 242, 255, 0.15); letter-spacing: 1px;">
+                                <i data-lucide="mail" style="color: var(--accent-cyan);"></i> Raj.bans@ymail.com
+                            </a>
+                            <p style="margin: 1.5rem 0 0; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-dim); opacity: 0.7;">SLA: ~24 Operational Hours | End-to-End Encrypted</p>
+                        </div>
+                        
+                        <!-- Account Data Deletion Container -->
+                        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05);">
+                            <h4 style="color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 1rem;">DATA MANAGEMENT</h4>
+                            <button id="delete-local-data" style="background: rgba(255,85,85,0.1); border: 1px solid rgba(255,85,85,0.3); color: #ff5555; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin: 0 auto; min-width: 250px;">
+                                <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i> Clear Local App Data
+                            </button>
+                            <p style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.8rem; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.4;">To comply with Google Play policies, you can forcefully delete all local device identifiers and reset your session.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-actions" style="flex-shrink:0; border-top:1px solid rgba(0, 242, 255, 0.1); background: rgba(0,0,0,0.5); padding: 1rem 2rem; justify-content: space-between; align-items: center; display: flex;">
+                <div style="font-family: 'JetBrains Mono', monospace; color: var(--text-dim); font-size: 0.75rem; letter-spacing: 1px; display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="display: inline-block; width: 6px; height: 6px; background: var(--accent-cyan); border-radius: 50%; box-shadow: 0 0 8px var(--accent-cyan);"></span>
+                    TELEMETRY ACTIVE
+                </div>
+                <button class="action-btn primary" id="manual-dismiss" style="padding: 0.7rem 2.5rem; border-radius: 6px; font-weight: 800; letter-spacing: 1px; font-size: 0.85rem; box-shadow: 0 0 20px rgba(0,242,255,0.15); border: 1px solid rgba(0,242,255,0.3);">ACKNOWLEDGE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blueprint Approval Modal -->
+    <div id="blueprint-modal" class="nexus-overlay hidden">
+        <div class="overlay-panel glass-heavy">
+            <div class="overlay-header">
+                <div>
+                    <h2 id="bp-name">Mission Blueprint</h2>
+                    <p class="overlay-sub">Verify the architecture before full synthesis.</p>
+                </div>
+                <div class="badge badge-version">v6.0 ALPHA</div>
+            </div>
+            
+            <div id="bp-details" class="blueprint-viewer">
+                <!-- Dynamic content from script.js -->
+            </div>
+
+            <div class="overlay-stats">
+                <div class="stat-item">
+                    <div class="stat-label">MODULES</div>
+                    <div id="bp-module-count" class="stat-value">--</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">AI ENGINE</div>
+                    <div class="stat-value">GEMINI 3</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">EST. TIME</div>
+                    <div class="stat-value">~45s</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">STATUS</div>
+                    <div class="stat-value cyan">PENDING</div>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="display:flex; gap:1rem; margin-top:2rem;">
+                <button id="bp-approve" class="launch-btn" style="flex:2;">APPROVE & SYNTHESIZE 🚀</button>
+                <button id="bp-reject" class="action-btn" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; color:var(--text-dim); cursor:pointer;">REDO PROMPT</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .blueprint-viewer {
+            background: rgba(0,0,0,0.3); border-radius: 16px; padding: 1.5rem;
+            max-height: 300px; overflow-y: auto; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem; border: 1px solid var(--border);
+        }
+        .bp-module-tag { display: inline-block; padding: 3px 10px; border-radius: 8px; background: rgba(0,242,255,0.1); color: var(--accent-cyan); margin: 4px; font-size: 0.7rem; border: 1px solid rgba(0,242,255,0.2); }
+    </style>
+        .help-tab {
+            background: none; border: none; color: var(--text-dim); padding: 0.8rem 1rem;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent;
+            white-space: nowrap; transition: all 0.2s; font-family: inherit;
+        }
+        .help-tab.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+        .help-tab-content { display: none; }
+        .help-tab-content.active { display: block; }
+        .manual-step { display: flex; gap: 1rem; align-items: flex-start; padding: 1rem; background: var(--glass-pro, rgba(255,255,255,0.03)); border-radius: 12px; border: 1px solid var(--border); }
+        .step-number { width: 32px; height: 32px; min-width: 32px; background: linear-gradient(135deg, #00f2ff, #9d50ff); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; }
+        .manual-step h4 { margin: 0 0 0.3rem; font-size: 0.95rem; }
+        .manual-step p { margin: 0; color: var(--text-dim); font-size: 0.85rem; }
+        .manual-tip-box { display: flex; gap: 0.8rem; align-items: flex-start; background: rgba(0,242,255,0.05); border: 1px solid rgba(0,242,255,0.2); border-radius: 12px; padding: 1rem; margin-top: 1.2rem; }
+        .manual-tip-box i { color: var(--accent-cyan); min-width: 20px; }
+        .manual-tip-box p { margin: 0; font-size: 0.85rem; color: var(--text-dim); }
+        .example-prompt { background: rgba(255,255,255,0.04); border-radius: 8px; padding: 0.5rem 0.8rem; font-size: 0.75rem; color: var(--accent-cyan); margin-top: 0.5rem; font-style: italic; }
+        .pipeline-step { display: flex; gap: 1rem; align-items: flex-start; padding: 0.8rem; border-radius: 10px; border: 1px solid var(--border); }
+        .pipe-icon { font-size: 1.2rem; padding: 0.5rem; border-radius: 10px; }
+        .pipeline-step strong { font-size: 0.9rem; }
+        .pipeline-step small { color: var(--text-dim); }
+        .plan-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem; }
+        .pro-plan-card { border-color: rgba(0,242,255,0.4); background: rgba(0,242,255,0.04); }
+        .plan-label { font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 1rem; color: var(--text-dim); }
+        .plan-label.pro { background: linear-gradient(90deg,#00f2ff,#9d50ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .plan-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+        .plan-list li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+        .plan-list i { width: 16px; height: 16px; color: #00ff88; }
+        .plan-list i.no { color: #ff5555; }
+        .tip-item { display: flex; gap: 1rem; align-items: flex-start; padding: 0.8rem; border-radius: 10px; border: 1px solid var(--border); font-size: 0.85rem; }
+        .tip-badge { background: linear-gradient(135deg,#9d50ff,#00f2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 1.1rem; min-width: 28px; }
+        .tip-item div { color: var(--text-dim); line-height: 1.5; }
+        .tip-item strong { color: var(--text); }
+    </style>
+
+    <script type="module" src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            });
+        }
+    </script>
+    <!-- Legal Footer (Play Store Compliance) -->
+    <footer style="position: fixed; bottom: 20px; right: 40px; font-size: 11px; color: rgba(255,255,255,0.3); font-family: 'Inter', sans-serif; display: flex; gap: 20px; z-index: 9999;">
+        <span>© 2026 AON AI Nexus Prime</span>
+        <a href="privacy.html" style="color: inherit; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1);">Privacy Policy</a>
+        <a href="terms.html" style="color: inherit; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1);">Terms of Service</a>
+        <span style="color: #00f2fe; font-weight: 600;">v1.0 RC</span>
+    </footer>
+
+</body>
+</html>
