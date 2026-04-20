@@ -1989,6 +1989,43 @@ app.post('/generate-agent', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // START SERVER
 // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// DIAGNOSTIC ENDPOINT
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/debug-ai', async (req, res) => {
+    const results = {
+        timestamp: new Date(),
+        gemini: { status: 'testing', error: null },
+        github: { status: 'testing', error: null }
+    };
+
+    // Test Gemini
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+        await model.generateContent("hello");
+        results.gemini.status = 'READY';
+    } catch (e) {
+        results.gemini.status = 'FAILED';
+        results.gemini.error = e.message;
+    }
+
+    // Test GitHub
+    try {
+        const token = sanitizeEnv(process.env.GITHUB_TOKEN);
+        if (!token) throw new Error('Token missing in process.env');
+        await axios.post(GITHUB_ENDPOINT, {
+            model: "gpt-4o-mini",
+            messages: [{ role: 'user', content: 'hello' }]
+        }, { headers: { 'Authorization': `Bearer ${token}` } });
+        results.github.status = 'READY';
+    } catch (e) {
+        results.github.status = 'FAILED';
+        results.github.error = e.response?.data?.error?.message || e.message;
+    }
+
+    res.json(results);
+});
+
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`
 ╔═══════════════════════════════════════════════════════╗
