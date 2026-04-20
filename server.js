@@ -815,13 +815,13 @@ async function callAI(prompt, format = 'HTML', jobId = null, agentName = '') {
 
     return `<div>
         <h1 style="color:#ff5555">AI ENVIRONMENT DISCONNECTED</h1>
-        <p>Your Google Gemini or GitHub tokens are returning 429/404/403 errors. Please check your .env file.</p>
-        <div style="background:#111; padding:20px; border-radius:10px; border:1px solid #333;">
-            <strong>Suggested Fixes:</strong>
-            <ul>
-                <li>Enable 'Generative Language API' in Google Cloud Console.</li>
-                <li>Add 'models' scope to your GitHub Token.</li>
-                <li>Verify your Gemini Key in Google AI Studio.</li>
+        <p>All AI providers in the cascade (Gemini/GitHub) are currently returning errors. This usually means a missing key in the Render Dashboard or a 429 Rate Limit.</p>
+        <div style="background:#111; padding:20px; border-radius:10px; border:1px solid #333; margin-top: 15px;">
+            <strong style="color: #6366F1;">Critical Diagnosis steps:</strong>
+            <ul style="margin-top: 10px; color: #94A3B8; font-size: 13px;">
+                <li>Check <strong>Render Dashboard -> Environment Variables</strong> for GITHUB_TOKEN or GEMINI_API_KEY.</li>
+                <li>Verify 'Generative Language API' is <strong>Enabled</strong> in GCP Console.</li>
+                <li>If using a free Gemini key, you might be hitting the 15 RPM limit.</li>
             </ul>
         </div>
     </div>`;
