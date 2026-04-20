@@ -328,6 +328,7 @@ app.get('/api/subscription/status', async (req, res) => {
             activatedAt: sub.activatedAt,
             expiresAt: sub.expiresAt,
             isExpired: isExpired,
+            serverTime: now.toISOString(),
             daysLeft: Math.max(0, Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24)))
         });
     } catch (e) {

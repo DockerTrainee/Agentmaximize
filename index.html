@@ -146,6 +146,7 @@
             box-shadow: 0 0 20px var(--primary-glow);
         }
 
+
         textarea {
             width: 100%;
             min-height: 180px;
@@ -435,7 +436,8 @@
         <div id="aon-data-system-status">
             <span class="aon-status-indicator" style="background:#22c55e;"></span> Status: Connected to Production Core
         </div>
-        <div id="aon-sub-status" style="display: flex; align-items: center;">
+        <div id="aon-sub-status" style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-size: 9px; opacity: 0.4;">ID: <span id="debug-id">...</span></div>
             <span id="sub-label">Access Level:</span>
             <span id="sub-tag" class="sub-badge sub-trial">Trial Active</span>
         </div>
@@ -492,7 +494,8 @@
         };
 
         const updateSubscriptionUI = (data) => {
-            if (data.isExpired && data.status !== 'pro') {
+            document.getElementById('debug-id').innerText = state.clientId.substring(0, 8);
+            if (data.isExpired && data.status !== 'pro' && data.status !== 'unlimited') {
                 elements.paywall.style.display = 'flex';
                 elements.subTag.innerText = "Trial Expired";
                 elements.subTag.className = "sub-badge sub-expired";
