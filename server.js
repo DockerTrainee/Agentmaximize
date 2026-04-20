@@ -426,9 +426,9 @@ const GITHUB_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions'
 const MODEL_CASCADE = [
     "anthropic/claude-3-5-sonnet-20241022",
     "gemini-2.0-flash-thinking-exp", 
-    "gemini-1.5-pro-latest",         
+    "gemini-1.5-pro",         
     "gemini-2.0-flash-exp",
-    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
     "github/gpt-4o",
     "github/gpt-4o-mini",
 ];
