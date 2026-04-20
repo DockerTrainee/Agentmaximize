@@ -306,6 +306,35 @@ console.log(`[STORAGE] Data Base: ${DATA_BASE}`);
 const jobs = {};
 global.IS_ON_QUOTA_RESTRICTION = false;
 
+app.get('/api/subscription/status', async (req, res) => {
+    const clientId = req.headers['x-client-id'] || req.query.clientId;
+    if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
+
+    try {
+        const db = await fs.readJson(SUBS_DB_PATH);
+        const sub = db.subscriptions[clientId];
+
+        if (!sub) {
+            return res.json({ status: 'none', trialAvailable: true });
+        }
+
+        const now = new Date();
+        const expiresAt = new Date(sub.expiresAt);
+        const isExpired = now > expiresAt;
+
+        res.json({
+            status: sub.status,
+            plan: sub.plan,
+            activatedAt: sub.activatedAt,
+            expiresAt: sub.expiresAt,
+            isExpired: isExpired,
+            daysLeft: Math.max(0, Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24)))
+        });
+    } catch (e) {
+        res.status(500).json({ error: 'STATUS_FAILED', message: e.message });
+    }
+});
+
 app.post('/api/subscription/start-trial', async (req, res) => {
     const clientId = req.headers['x-client-id'] || req.query.clientId;
     if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
@@ -314,7 +343,6 @@ app.post('/api/subscription/start-trial', async (req, res) => {
         const db = await fs.readJson(SUBS_DB_PATH);
         const existing = db.subscriptions[clientId];
 
-        // Only allow trial if they never had a plan or trial before
         if (existing) {
             return res.status(400).json({ 
                 error: 'TRIAL_ALREADY_USED', 
@@ -1885,9 +1913,31 @@ app.post('/search', async (req, res) => {
 // CHAT BRIDGE (for generated chatbot agents)
 // ─────────────────────────────────────────────────────────────────────────────
 app.post('/chat', async (req, res) => {
-    const { message, mission } = req.body;
+    const { message, mission, context, clientId } = req.body;
+    
+    // 🛡️ SUBSCRIPTION ENFORCEMENT
+    if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
+    
     try {
-        const prompt = `You are an expert AI assistant for: "${mission}". Respond helpfully and naturally. User says: ${message}`;
+        const db = await fs.readJson(SUBS_DB_PATH);
+        const sub = db.subscriptions[clientId];
+        
+        if (!sub) {
+            return res.status(403).json({ error: 'NO_TRIAL', message: 'Please activate your free trial to continue.' });
+        }
+        
+        const now = new Date();
+        const expiresAt = new Date(sub.expiresAt);
+        if (now > expiresAt && sub.status !== 'pro' && sub.status !== 'unlimited') {
+            return res.status(403).json({ error: 'TRIAL_EXPIRED', message: 'Your 7-day trial has ended. Please upgrade to continue.' });
+        }
+    } catch (e) {
+        console.error('[CHAT] Sub check fail:', e.message);
+    }
+
+    const jobId = 'job-' + Date.now();
+    const prompt = `You are an expert AI assistant for: "${mission}". Respond helpfully and naturally. User says: ${message}`;
+    try {
         const reply = await callAI(prompt, 'Plain Text', null, 'CHAT-REPLY');
         res.json({ reply });
     } catch (e) {

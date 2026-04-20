@@ -1,13 +1,16 @@
 {
-  "name": "aon-ai-meta-factory",
+  "name": "prompt-maximize",
   "version": "1.0.0",
-  "description": "Meta-Agent Factory powered by Google Gemini",
+  "description": "Elite AI Prompt Optimizer",
   "main": "server.js",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
     "@capacitor/android": "^6.0.0",
+    "@capacitor/app": "^6.0.3",
+    "@capacitor/browser": "^6.0.6",
     "@capacitor/cli": "^6.0.0",
     "@capacitor/core": "^6.0.0",
+    "@capacitor/device": "^6.0.3",
     "@capacitor/haptics": "^6.0.0",
     "@google/generative-ai": "^0.21.0",
     "@modelcontextprotocol/sdk": "^1.29.0",

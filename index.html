@@ -315,6 +315,76 @@
             #aon-sidebar { flex-direction: column; }
             .aon-split-layout { padding: 1rem; }
         }
+        /* ── Paywall Modal ─────────────────────────────────────────── */
+        .paywall-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            display: none; align-items: center; justify-content: center;
+            z-index: 9999; animation: fadeIn 0.5s ease-out;
+        }
+
+        .paywall-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            transform: translateY(0);
+            animation: slideInDown 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .paywall-card h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .paywall-card p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .premium-btn {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            width: 100%;
+        }
+
+        .premium-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+        }
+
+        .sub-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 10px;
+        }
+
+        .sub-trial { background: rgba(16, 185, 129, 0.2); color: var(--secondary); border: 1px solid var(--secondary-glow); }
+        .sub-expired { background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.5); }
+        .sub-pro { background: rgba(99, 102, 241, 0.2); color: var(--primary); border: 1px solid var(--primary-glow); }
     </style>
 </head>
 <body>
@@ -361,34 +431,108 @@
         </aside>
     </main>
 
-    <footer style="padding:1rem 4rem; border-top:1px solid var(--border); font-size:0.8rem; color:var(--text-muted);">
+    <footer style="padding:1rem 4rem; border-top:1px solid var(--border); font-size:0.8rem; color:var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
         <div id="aon-data-system-status">
             <span class="aon-status-indicator" style="background:#22c55e;"></span> Status: Connected to Production Core
         </div>
+        <div id="aon-sub-status" style="display: flex; align-items: center;">
+            <span id="sub-label">Access Level:</span>
+            <span id="sub-tag" class="sub-badge sub-trial">Trial Active</span>
+        </div>
     </footer>
+
+    <div id="aon-paywall" class="paywall-overlay">
+        <div class="paywall-card">
+            <i data-lucide="crown" style="width: 64px; height: 64px; color: #FFD700; margin-bottom: 1rem;"></i>
+            <h2>Trial Period Completed</h2>
+            <p>Your 7-day elite optimization trial has concluded. Upgrade to Prime for unlimited high-fidelity prompt synthesis.</p>
+            <button id="upgrade-btn" class="premium-btn">Upgrade to Prime Monthly</button>
+            <div style="margin-top: 1.5rem;">
+                <a href="#" id="restore-btn" style="color: var(--text-muted); font-size: 0.9rem; text-decoration: none;">Restore Purchases</a>
+            </div>
+        </div>
+    </div>
 
     <div class="aon-watermark">⚡ Prompt Maximize v1.0</div>
 
     <script src="https://cdn.jsdelivr.net/npm/@revenuecat/purchases-capacitor@latest/dist/capacitor-purchases.js"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         const BACKEND_URL = "https://agent-maximize-nexus.onrender.com";
         const state = {
             activeInput: "",
-            history: JSON.parse(localStorage.getItem('prompt_history') || '[]')
+            history: JSON.parse(localStorage.getItem('prompt_history') || '[]'),
+            clientId: localStorage.getItem('aon_client_id'),
+            subscription: null
         };
 
         const elements = {
             inputField: document.getElementById('aon-input-1'),
             transformBtn: document.getElementById('aon-btn-1'),
             refinedOutput: document.getElementById('aon-data-refined-output'),
-            historyList: document.getElementById('aon-history-list')
+            historyList: document.getElementById('aon-history-list'),
+            paywall: document.getElementById('aon-paywall'),
+            upgradeBtn: document.getElementById('upgrade-btn'),
+            subTag: document.getElementById('sub-tag')
         };
+
+        // 🛡️ IDENTITY SYSTEM
+        const initIdentity = async () => {
+            if (!state.clientId) {
+                // Try Device ID
+                try {
+                    const { Device } = await import('https://cdn.jsdelivr.net/npm/@capacitor/device@latest/dist/esm/index.js');
+                    const info = await Device.getId();
+                    state.clientId = info.identifier;
+                } catch (e) {
+                    state.clientId = 'client-' + Math.random().toString(36).substr(2, 9);
+                }
+                localStorage.setItem('aon_client_id', state.clientId);
+            }
+        };
+
+        const checkSubscription = async () => {
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/subscription/status?clientId=${state.clientId}`);
+                const data = await res.json();
+                state.subscription = data;
+
+                if (data.status === 'none' && data.trialAvailable) {
+                    // Automatically Start Trial
+                    await fetch(`${BACKEND_URL}/api/subscription/start-trial`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ clientId: state.clientId })
+                    });
+                    location.reload();
+                    return;
+                }
+
+                if (data.isExpired && data.status !== 'pro') {
+                    elements.paywall.style.display = 'flex';
+                    elements.subTag.innerText = "Trial Expired";
+                    elements.subTag.className = "sub-badge sub-expired";
+                    elements.transformBtn.disabled = true;
+                    elements.transformBtn.innerText = "Subscription Required";
+                } else if (data.status === 'trial') {
+                    elements.subTag.innerText = `Trial: ${data.daysLeft} days left`;
+                    elements.subTag.className = "sub-badge sub-trial";
+                } else if (data.status === 'pro' || data.status === 'unlimited') {
+                    elements.subTag.innerText = "Prime Plan";
+                    elements.subTag.className = "sub-badge sub-pro";
+                }
+            } catch (e) {
+                console.error('Sub check fail:', e);
+            }
+        };
+
+        await initIdentity();
+        await checkSubscription();
 
         const renderHistory = () => {
             if (state.history.length === 0) return;
             elements.historyList.innerHTML = state.history.map(h => `
-                <div class="aon-history-item">
+                <div class="aon-history-item" onclick="document.getElementById('aon-input-1').value = \`${h.input}\` ">
                     <div class="aon-history-text">${h.input}</div>
                 </div>
             `).join('');
@@ -397,6 +541,11 @@
         elements.transformBtn.onclick = async () => {
             const input = elements.inputField.value.trim();
             if(!input) return;
+
+            if (state.subscription && state.subscription.isExpired && state.subscription.status !== 'pro') {
+                elements.paywall.style.display = 'flex';
+                return;
+            }
 
             elements.transformBtn.disabled = true;
             elements.transformBtn.innerText = "Maximizing...";
@@ -407,11 +556,18 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         message: input,
+                        clientId: state.clientId,
                         mission: "Act as a Prompt Maximizer. Transform the user's input into a high-fidelity, expert-level prompt." 
                     })
                 });
-                const data = await res.json();
                 
+                if (res.status === 403) {
+                    const errorData = await res.json();
+                    elements.paywall.style.display = 'flex';
+                    return;
+                }
+
+                const data = await res.json();
                 const reply = data.reply || "No response received.";
                 elements.refinedOutput.innerHTML = `<div style="white-space:pre-wrap; color:var(--text-main);">${reply}</div>`;
                 
@@ -426,6 +582,11 @@
                 elements.transformBtn.disabled = false;
                 elements.transformBtn.innerText = "Maximize Instruction";
             }
+        };
+
+        elements.upgradeBtn.onclick = async () => {
+            alert("Redirecting to Google Play Store...");
+            // Integration with RevenueCat Purchases would go here
         };
 
         renderHistory();
