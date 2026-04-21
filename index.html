@@ -536,6 +536,8 @@
                     if (trialData.success) {
                         state.subscription = { status: 'trial', isExpired: false, daysLeft: 7 };
                         updateSubscriptionUI(state.subscription);
+                        // 🎊 Welcome Notification
+                        alert("Welcome to Prompt Maximize Prime! \n\nWe've activated your 7-day free trial. Enjoy unlimited high-fidelity prompt synthesis!");
                     }
                     return;
                 }
