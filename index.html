@@ -588,6 +588,12 @@
         };
 
         const startTrial = async () => {
+            if (!state.clientId) {
+                console.error("Delayed Identity: Initializing now...");
+                await initIdentity();
+            }
+            if (!state.clientId) return alert("System Identity Error. Please refresh and try again.");
+
             try {
                 const res = await fetch(`${BACKEND_URL}/api/subscription/start-trial`, {
                     method: 'POST',
@@ -607,6 +613,7 @@
         };
 
         const checkSubscription = async () => {
+            if (!state.clientId) return; // Wait for InitIdentity to finish
             try {
                 const res = await fetch(`${BACKEND_URL}/api/subscription/status?clientId=${state.clientId}`);
                 const data = await res.json();
