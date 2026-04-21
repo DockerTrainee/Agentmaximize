@@ -399,7 +399,9 @@
             <h2>Refinement Lab</h2>
             <div id="aon-prompt-editor" class="aon-editor-box">
                 <label style="font-size: 11px; color: var(--text-muted); opacity: 0.6;">INPUT BASE QUERY</label>
-                <textarea id="aon-input-1" placeholder="Enter your raw prompt here..."></textarea>
+                <textarea id="aon-input-1" placeholder="Enter your raw prompt here..." 
+                    style="overflow:hidden; resize:none; min-height:100px; transition: height 0.2s ease-out;"
+                    oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
                 <div class="aon-action-bar">
                     <button id="aon-btn-1" class="aon-primary-btn">Maximize Instruction</button>
                 </div>
@@ -420,12 +422,16 @@
             </section>
 
             <section class="aon-module-card">
-                <h3>Expert Systems</h3>
+                <h3>Expert Feedback</h3>
                 <div id="aon-data-support-feed">
                     <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
-                        <span style="font-size: 12px; font-weight: 600; color: var(--secondary);">Persona-Based Reasoning</span>
-                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Steps through logical reasoning before concluding.</p>
-                        <button class="aon-secondary-btn" style="padding: 4px 8px; font-size: 10px; margin-top: 8px;">Use Template</button>
+                        <span style="font-size: 12px; font-weight: 600; color: var(--secondary);">AI Accuracy Notice</span>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">AI can generate inaccurate info. Always verify synthesized outputs before mission-critical use.</p>
+                        <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin: 8px 0;">
+                        <div style="display:flex; gap: 10px;">
+                            <a href="privacy.html" style="font-size: 10px; color: var(--primary); text-decoration: none;">Privacy Policy</a>
+                            <a href="terms.html" style="font-size: 10px; color: var(--primary); text-decoration: none;">Terms of Service</a>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -446,14 +452,19 @@
     <div id="aon-paywall" class="paywall-overlay">
         <div class="paywall-card">
             <i data-lucide="crown" style="width: 64px; height: 64px; color: #FFD700; margin-bottom: 1rem;"></i>
-            <h2>Trial Period Completed</h2>
-            <p>Your 7-day elite optimization trial has concluded. Upgrade to Prime for unlimited high-fidelity prompt synthesis.</p>
-            <button id="upgrade-btn" class="premium-btn">Upgrade to Prime Monthly</button>
-            <div style="margin-top: 1rem;">
-                <button id="reset-trial-btn" style="background: transparent; border: 1px dashed rgba(255,255,255,0.2); color: var(--text-muted); font-size: 10px; padding: 4px 8px; cursor: pointer;">[DEV] Emergency Trial Reset</button>
+            <h2>Trial Period Over</h2>
+            <p>Your 7-day trial has concluded. Upgrade for unlimited high-fidelity prompt synthesis.</p>
+            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                <span style="font-size: 1.5rem; font-weight: 800; color: #FFD700;">$9.99<span style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted);">/month</span></span>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Billed monthly via Google Play. Cancel anytime.</p>
             </div>
-            <div style="margin-top: 1.5rem;">
-                <a href="#" id="restore-btn" style="color: var(--text-muted); font-size: 0.9rem; text-decoration: none;">Restore Purchases</a>
+            <button id="upgrade-btn" class="premium-btn">Upgrade to Prime Monthly</button>
+            <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 15px;">
+                <button id="reset-trial-btn" style="background: transparent; border: 1px dashed rgba(255,255,255,0.2); color: var(--text-muted); font-size: 10px; padding: 4px 8px; cursor: pointer;">[DEV] Emergency Reset</button>
+            </div>
+            <div style="margin-top: 1.5rem; font-size: 0.8rem;">
+                <a href="#" id="restore-btn" style="color: var(--text-muted); text-decoration: none; margin-right: 15px;">Restore Purchases</a>
+                <a href="terms.html" style="color: var(--text-muted); text-decoration: none;">Terms of Service</a>
             </div>
         </div>
     </div>
@@ -591,12 +602,19 @@
 
                 const data = await res.json();
                 const reply = data.reply || "No response received.";
-                elements.refinedOutput.innerHTML = `<div style="white-space:pre-wrap; color:var(--text-main);">${reply}</div>`;
                 
-                state.history.unshift({ input });
-                state.history = state.history.slice(0, 10);
-                localStorage.setItem('prompt_history', JSON.stringify(state.history));
-                renderHistory();
+                elements.refinedOutput.innerHTML = `
+                    <div style="white-space:pre-wrap; color:var(--text-main); margin-bottom: 20px;">${reply}</div>
+                    <div style="display:flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                        <button onclick="copyToClipboard(\`${reply.replace(/`/g, '\\`')}\`)" class="aon-secondary-btn" style="padding: 6px 12px; font-size: 11px;">
+                            <i data-lucide="copy" style="width:14px; height:14px; margin-right:5px;"></i> Copy Optimized Prompt
+                        </button>
+                        <button onclick="reportContent(\`${reply.replace(/`/g, '\\`')}\`)" class="aon-secondary-btn" style="padding: 6px 12px; font-size: 11px; color:#EF4444;">
+                            <i data-lucide="flag" style="width:14px; height:14px; margin-right:5px;"></i> Report Offensive
+                        </button>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
 
             } catch (e) {
                 elements.refinedOutput.innerText = "Error connecting to AI core: " + e.message;
@@ -614,6 +632,28 @@
             localStorage.removeItem('aon_client_id');
             alert("Trial ID Reset. Refreshing...");
             location.reload();
+        };
+
+        window.copyToClipboard = (text) => {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard!");
+            });
+        };
+
+        window.reportContent = async (text) => {
+            const reason = prompt("Why are you reporting this content? (Inaccurate, Offensive, Harmful, etc.)");
+            if (!reason) return;
+            
+            try {
+                await fetch(`${BACKEND_URL}/api/report-content`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ clientId: state.clientId, content: text, reason: reason })
+                });
+                alert("Thank you. Our safety team will review this output.");
+            } catch (e) {
+                alert("Report failed to send.");
+            }
         };
 
         renderHistory();
