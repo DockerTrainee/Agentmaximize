@@ -520,20 +520,74 @@
             subTag: document.getElementById('sub-tag')
         };
 
-        // 🛡️ IDENTITY SYSTEM
+        // 🛡️ HARDENED IDENTITY SYSTEM
+        const getOrGenerateId = () => {
+            let id = localStorage.getItem('aon_client_id');
+            if (!id || id === 'null' || id === 'undefined') {
+                id = 'pm-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36);
+                localStorage.setItem('aon_client_id', id);
+            }
+            state.clientId = id;
+            return id;
+        };
+
         const initIdentity = async () => {
-            if (!state.clientId) {
-                // Try Device ID
-                try {
-                    const { Device } = await import('https://cdn.jsdelivr.net/npm/@capacitor/device@latest/dist/esm/index.js');
-                    const info = await Device.getId();
+            getOrGenerateId();
+            // Optional: Upgrade to hardware ID if available
+            try {
+                const { Device } = await import('https://cdn.jsdelivr.net/npm/@capacitor/device@latest/dist/esm/index.js');
+                const info = await Device.getId();
+                if (info.identifier) {
                     state.clientId = info.identifier;
-                } catch (e) {
-                    state.clientId = 'client-' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('aon_client_id', state.clientId);
                 }
-                localStorage.setItem('aon_client_id', state.clientId);
+            } catch (e) { console.warn("Native ID unavailable, using browser ID"); }
+        };
+
+        const startTrial = async () => {
+            const id = getOrGenerateId();
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/subscription/start-trial`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Client-ID': id 
+                    },
+                    body: JSON.stringify({ clientId: id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("Elite Trial Activated! \n\nYou now have 7 days of unlimited high-fidelity AI access.");
+                    await checkSubscription();
+                } else {
+                    // Fail gracefully - don't show technical errors if possible
+                    if (data.error === 'Missing clientId') {
+                        location.reload(); // Force a fresh identity
+                    } else {
+                        alert(data.error || "Trial activation failed.");
+                    }
+                }
+            } catch (e) {
+                alert("Network error starting trial.");
             }
         };
+
+        const checkSubscription = async () => {
+            const id = getOrGenerateId();
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/subscription/status?clientId=${id}`, {
+                    headers: { 'X-Client-ID': id }
+                });
+                const data = await res.json();
+                state.subscription = data;
+                updateSubscriptionUI(data);
+            } catch (e) {
+                console.error('Sub check fail:', e);
+            }
+        };
+
+        await initIdentity();
+        await checkSubscription();
 
         const updateSubscriptionUI = (data) => {
             console.log("[SUBS] UI Update Data:", data);
@@ -543,7 +597,6 @@
             const sidebarDetails = document.getElementById('sub-card-details');
             const modalTrialBtn = document.getElementById('start-trial-modal-btn');
             
-            // 🛡️ Safety Lock: Only show paywall if status is explicitly expired
             if (data.isExpired === true && data.status !== 'pro' && data.status !== 'unlimited') {
                 elements.paywall.style.display = 'flex';
                 elements.subTag.innerText = "Trial Expired";
@@ -551,7 +604,6 @@
                 elements.transformBtn.disabled = true;
                 elements.transformBtn.innerText = "Subscription Required";
                 
-                // Update Paywall for Expired State
                 document.getElementById('paywall-title').innerText = "Trial Period Over";
                 document.getElementById('paywall-desc').innerText = "Your 7-day trial has concluded. Upgrade for unlimited high-fidelity prompt synthesis.";
                 if(modalTrialBtn) modalTrialBtn.style.display = 'none';
@@ -572,7 +624,6 @@
                     if(modalTrialBtn) modalTrialBtn.style.display = 'none';
                     if(sidebarDetails) sidebarDetails.innerText = "Prime membership is active. Unlimited access enabled.";
                 } else {
-                    // Status: None (Eligibility check)
                     elements.subTag.innerText = "Free Tier";
                     elements.subTag.className = "sub-badge";
                     if (data.trialAvailable) {
@@ -586,50 +637,6 @@
                 }
             }
         };
-
-        const startTrial = async () => {
-            if (!state.clientId) {
-                console.error("Delayed Identity: Initializing now...");
-                await initIdentity();
-            }
-            if (!state.clientId) return alert("System Identity Error. Please refresh and try again.");
-
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/subscription/start-trial`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ clientId: state.clientId })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert("Elite Trial Activated! \n\nYou now have 7 days of unlimited high-fidelity AI access. Master your prompts 🦾");
-                    await checkSubscription();
-                } else {
-                    alert(data.error || "Trial activation failed.");
-                }
-            } catch (e) {
-                alert("Network error starting trial.");
-            }
-        };
-
-        const checkSubscription = async () => {
-            if (!state.clientId) return; // Wait for InitIdentity to finish
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/subscription/status?clientId=${state.clientId}`);
-                const data = await res.json();
-                state.subscription = data;
-                updateSubscriptionUI(data);
-            } catch (e) {
-                console.error('Sub check fail:', e);
-            }
-        };
-
-        await initIdentity();
-        await checkSubscription();
-
-        // 🛡️ EVENT HANDLERS
-        document.getElementById('start-trial-sidebar-btn').onclick = startTrial;
-        document.getElementById('start-trial-modal-btn').onclick = startTrial;
 
         const renderHistory = () => {
             if (state.history.length === 0) return;
@@ -655,10 +662,13 @@
             try {
                 const res = await fetch(`${BACKEND_URL}/chat`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Client-ID': getOrGenerateId()
+                    },
                     body: JSON.stringify({ 
                         message: input,
-                        clientId: state.clientId,
+                        clientId: getOrGenerateId(),
                         mission: "Act as a Prompt Maximizer. Transform the user's input into a high-fidelity, expert-level prompt." 
                     })
                 });
@@ -724,6 +734,12 @@
                 alert("Report failed to send.");
             }
         };
+
+        // 🛡️ RE-ATTACH HANDLERS
+        const sidebarBtn = document.getElementById('start-trial-sidebar-btn');
+        const modalBtn = document.getElementById('start-trial-modal-btn');
+        if (sidebarBtn) sidebarBtn.onclick = startTrial;
+        if (modalBtn) modalBtn.onclick = startTrial;
 
         renderHistory();
         if (typeof lucide !== 'undefined') lucide.createIcons();
