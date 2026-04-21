@@ -1,5 +1,5 @@
 /**
- * AON AI — NEXUS PRIME v5.0
+ * Prompt Maximize — NEXUS PRIME v5.0
  * Architected using patterns from: Claude Code, Anthropic Agent Research,
  * OpenHands, CrewAI, and SWE-Agent.
  *
@@ -2043,7 +2043,7 @@ app.post('/generate-agent', async (req, res) => {
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`
 ╔═══════════════════════════════════════════════════════╗
-║         AON AI — NEXUS PRIME v5.0  ONLINE             ║
+║      PROMPT MAXIMIZE — NEXUS PRIME v5.0  ONLINE       ║
 ║  Patterns: ClaudeCode | Anthropic | OpenHands | CrewAI ║
 ╠═══════════════════════════════════════════════════════╣
 ║  HTTP:      http://0.0.0.0:${PORT}                     ║
