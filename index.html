@@ -421,6 +421,14 @@
                 </div>
             </section>
 
+            <section class="aon-module-card" id="aon-sub-card">
+                <h3>Elite Access</h3>
+                <div id="sub-card-content" style="background: rgba(99, 102, 241, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2);">
+                    <p id="sub-card-details" style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Access high-fidelity AI tools with our professional tier.</p>
+                    <button id="start-trial-sidebar-btn" class="aon-primary-btn" style="width: 100%; font-size: 12px; padding: 10px;">Start 7-Day Free Trial</button>
+                </div>
+            </section>
+
             <section class="aon-module-card">
                 <h3>Expert Feedback</h3>
                 <div id="aon-data-support-feed">
@@ -470,14 +478,16 @@
     <div id="aon-paywall" class="paywall-overlay">
         <div class="paywall-card">
             <i data-lucide="crown" style="width: 64px; height: 64px; color: #FFD700; margin-bottom: 1rem;"></i>
-            <h2>Trial Period Over</h2>
-            <p>Your 7-day trial has concluded. Upgrade for unlimited high-fidelity prompt synthesis.</p>
+            <h2 id="paywall-title">Premium Access Required</h2>
+            <p id="paywall-desc">Unlock unlimited high-fidelity prompt synthesis with our professional membership.</p>
             <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
-                <span style="font-size: 1.5rem; font-weight: 800; color: #FFD700;">$9.99<span style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted);">/month</span></span>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Billed monthly via Google Play. Cancel anytime.</p>
+                <span id="paywall-price" style="font-size: 1.5rem; font-weight: 800; color: #FFD700;">$9.99<span style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted);">/month</span></span>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Includes all neural synthesis optimizations.</p>
             </div>
             <button id="upgrade-btn" class="premium-btn">Upgrade to Prime Monthly</button>
-            <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 15px;">
+            <button id="start-trial-modal-btn" class="aon-primary-btn" style="width: 100%; margin-top: 10px; background: transparent; border: 1px solid var(--secondary); color: var(--secondary);">Start 7-Day Free Trial</button>
+            
+            <div style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 15px;">
                 <button id="reset-trial-btn" style="background: transparent; border: 1px dashed rgba(255,255,255,0.2); color: var(--text-muted); font-size: 10px; padding: 4px 8px; cursor: pointer;">[DEV] Emergency Reset</button>
             </div>
             <div style="margin-top: 1.5rem; font-size: 0.8rem;">
@@ -529,6 +539,10 @@
             console.log("[SUBS] UI Update Data:", data);
             document.getElementById('debug-id').innerText = state.clientId.substring(0, 8);
             
+            const sidebarBtn = document.getElementById('start-trial-sidebar-btn');
+            const sidebarDetails = document.getElementById('sub-card-details');
+            const modalTrialBtn = document.getElementById('start-trial-modal-btn');
+            
             // 🛡️ Safety Lock: Only show paywall if status is explicitly expired
             if (data.isExpired === true && data.status !== 'pro' && data.status !== 'unlimited') {
                 elements.paywall.style.display = 'flex';
@@ -536,15 +550,59 @@
                 elements.subTag.className = "sub-badge sub-expired";
                 elements.transformBtn.disabled = true;
                 elements.transformBtn.innerText = "Subscription Required";
+                
+                // Update Paywall for Expired State
+                document.getElementById('paywall-title').innerText = "Trial Period Over";
+                document.getElementById('paywall-desc').innerText = "Your 7-day trial has concluded. Upgrade for unlimited high-fidelity prompt synthesis.";
+                if(modalTrialBtn) modalTrialBtn.style.display = 'none';
+                if(sidebarBtn) sidebarBtn.style.display = 'none';
+                if(sidebarDetails) sidebarDetails.innerText = "Trial concluded. Upgrade for full access.";
             } else {
-                elements.paywall.style.display = 'none'; // Ensure hidden if not expired
+                elements.paywall.style.display = 'none';
                 if (data.status === 'trial') {
                     elements.subTag.innerText = `Trial: ${data.daysLeft} days left`;
                     elements.subTag.className = "sub-badge sub-trial";
+                    if(sidebarBtn) sidebarBtn.style.display = 'none';
+                    if(modalTrialBtn) modalTrialBtn.style.display = 'none';
+                    if(sidebarDetails) sidebarDetails.innerText = `Active Trial: ${data.daysLeft} days remaining.`;
                 } else if (data.status === 'pro' || data.status === 'unlimited') {
                     elements.subTag.innerText = "Prime Plan";
                     elements.subTag.className = "sub-badge sub-pro";
+                    if(sidebarBtn) sidebarBtn.style.display = 'none';
+                    if(modalTrialBtn) modalTrialBtn.style.display = 'none';
+                    if(sidebarDetails) sidebarDetails.innerText = "Prime membership is active. Unlimited access enabled.";
+                } else {
+                    // Status: None (Eligibility check)
+                    elements.subTag.innerText = "Free Tier";
+                    elements.subTag.className = "sub-badge";
+                    if (data.trialAvailable) {
+                        if(sidebarBtn) sidebarBtn.style.display = 'block';
+                        if(modalTrialBtn) modalTrialBtn.style.display = 'block';
+                        if(sidebarDetails) sidebarDetails.innerText = "Unlock a 7-day free trial of our elite AI model.";
+                    } else {
+                        if(sidebarBtn) sidebarBtn.style.display = 'none';
+                        if(sidebarDetails) sidebarDetails.innerText = "Upgrade to Prime for 10x better prompt accuracy.";
+                    }
                 }
+            }
+        };
+
+        const startTrial = async () => {
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/subscription/start-trial`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ clientId: state.clientId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("Elite Trial Activated! \n\nYou now have 7 days of unlimited high-fidelity AI access. Master your prompts 🦾");
+                    await checkSubscription();
+                } else {
+                    alert(data.error || "Trial activation failed.");
+                }
+            } catch (e) {
+                alert("Network error starting trial.");
             }
         };
 
@@ -553,24 +611,6 @@
                 const res = await fetch(`${BACKEND_URL}/api/subscription/status?clientId=${state.clientId}`);
                 const data = await res.json();
                 state.subscription = data;
-
-                if (data.status === 'none' && data.trialAvailable) {
-                    console.log("[SUBS] Starting fresh trial...");
-                    const trialRes = await fetch(`${BACKEND_URL}/api/subscription/start-trial`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ clientId: state.clientId })
-                    });
-                    const trialData = await trialRes.json();
-                    if (trialData.success) {
-                        state.subscription = { status: 'trial', isExpired: false, daysLeft: 7 };
-                        updateSubscriptionUI(state.subscription);
-                        // 🎊 Welcome Notification
-                        alert("Welcome to Prompt Maximize Prime! \n\nWe've activated your 7-day free trial. Enjoy unlimited high-fidelity prompt synthesis!");
-                    }
-                    return;
-                }
-
                 updateSubscriptionUI(data);
             } catch (e) {
                 console.error('Sub check fail:', e);
@@ -579,6 +619,10 @@
 
         await initIdentity();
         await checkSubscription();
+
+        // 🛡️ EVENT HANDLERS
+        document.getElementById('start-trial-sidebar-btn').onclick = startTrial;
+        document.getElementById('start-trial-modal-btn').onclick = startTrial;
 
         const renderHistory = () => {
             if (state.history.length === 0) return;
