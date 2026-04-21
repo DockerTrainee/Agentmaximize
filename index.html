@@ -487,9 +487,6 @@
             <button id="upgrade-btn" class="premium-btn">Upgrade to Prime Monthly</button>
             <button id="start-trial-modal-btn" class="aon-primary-btn" style="width: 100%; margin-top: 10px; background: transparent; border: 1px solid var(--secondary); color: var(--secondary);">Start 7-Day Free Trial</button>
             
-            <div style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 15px;">
-                <button id="reset-trial-btn" style="background: transparent; border: 1px dashed rgba(255,255,255,0.2); color: var(--text-muted); font-size: 10px; padding: 4px 8px; cursor: pointer;">[DEV] Emergency Reset</button>
-            </div>
             <div style="margin-top: 1.5rem; font-size: 0.8rem;">
                 <a href="#" id="restore-btn" style="color: var(--text-muted); text-decoration: none; margin-right: 15px;">Restore Purchases</a>
                 <a href="terms.html" style="color: var(--text-muted); text-decoration: none;">Terms of Service</a>
@@ -707,12 +704,6 @@
             alert("Redirecting to Google Play Store...");
         };
 
-        document.getElementById('reset-trial-btn').onclick = () => {
-            localStorage.removeItem('aon_client_id');
-            alert("Trial ID Reset. Refreshing...");
-            location.reload();
-        };
-
         window.copyToClipboard = (text) => {
             navigator.clipboard.writeText(text).then(() => {
                 alert("Copied to clipboard!");
@@ -726,8 +717,11 @@
             try {
                 await fetch(`${BACKEND_URL}/api/report-content`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ clientId: state.clientId, content: text, reason: reason })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Client-ID': getOrGenerateId()
+                    },
+                    body: JSON.stringify({ clientId: getOrGenerateId(), content: text, reason: reason })
                 });
                 alert("Thank you. Our safety team will review this output.");
             } catch (e) {
