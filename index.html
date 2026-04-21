@@ -497,19 +497,25 @@
         };
 
         const updateSubscriptionUI = (data) => {
+            console.log("[SUBS] UI Update Data:", data);
             document.getElementById('debug-id').innerText = state.clientId.substring(0, 8);
-            if (data.isExpired && data.status !== 'pro' && data.status !== 'unlimited') {
+            
+            // 🛡️ Safety Lock: Only show paywall if status is explicitly expired
+            if (data.isExpired === true && data.status !== 'pro' && data.status !== 'unlimited') {
                 elements.paywall.style.display = 'flex';
                 elements.subTag.innerText = "Trial Expired";
                 elements.subTag.className = "sub-badge sub-expired";
                 elements.transformBtn.disabled = true;
                 elements.transformBtn.innerText = "Subscription Required";
-            } else if (data.status === 'trial') {
-                elements.subTag.innerText = `Trial: ${data.daysLeft} days left`;
-                elements.subTag.className = "sub-badge sub-trial";
-            } else if (data.status === 'pro' || data.status === 'unlimited') {
-                elements.subTag.innerText = "Prime Plan";
-                elements.subTag.className = "sub-badge sub-pro";
+            } else {
+                elements.paywall.style.display = 'none'; // Ensure hidden if not expired
+                if (data.status === 'trial') {
+                    elements.subTag.innerText = `Trial: ${data.daysLeft} days left`;
+                    elements.subTag.className = "sub-badge sub-trial";
+                } else if (data.status === 'pro' || data.status === 'unlimited') {
+                    elements.subTag.innerText = "Prime Plan";
+                    elements.subTag.className = "sub-badge sub-pro";
+                }
             }
         };
 
