@@ -19,6 +19,16 @@ const cors = require('cors');
 const fs = require('fs-extra');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
+
+// ── Rate Limiting (Quota Protection) ─────────────────────────────────────────
+const aiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 50, 
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "QUOTA_EXCEEDED", message: "Rate limit reached. Please wait 15 minutes or upgrade to Prime." }
+});
+
 const dotenv = require('dotenv');
 const axios = require('axios');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
