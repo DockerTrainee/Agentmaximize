@@ -18,6 +18,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const fs = require('fs-extra');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const axios = require('axios');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
@@ -336,7 +337,7 @@ app.get('/api/subscription/status', async (req, res) => {
     }
 });
 
-app.post('/api/subscription/start-trial', async (req, res) => {
+app.post('/api/subscription/start-trial', aiLimiter, async (req, res) => {
     const clientId = req.headers['x-client-id'] || req.query.clientId;
     if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
 
@@ -1180,7 +1181,7 @@ async function saveAgentToRegistry(agentData) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ORCHESTRATION API — Returns job ID immediately (non-blocking)
 // ─────────────────────────────────────────────────────────────────────────────
-app.post('/orchestrate', async (req, res) => {
+app.post('/orchestrate', aiLimiter, async (req, res) => {
     const { goal } = req.body;
     const clientId = req.headers['x-client-id'] || `anon-${Date.now()}`;
     if (!process.env.GEMINI_API_KEY) {
@@ -1421,7 +1422,17 @@ Endpoints available: /live-data/crypto, /live-data/news, /search (POST with { qu
     const compactedHTML = compactContext(cleanHTML);
     streamThought(jobId, 'System Compactor', 'Executed Context Compaction. HTML AST compressed for higher agent IQ.');
 
+// ── AI Safety Guardrails (Play Store Compliance) ─────────────────────────────
+const AI_SAFETY_SHIELD = `
+CRITICAL SAFETY PROTOCOL:
+1. You are "Prompt Maximize AI". 
+2. STRICTLY FORBIDDEN: Do not generate content that qualifies as scams, non-consensual deepfakes, harassment, hate speech, or financial fraud instructions.
+3. If a request violates these terms, politely decline and explain that it violates our Safety Policy.
+4. Always prioritize clarity, professionalism, and high-fidelity prompt engineering.
+`;
+
     let jsAgentPrompt = `
+${AI_SAFETY_SHIELD}
 You are "JS Agent" - a Master of Interaction Design and System Logic.
 Write Enterprise JavaScript for: "${blueprint.projectName}"
 
