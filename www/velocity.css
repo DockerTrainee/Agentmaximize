@@ -1,0 +1,135 @@
+/* ═══════════════════════════════════════════════
+   NEXUS VELOCITY v13.0 — PROFESSIONAL SASS AESTHETIC
+   Spring Physics × Saturated Depth
+   ═══════════════════════════════════════════════ */
+
+:root {
+    --bg-main: #0a0b10;
+    --panel-bg: #11131c;
+    --panel-border: rgba(255, 255, 255, 0.08);
+    --accent-blue: #3b82f6;
+    --accent-emerald: #10b981;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --radius: 12px;
+}
+
+body.velocity-mode {
+    background: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── PROFESSIONAL NAV ── */
+.v-nav {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 4px;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.nav-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.nav-item.active {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+/* ── VELOCITY PANEL ── */
+.v-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    transform: translateY(20px);
+    opacity: 0;
+    animation: v-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes v-slide-up {
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── WAVEFORM CORE ── */
+.wave-container {
+    height: 180px;
+    margin: 1.5rem 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#wave-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* ── INPUT SYSTEM ── */
+.v-input-shell {
+    position: relative;
+    margin-top: 1.5rem;
+}
+
+.v-input {
+    width: 100%;
+    background: #000;
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    color: #fff;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.v-input:focus {
+    border-color: var(--accent-blue);
+}
+
+.v-btn {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--accent-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.v-btn:active {
+    transform: scale(0.96);
+}
+
+/* ── DATA CHIPS ── */
+.v-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--accent-blue);
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
