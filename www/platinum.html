@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus Platinum v16.0 | Professional AI Interface</title>
+    <link rel="stylesheet" href="platinum.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="platinum-mode">
+
+    <div class="aura-container">
+        <div class="aura-blob"></div>
+    </div>
+
+    <div style="padding: 2rem; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
+        
+        <div class="platinum-card">
+            <header>
+                <h1 class="platinum-title">NEXUS PRIME</h1>
+                <p class="platinum-subtitle">Intelligence Synthesis v16.0</p>
+            </header>
+
+            <div style="text-align: center; margin: 2rem 0;">
+                <!-- Minimalist Visual Indicator -->
+                <div style="width: 60px; height: 60px; margin: 0 auto; border: 2px solid rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative;">
+                    <div style="width: 12px; height: 12px; background: #fff; border-radius: 50%; box-shadow: 0 0 20px #fff; animation: pulse 2s infinite;"></div>
+                    <svg style="position: absolute; width: 100%; height: 100%; transform: rotate(-90deg);">
+                        <circle cx="30" cy="30" r="28" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-dasharray="175" stroke-dashoffset="40" stroke-linecap="round"></circle>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="p-input-wrapper">
+                <textarea class="p-input" placeholder="Type your objective..." style="min-height: 140px; resize: none;"></textarea>
+                <button class="p-btn">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+            </div>
+
+            <div class="p-hud">
+                <div class="p-hud-item">
+                    <div class="p-hud-val">0.02ms</div>
+                    <div class="p-hud-lab">Latency</div>
+                </div>
+                <div class="p-hud-item">
+                    <div class="p-hud-val">99.9%</div>
+                    <div class="p-hud-lab">Precision</div>
+                </div>
+                <div class="p-hud-item">
+                    <div class="p-hud-val">AES-256</div>
+                    <div class="p-hud-lab">Security</div>
+                </div>
+            </div>
+        </div>
+
+        <footer style="margin-top: 4rem; text-align: center; font-size: 0.7rem; color: var(--text-secondary); letter-spacing: 0.05em;">
+            Designed for Professional Excellence • &copy; 2026 Nexus Core
+        </footer>
+
+    </div>
+
+    <script>
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.2); opacity: 0.6; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Subtile parallax on mouse move
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.pageX) / 100;
+            const y = (window.innerHeight / 2 - e.pageY) / 100;
+            document.querySelector('.platinum-card').style.transform = `translate(${x}px, ${y}px)`;
+            document.querySelector('.aura-blob').style.transform = `translate(calc(-50% + ${-x*2}px), calc(-50% + ${-y*2}px))`;
+        });
+    </script>
+</body>
+</html>
