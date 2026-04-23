@@ -1,0 +1,184 @@
+/* ═══════════════════════════════════════════════
+   NEXUS OMEGA v7.0 — ULTIMATE AI INTERFACE
+   Beyond High-Fidelity: Prismatic Glassmorphism
+   ═══════════════════════════════════════════════ */
+
+:root {
+    --bg: #010103;
+    --panel: rgba(10, 11, 20, 0.65);
+    --accent-cyan: #00f2ff;
+    --accent-purple: #a100ff;
+    --accent-pink: #ff00c8;
+    --text: #ffffff;
+    --text-dim: rgba(255, 255, 255, 0.4);
+    --border-glow: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-purple), transparent);
+}
+
+body.omega-mode {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    perspective: 1200px;
+}
+
+/* ── NEURAL BACKGROUND ── */
+#neural-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.4;
+    filter: blur(1px);
+}
+
+/* ── PRISMATIC BORDER ANIMATION ── */
+.omega-card {
+    background: var(--panel);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border-radius: 30px;
+    padding: 2rem;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.omega-card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 30px;
+    padding: 1.5px;
+    background: var(--border-glow);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.5;
+    background-size: 200% 200%;
+    animation: shimmer 4s linear infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+/* ── QUANTUM CORE (Advanced Orb) ── */
+.quantum-core {
+    width: 320px;
+    height: 320px;
+    margin: 0 auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.core-ring {
+    position: absolute;
+    border: 1px solid var(--accent-glow);
+    border-radius: 50%;
+    opacity: 0.2;
+}
+
+.ring-1 { width: 100%; height: 100%; border-width: 2px; animation: rotate 10s linear infinite; border-style: dashed; }
+.ring-2 { width: 80%; height: 80%; animation: rotate-reverse 15s linear infinite; opacity: 0.1; }
+
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes rotate-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+
+/* ── ELITE TYPOGRAPHY ── */
+.omega-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: -0.05em;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to bottom, #fff, #888);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.omega-subtitle {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent-cyan);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+    opacity: 0.8;
+}
+
+/* ── INTERACTIVE COMPONENTS ── */
+.input-shell {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1.2rem;
+    margin-top: 2rem;
+}
+
+.omega-btn {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 1.4rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #00f2ff 0%, #a100ff 100%);
+    border: none;
+    color: white;
+    font-weight: 900;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    box-shadow: 0 0 40px rgba(0, 242, 255, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.omega-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.omega-btn:hover::before { opacity: 1; }
+
+/* ── HUD ELEMENTS ── */
+.hud-box {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 2rem;
+}
+
+.hud-item {
+    text-align: center;
+}
+
+.hud-val {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #fff;
+}
+
+.hud-lab {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-top: 0.3rem;
+}
