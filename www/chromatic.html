@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus Chromatic v14.0 | Prismatic AI</title>
+    <link rel="stylesheet" href="chromatic.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Outfit:wght@800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="chromatic-mode">
+
+    <!-- Background Decoration -->
+    <div class="color-blob" style="background: #ff00c8; top: -100px; right: -100px;"></div>
+    <div class="color-blob" style="background: #00f2ff; bottom: -100px; left: -100px; animation-delay: -5s;"></div>
+
+    <div style="padding: 2.5rem; max-width: 550px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column;">
+        
+        <!-- Header -->
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+            <div>
+                <div style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 900; letter-spacing: -0.02em;">
+                    NEXUS <span style="background: var(--prismatic); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; background-size: 200%;">CHROMATIC</span>
+                </div>
+                <div style="font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.2em; text-transform: uppercase;">v14.0 Intelligence</div>
+            </div>
+            <div style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #ff00c8; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-fingerprint" style="color: #ff00c8;"></i>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <div class="c-tabs">
+            <div class="c-tab active">SYNTHESIS</div>
+            <div class="c-tab">NEURAL LOGS</div>
+        </div>
+
+        <!-- Main Workspace -->
+        <div class="c-panel flex-1">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 900;">Neural Core</h2>
+                <div style="font-size: 0.7rem; color: #00ff41; font-weight: 800;"><i class="fas fa-circle" style="font-size: 0.5rem; margin-right: 4px;"></i> OPTIMAL</div>
+            </div>
+
+            <div class="spectral-container">
+                <canvas id="spectral-canvas"></canvas>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+                <div style="padding: 1.2rem; background: rgba(255,255,255,0.03); border-radius: 16px;">
+                    <div style="font-size: 0.6rem; color: var(--text-dim); margin-bottom: 4px;">ENERGY_LEVEL</div>
+                    <div style="font-size: 1.2rem; font-weight: 900; color: #ffb000;">94.2%</div>
+                </div>
+                <div style="padding: 1.2rem; background: rgba(255,255,255,0.03); border-radius: 16px;">
+                    <div style="font-size: 0.6rem; color: var(--text-dim); margin-bottom: 4px;">SYNC_RATE</div>
+                    <div style="font-size: 1.2rem; font-weight: 900; color: #00f2ff;">0.001ms</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div style="margin-top: 2rem;">
+            <div class="c-panel" style="padding: 1.2rem;">
+                <textarea class="c-input" placeholder="Initiate chromatic objective..." style="min-height: 80px; resize: none; border: none; background: none; padding: 0;"></textarea>
+                <button class="c-btn" style="margin-top: 1rem;">
+                    MAXIMIZE SYNERGY <i class="fas fa-magic" style="margin-left: 8px;"></i>
+                </button>
+            </div>
+        </div>
+
+        <footer style="margin-top: auto; padding-top: 3rem; text-align: center; font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase;">
+            Chromatic Protocol • Secure Encryption active
+        </footer>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('spectral-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        function resize() {
+            width = canvas.width = canvas.offsetWidth;
+            height = canvas.height = canvas.offsetHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let time = 0;
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            time += 0.05;
+
+            const centerY = height / 2;
+            const colors = ['#ff00c8', '#ffb000', '#00ff41', '#00f2ff', '#a100ff'];
+
+            for(let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.strokeStyle = colors[i];
+                ctx.lineWidth = 3;
+                ctx.globalAlpha = 0.4 - (i * 0.05);
+
+                for(let x = 0; x < width; x += 2) {
+                    const wave = Math.sin(x * 0.02 + time + i) * (20 + i * 5);
+                    const y = centerY + wave;
+                    if(x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+</html>
