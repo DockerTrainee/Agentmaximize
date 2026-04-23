@@ -3,6 +3,7 @@
   "appName": "Prompt Maximize",
   "webDir": "www",
   "server": {
+    "url": "https://agent-maximize-nexus.onrender.com",
     "cleartext": true,
     "androidScheme": "https"
   }

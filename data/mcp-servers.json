@@ -1,18 +1,32 @@
 {
   "servers": [
     {
-      "name": "brave-search",
+      "name": "sequential-thinking",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
-      "enabled": false,
-      "notes": "Requires BRAVE_API_KEY in .env. Enables agents to perform web research during synthesis."
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "enabled": true
     },
     {
-      "name": "filesystem",
+      "name": "duckduckgo",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:/Users/rahul/Documents"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-duckduckgo"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "brave-search",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
       "enabled": false,
-      "notes": "Enables agents to read/write local files (Careful: Security risk if enabled in prod)."
+      "notes": "Requires BRAVE_API_KEY in .env."
     }
   ],
   "globalTimeout": 8000

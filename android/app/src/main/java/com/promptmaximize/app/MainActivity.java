@@ -1,4 +1,4 @@
-package com.agentmaximize.app;
+package com.promptmaximize.app;
 
 import com.getcapacitor.BridgeActivity;
 

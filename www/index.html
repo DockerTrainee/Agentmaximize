@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompt Maximize | Pro Intelligence</title>
-    <meta name="description" content="Unlocking the full potential of your AI interactions through guided optimization.">
+    <title>Prompt Maximize — Elite AI Synthesis</title>
+    <meta name="description" content="Unlock high-fidelity prompt intelligence with Prompt Maximize. Professional optimization for any instruction.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -145,6 +145,7 @@
             border-color: var(--primary);
             box-shadow: 0 0 20px var(--primary-glow);
         }
+
 
         textarea {
             width: 100%;
@@ -315,6 +316,76 @@
             #aon-sidebar { flex-direction: column; }
             .aon-split-layout { padding: 1rem; }
         }
+        /* ── Paywall Modal ─────────────────────────────────────────── */
+        .paywall-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            display: none; align-items: center; justify-content: center;
+            z-index: 9999; animation: fadeIn 0.5s ease-out;
+        }
+
+        .paywall-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            transform: translateY(0);
+            animation: slideInDown 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .paywall-card h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .paywall-card p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .premium-btn {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            width: 100%;
+        }
+
+        .premium-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+        }
+
+        .sub-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 10px;
+        }
+
+        .sub-trial { background: rgba(16, 185, 129, 0.2); color: var(--secondary); border: 1px solid var(--secondary-glow); }
+        .sub-expired { background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.5); }
+        .sub-pro { background: rgba(99, 102, 241, 0.2); color: var(--primary); border: 1px solid var(--primary-glow); }
     </style>
 </head>
 <body>
@@ -328,7 +399,9 @@
             <h2>Refinement Lab</h2>
             <div id="aon-prompt-editor" class="aon-editor-box">
                 <label style="font-size: 11px; color: var(--text-muted); opacity: 0.6;">INPUT BASE QUERY</label>
-                <textarea id="aon-input-1" placeholder="Enter your raw prompt here..."></textarea>
+                <textarea id="aon-input-1" placeholder="Enter your raw prompt here..." 
+                    style="overflow:hidden; resize:none; min-height:100px; transition: height 0.2s ease-out;"
+                    oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
                 <div class="aon-action-bar">
                     <button id="aon-btn-1" class="aon-primary-btn">Maximize Instruction</button>
                 </div>
@@ -348,47 +421,255 @@
                 </div>
             </section>
 
+            <section class="aon-module-card" id="aon-sub-card">
+                <h3>Elite Access</h3>
+                <div id="sub-card-content" style="background: rgba(99, 102, 241, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2);">
+                    <p id="sub-card-details" style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Access high-fidelity AI tools with our professional tier.</p>
+                    <button id="start-trial-sidebar-btn" class="aon-primary-btn" style="width: 100%; font-size: 12px; padding: 10px;">Start 7-Day Free Trial</button>
+                </div>
+            </section>
+
             <section class="aon-module-card">
-                <h3>Expert Systems</h3>
+                <h3>Expert Feedback</h3>
                 <div id="aon-data-support-feed">
                     <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
-                        <span style="font-size: 12px; font-weight: 600; color: var(--secondary);">Persona-Based Reasoning</span>
-                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Steps through logical reasoning before concluding.</p>
-                        <button class="aon-secondary-btn" style="padding: 4px 8px; font-size: 10px; margin-top: 8px;">Use Template</button>
+                        <span style="font-size: 12px; font-weight: 600; color: var(--secondary);">AI Accuracy Notice</span>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">AI can generate inaccurate info. Always verify synthesized outputs before mission-critical use.</p>
+                        <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin: 8px 0;">
+                        <div style="display:flex; gap: 10px;">
+                            <a href="privacy.html" style="font-size: 10px; color: var(--primary); text-decoration: none;">Privacy Policy</a>
+                            <a href="terms.html" style="font-size: 10px; color: var(--primary); text-decoration: none;">Terms of Service</a>
+                        </div>
                     </div>
+                </div>
+            </section>
+            <section class="aon-module-card">
+                <h3>Help & Support</h3>
+                <div style="background: rgba(99, 102, 241, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2);">
+                    <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 5px;">
+                        <i data-lucide="help-circle" style="width:16px; height:16px; color: var(--primary);"></i>
+                        <span style="font-size: 12px; font-weight: 600; color: var(--text-main);">Operational Support</span>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Need assistance or have feedback? Reach out to our core team.</p>
+                    <a href="mailto:Raj.bans@ymail.com" style="display: block; font-size: 12px; color: var(--primary); text-decoration: none; font-weight: 700; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 4px; text-align: center;">
+                        Raj.bans@ymail.com
+                    </a>
                 </div>
             </section>
         </aside>
     </main>
 
-    <footer style="padding:1rem 4rem; border-top:1px solid var(--border); font-size:0.8rem; color:var(--text-muted);">
+    <footer style="padding:1rem 4rem; border-top:1px solid var(--border); font-size:0.8rem; color:var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
         <div id="aon-data-system-status">
             <span class="aon-status-indicator" style="background:#22c55e;"></span> Status: Connected to Production Core
         </div>
+        <div id="aon-sub-status" style="display: flex; align-items: center; gap: 15px;">
+                <div class="aon-footer-stats">
+                    <span id="system-status" style="display:inline-flex; align-items:center; gap:6px;">
+                        <span style="width:8px; height:8px; background:#10B981; border-radius:50%; box-shadow: 0 0 10px #10B981;"></span>
+                        SYSTEM ONLINE
+                    </span>
+                    <span id="debug-info" style="color: rgba(255,255,255,0.2);">ID: <span id="debug-id">...</span></span>
+                    <span id="sub-tag" class="sub-badge">Checking...</span>
+                </div>
+        </div>
     </footer>
+
+    <div id="aon-paywall" class="paywall-overlay">
+        <div class="paywall-card">
+            <i data-lucide="crown" style="width: 64px; height: 64px; color: #FFD700; margin-bottom: 1rem;"></i>
+            <h2 id="paywall-title">Premium Access Required</h2>
+            <p id="paywall-desc">Unlock unlimited high-fidelity prompt synthesis with our professional membership.</p>
+            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                <span id="paywall-price" style="font-size: 1.5rem; font-weight: 800; color: #FFD700;">$9.99<span style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted);">/month</span></span>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Includes all neural synthesis optimizations.</p>
+            </div>
+            <button id="upgrade-btn" class="premium-btn">Upgrade to Prime Monthly</button>
+            <button id="start-trial-modal-btn" class="aon-primary-btn" style="width: 100%; margin-top: 10px; background: transparent; border: 1px solid var(--secondary); color: var(--secondary);">Start 7-Day Free Trial</button>
+            
+            <div style="margin-top: 1.5rem; font-size: 0.8rem;">
+                <a href="#" id="restore-btn" style="color: var(--text-muted); text-decoration: none; margin-right: 15px;">Restore Purchases</a>
+                <a href="terms.html" style="color: var(--text-muted); text-decoration: none;">Terms of Service</a>
+            </div>
+        </div>
+    </div>
 
     <div class="aon-watermark">⚡ Prompt Maximize v1.0</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@revenuecat/purchases-capacitor@latest/dist/capacitor-purchases.js"></script>
+    <!-- Native Bridge Mocks for Browser Testing -->
+    <script src="/capacitor.js"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    // 🛡️ CRASH REPORTER & ERROR HANDLING
+    window.onerror = function(msg, url, line, col, error) {
+        console.error("CRASH DETECTED:", msg, "at", url, ":", line);
+        alert("CRASH DETECTED!\n\nMessage: " + msg + "\nLine: " + line + "\n\nThis usually happens due to missing native plugins. Please ensure you are running the latest version from Play Store.");
+        return false;
+    };
+    window.onunhandledrejection = function(event) {
+        console.error("UNHANDLED REJECTION:", event.reason);
+        // alert("ASYNC ERROR: " + event.reason);
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
         const BACKEND_URL = "https://agent-maximize-nexus.onrender.com";
         const state = {
             activeInput: "",
-            history: JSON.parse(localStorage.getItem('prompt_history') || '[]')
+            history: JSON.parse(localStorage.getItem('prompt_history') || '[]'),
+            clientId: localStorage.getItem('aon_client_id'),
+            subscription: null
         };
 
         const elements = {
             inputField: document.getElementById('aon-input-1'),
             transformBtn: document.getElementById('aon-btn-1'),
             refinedOutput: document.getElementById('aon-data-refined-output'),
-            historyList: document.getElementById('aon-history-list')
+            historyList: document.getElementById('aon-history-list'),
+            paywall: document.getElementById('aon-paywall'),
+            upgradeBtn: document.getElementById('upgrade-btn'),
+            subTag: document.getElementById('sub-tag')
+        };
+
+        // 🛡️ HARDENED IDENTITY SYSTEM
+        const getOrGenerateId = () => {
+            let id = localStorage.getItem('aon_client_id');
+            if (!id || id === 'null' || id === 'undefined') {
+                id = 'pm-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36);
+                localStorage.setItem('aon_client_id', id);
+            }
+            state.clientId = id;
+            return id;
+        };
+
+        const initIdentity = async () => {
+            getOrGenerateId();
+            
+            // 🛡️ NATIVE PLUGIN BRIDGE (v2.0)
+            if (window.Capacitor && window.Capacitor.Plugins) {
+                try {
+                    const { Device } = window.Capacitor.Plugins;
+                    if (Device) {
+                        const info = await Device.getId();
+                        if (info.identifier) {
+                            state.clientId = info.identifier;
+                            localStorage.setItem('aon_client_id', state.clientId);
+                            console.log("[NEXUS] Native Device ID locked:", state.clientId);
+                        }
+                    }
+                } catch (e) { 
+                    console.warn("Native ID retrieval failed, falling back to browser ID", e); 
+                }
+            }
+        };
+
+        const startTrial = async () => {
+            const id = getOrGenerateId();
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/subscription/start-trial`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Client-ID': id 
+                    },
+                    body: JSON.stringify({ clientId: id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("Elite Trial Activated! \n\nYou now have 7 days of unlimited high-fidelity AI access.");
+                    await checkSubscription();
+                } else {
+                    // Fail gracefully - don't show technical errors if possible
+                    if (data.error === 'Missing clientId') {
+                        location.reload(); // Force a fresh identity
+                    } else {
+                        alert(data.error || "Trial activation failed.");
+                    }
+                }
+            } catch (e) {
+                alert("Network error starting trial.");
+            }
+        };
+
+        const checkSubscription = async () => {
+            const id = getOrGenerateId();
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/subscription/status?clientId=${id}`, {
+                    headers: { 'X-Client-ID': id }
+                });
+                const data = await res.json();
+                state.subscription = data;
+                updateSubscriptionUI(data);
+            } catch (e) {
+                console.error('Sub check fail:', e);
+            }
+        };
+
+        await initIdentity();
+        await checkSubscription();
+
+        const updateSubscriptionUI = (data) => {
+            console.log("[SUBS] UI Update Data:", data);
+            const debugIdEl = document.getElementById('debug-id');
+            if (debugIdEl) debugIdEl.innerText = state.clientId.substring(0, 8);
+            
+            const sidebarBtn = document.getElementById('start-trial-sidebar-btn');
+            const sidebarDetails = document.getElementById('sub-card-details');
+            const modalTrialBtn = document.getElementById('start-trial-modal-btn');
+            
+            if (data.isExpired === true && data.status !== 'pro' && data.status !== 'unlimited') {
+                if (elements.paywall) elements.paywall.style.display = 'flex';
+                if (elements.subTag) {
+                    elements.subTag.innerText = "Trial Expired";
+                    elements.subTag.className = "sub-badge sub-expired";
+                }
+                if (elements.transformBtn) {
+                    elements.transformBtn.disabled = true;
+                    elements.transformBtn.innerText = "Subscription Required";
+                }
+                
+                const pwTitle = document.getElementById('paywall-title');
+                const pwDesc = document.getElementById('paywall-desc');
+                if (pwTitle) pwTitle.innerText = "Trial Period Over";
+                if (pwDesc) pwDesc.innerText = "Your 7-day trial has concluded. Upgrade for unlimited high-fidelity prompt synthesis.";
+                
+                if(modalTrialBtn) modalTrialBtn.style.display = 'none';
+                if(sidebarBtn) sidebarBtn.style.display = 'none';
+                if(sidebarDetails) sidebarDetails.innerText = "Trial concluded. Upgrade for full access.";
+            } else {
+                if (elements.paywall) elements.paywall.style.display = 'none';
+                if (elements.subTag) {
+                    if (data.status === 'trial') {
+                        elements.subTag.innerText = `Trial: ${data.daysLeft} days left`;
+                        elements.subTag.className = "sub-badge sub-trial";
+                    } else if (data.status === 'pro' || data.status === 'unlimited') {
+                        elements.subTag.innerText = "Prime Plan";
+                        elements.subTag.className = "sub-badge sub-pro";
+                    } else {
+                        elements.subTag.innerText = "Free Tier";
+                        elements.subTag.className = "sub-badge";
+                    }
+                }
+                
+                if (data.status === 'trial' || data.status === 'pro' || data.status === 'unlimited') {
+                    if(sidebarBtn) sidebarBtn.style.display = 'none';
+                    if(modalTrialBtn) modalTrialBtn.style.display = 'none';
+                    if(sidebarDetails) sidebarDetails.innerText = data.status === 'trial' ? `Active Trial: ${data.daysLeft} days remaining.` : "Prime membership is active.";
+                } else {
+                    if (data.trialAvailable) {
+                        if(sidebarBtn) sidebarBtn.style.display = 'block';
+                        if(modalTrialBtn) modalTrialBtn.style.display = 'block';
+                        if(sidebarDetails) sidebarDetails.innerText = "Unlock a 7-day free trial of our elite AI model.";
+                    } else {
+                        if(sidebarBtn) sidebarBtn.style.display = 'none';
+                        if(sidebarDetails) sidebarDetails.innerText = "Upgrade to Prime for 10x better prompt accuracy.";
+                    }
+                }
+            }
         };
 
         const renderHistory = () => {
             if (state.history.length === 0) return;
             elements.historyList.innerHTML = state.history.map(h => `
-                <div class="aon-history-item">
+                <div class="aon-history-item" onclick="document.getElementById('aon-input-1').value = \`${h.input}\` ">
                     <div class="aon-history-text">${h.input}</div>
                 </div>
             `).join('');
@@ -398,27 +679,49 @@
             const input = elements.inputField.value.trim();
             if(!input) return;
 
+            if (state.subscription && state.subscription.isExpired && state.subscription.status !== 'pro') {
+                elements.paywall.style.display = 'flex';
+                return;
+            }
+
             elements.transformBtn.disabled = true;
             elements.transformBtn.innerText = "Maximizing...";
 
             try {
                 const res = await fetch(`${BACKEND_URL}/chat`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Client-ID': getOrGenerateId()
+                    },
                     body: JSON.stringify({ 
                         message: input,
+                        clientId: getOrGenerateId(),
                         mission: "Act as a Prompt Maximizer. Transform the user's input into a high-fidelity, expert-level prompt." 
                     })
                 });
+                
+                if (res.status === 403) {
+                    const errorData = await res.json();
+                    elements.paywall.style.display = 'flex';
+                    return;
+                }
+
                 const data = await res.json();
-                
                 const reply = data.reply || "No response received.";
-                elements.refinedOutput.innerHTML = `<div style="white-space:pre-wrap; color:var(--text-main);">${reply}</div>`;
                 
-                state.history.unshift({ input });
-                state.history = state.history.slice(0, 10);
-                localStorage.setItem('prompt_history', JSON.stringify(state.history));
-                renderHistory();
+                elements.refinedOutput.innerHTML = `
+                    <div style="white-space:pre-wrap; color:var(--text-main); margin-bottom: 20px;">${reply}</div>
+                    <div style="display:flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                        <button onclick="copyToClipboard(\`${reply.replace(/`/g, '\\`')}\`)" class="aon-secondary-btn" style="padding: 6px 12px; font-size: 11px;">
+                            <i data-lucide="copy" style="width:14px; height:14px; margin-right:5px;"></i> Copy Optimized Prompt
+                        </button>
+                        <button onclick="reportContent(\`${reply.replace(/`/g, '\\`')}\`)" class="aon-secondary-btn" style="padding: 6px 12px; font-size: 11px; color:#EF4444;">
+                            <i data-lucide="flag" style="width:14px; height:14px; margin-right:5px;"></i> Report Offensive
+                        </button>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
 
             } catch (e) {
                 elements.refinedOutput.innerText = "Error connecting to AI core: " + e.message;
@@ -427,6 +730,52 @@
                 elements.transformBtn.innerText = "Maximize Instruction";
             }
         };
+
+        elements.upgradeBtn.onclick = async () => {
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Purchases) {
+                try {
+                    const { Purchases } = window.Capacitor.Plugins;
+                    // Example Purchase Call (Adjustment based on your RevenueCat setup)
+                    // await Purchases.purchasePackage({ package: ... });
+                    alert("Initializing Secure Purchase via Google Play...");
+                } catch (e) {
+                    alert("Purchase Initialization Error: " + e.message);
+                }
+            } else {
+                alert("Redirecting to Billing Portal...");
+            }
+        };
+
+        window.copyToClipboard = (text) => {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard!");
+            });
+        };
+
+        window.reportContent = async (text) => {
+            const reason = prompt("Why are you reporting this content? (Inaccurate, Offensive, Harmful, etc.)");
+            if (!reason) return;
+            
+            try {
+                await fetch(`${BACKEND_URL}/api/report-content`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Client-ID': getOrGenerateId()
+                    },
+                    body: JSON.stringify({ clientId: getOrGenerateId(), content: text, reason: reason })
+                });
+                alert("Thank you. Our safety team will review this output.");
+            } catch (e) {
+                alert("Report failed to send.");
+            }
+        };
+
+        // 🛡️ RE-ATTACH HANDLERS
+        const sidebarBtn = document.getElementById('start-trial-sidebar-btn');
+        const modalBtn = document.getElementById('start-trial-modal-btn');
+        if (sidebarBtn) sidebarBtn.onclick = startTrial;
+        if (modalBtn) modalBtn.onclick = startTrial;
 
         renderHistory();
         if (typeof lucide !== 'undefined') lucide.createIcons();
