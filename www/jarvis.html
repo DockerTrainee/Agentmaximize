@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus JARVIS v15.0 | Stark Industries HUD</title>
+    <link rel="stylesheet" href="jarvis.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="jarvis-mode">
+
+    <!-- HUD Corners -->
+    <div class="hud-corner top-left">
+        SYS_STATUS: OPTIMAL<br>
+        LOC: [51.5074, 0.1278]<br>
+        TEMP: 32.4°C
+    </div>
+    <div class="hud-corner top-right">
+        BATTERY: 100%<br>
+        SYNC: ENCRYPTED<br>
+        SIGNAL: 5/5
+    </div>
+    <div class="hud-corner bottom-left">
+        LOG_042: RE-SYNTHESIS...<br>
+        CORE: STABLE<br>
+        THREAT: NONE
+    </div>
+    <div class="hud-corner bottom-right">
+        v15.0.JARVIS<br>
+        [C] 2026 STARK_IND<br>
+        NEXUS_PRIME_ACTIVE
+    </div>
+
+    <div style="padding: 2rem; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; max-width: 600px; margin: 0 auto; position: relative; z-index: 10;">
+        
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="font-size: 0.8rem; letter-spacing: 0.5em; color: var(--jarvis-orange); margin-bottom: 0.5rem;">MARVEL_INTELLIGENCE</div>
+            <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.05em;">NEXUS <span style="color: #fff;">JARVIS</span></h1>
+        </div>
+
+        <!-- The HUD Rings -->
+        <div class="hud-ring-container">
+            <div class="hud-ring ring-outer"></div>
+            <div class="hud-ring ring-mid"></div>
+            <div class="hud-ring ring-inner"></div>
+            <div style="position: absolute; width: 40px; height: 40px; background: var(--jarvis-cyan); border-radius: 50%; box-shadow: 0 0 30px var(--jarvis-cyan); opacity: 0.8; animation: heart-beat 1.5s infinite;"></div>
+            
+            <!-- Radar Sweep -->
+            <div id="radar-sweep" style="position: absolute; top: 0; left: 50%; width: 2px; height: 150px; background: linear-gradient(to top, var(--jarvis-cyan), transparent); transform-origin: bottom center; animation: radar 4s linear infinite;"></div>
+        </div>
+
+        <div class="jarvis-panel" style="margin-top: 1rem;">
+            <div style="font-size: 0.7rem; margin-bottom: 0.8rem; color: var(--jarvis-orange);">
+                <i class="fas fa-microchip"></i> AWAITING COMMAND_
+            </div>
+            
+            <textarea class="jarvis-input" placeholder="Enter target objective..." style="min-height: 80px; resize: none;"></textarea>
+            
+            <button class="jarvis-btn">
+                INITIALIZE CORE SCAN
+            </button>
+        </div>
+
+        <div style="margin-top: 2rem; text-align: center; font-size: 0.5rem; color: var(--text-dim);">
+            SYSTEM SECURED BY STARK INDUSTRIES • ACCESS GRANTED: [USER_LEVEL_ELITE]
+        </div>
+
+    </div>
+
+    <script>
+        // Pulse/Heartbeat effect
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes heart-beat {
+                0%, 100% { transform: scale(1); opacity: 0.8; }
+                50% { transform: scale(1.1); opacity: 1; }
+            }
+            @keyframes radar {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Interactive HUD drift
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.pageX) / 40;
+            const y = (window.innerHeight / 2 - e.pageY) / 40;
+            document.querySelector('.hud-ring-container').style.transform = `translate(${x}px, ${y}px)`;
+        });
+    </script>
+</body>
+</html>

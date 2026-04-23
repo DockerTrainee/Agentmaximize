@@ -1,0 +1,114 @@
+/* ═══════════════════════════════════════════════
+   NEXUS JARVIS v15.0 — THE HUD INTERFACE
+   Inspired by Stark Industries Mark 85
+   ═══════════════════════════════════════════════ */
+
+:root {
+    --bg: #020406;
+    --jarvis-cyan: #00f2ff;
+    --jarvis-orange: #ff8800;
+    --glass: rgba(0, 242, 255, 0.03);
+    --text: #00f2ff;
+    --text-dim: rgba(0, 242, 255, 0.4);
+}
+
+body.jarvis-mode {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0;
+    overflow: hidden;
+    /* Vignette effect */
+    background: radial-gradient(circle, #050a0f 0%, #000 100%);
+}
+
+/* ── SCANLINES ── */
+body.jarvis-mode::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    background-size: 100% 4px, 3px 100%;
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+/* ── HUD COMPONENTS ── */
+.hud-ring-container {
+    width: 300px;
+    height: 300px;
+    margin: 2rem auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hud-ring {
+    position: absolute;
+    border: 1px solid var(--text-dim);
+    border-radius: 50%;
+    transition: all 0.5s;
+}
+
+.ring-outer { width: 100%; height: 100%; border-style: dashed; animation: rotate-cw 20s linear infinite; }
+.ring-mid { width: 80%; height: 80%; border-width: 2px; border-color: var(--jarvis-cyan); animation: rotate-ccw 10s linear infinite; }
+.ring-inner { width: 60%; height: 60%; border-style: dotted; animation: rotate-cw 5s linear infinite; }
+
+@keyframes rotate-cw { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes rotate-ccw { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+
+/* ── HUD CORNER DATA ── */
+.hud-corner {
+    position: absolute;
+    font-size: 0.6rem;
+    padding: 10px;
+    border: 1px solid var(--text-dim);
+}
+
+.top-left { top: 20px; left: 20px; border-width: 1px 0 0 1px; }
+.top-right { top: 20px; right: 20px; border-width: 1px 1px 0 0; text-align: right; }
+.bottom-left { bottom: 20px; left: 20px; border-width: 0 0 1px 1px; }
+.bottom-right { bottom: 20px; right: 20px; border-width: 0 1px 1px 0; text-align: right; }
+
+/* ── ACTION INTERFACE ── */
+.jarvis-panel {
+    background: var(--glass);
+    border: 1px solid var(--text-dim);
+    padding: 1.5rem;
+    position: relative;
+    backdrop-filter: blur(5px);
+}
+
+.jarvis-input {
+    width: 100%;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--text-dim);
+    color: var(--jarvis-cyan);
+    padding: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    outline: none;
+}
+
+.jarvis-btn {
+    width: 100%;
+    margin-top: 1rem;
+    background: transparent;
+    border: 1px solid var(--jarvis-cyan);
+    color: var(--jarvis-cyan);
+    padding: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    position: relative;
+}
+
+.jarvis-btn:hover {
+    background: var(--jarvis-cyan);
+    color: #000;
+    box-shadow: 0 0 20px var(--jarvis-cyan);
+}
