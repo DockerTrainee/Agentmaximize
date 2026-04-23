@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus Stealth v12.0 | Refined Intelligence</title>
+    <link rel="stylesheet" href="stealth.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;800&family=Outfit:wght@200;400&family=JetBrains+Mono&display=swap" rel="stylesheet">
+</head>
+<body class="stealth-mode">
+
+    <div style="padding: 2.5rem; min-height: 100vh; display: flex; flex-direction: column; max-width: 500px; margin: 0 auto;">
+        
+        <div class="stealth-headline">system.nexus.intelligence</div>
+
+        <div class="mercury-container">
+            <canvas id="mercury-canvas"></canvas>
+            <div style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px;">
+                <div class="pulse-indicator"></div>
+                <span style="font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.1em;">PROCESSING_FLOW</span>
+            </div>
+        </div>
+
+        <div class="stealth-card">
+            <h1 class="stealth-title">NEXUS <span style="font-weight: 400;">PRIME</span></h1>
+            
+            <div style="margin-top: 3rem;">
+                <textarea class="stealth-input" placeholder="Define objective..." style="min-height: 120px; resize: none;"></textarea>
+                
+                <button class="stealth-btn">Engage Core</button>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.5rem; color: var(--text-dim);">
+                <span>ENCRYPTION_V2</span>
+                <span>7.4ms_SYNC</span>
+            </div>
+        </div>
+
+        <footer style="margin-top: auto; padding-top: 3rem; text-align: center; font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.2em;">
+            &copy; 2026 NEXUS CORE • OBSIDIAN EDITION
+        </footer>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mercury-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        function resize() {
+            width = canvas.width = canvas.offsetWidth;
+            height = canvas.height = canvas.offsetHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let time = 0;
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            time += 0.005;
+
+            const cx = width / 2;
+            const cy = height / 2;
+            const radius = 80;
+
+            // Draw shadow/glow
+            ctx.shadowBlur = 40;
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+
+            // Draw Liquid Mercury Blob
+            ctx.beginPath();
+            for (let a = 0; a < Math.PI * 2; a += 0.05) {
+                const xNoise = Math.sin(a * 3 + time) * 15;
+                const yNoise = Math.cos(a * 4 - time * 1.5) * 15;
+                const r = radius + xNoise + yNoise;
+                
+                const x = cx + Math.cos(a) * r;
+                const y = cy + Math.sin(a) * r;
+                
+                if (a === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+
+            // Gradient for Metallic Look
+            const grad = ctx.createLinearGradient(0, 0, width, height);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(0.5, '#888888');
+            grad.addColorStop(1, '#333333');
+            
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Specular Highlight
+            ctx.beginPath();
+            ctx.arc(cx - 30, cy - 30, 20, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.fill();
+
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+</html>
