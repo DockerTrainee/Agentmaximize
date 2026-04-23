@@ -1,0 +1,144 @@
+/* ═══════════════════════════════════════════════
+   NEXUS LUXE v8.0 — THE LUXURY STANDARD
+   Inspired by: Apple (Depth) | Tesla (Flow) | Balenciaga (Narrative)
+   ═══════════════════════════════════════════════ */
+
+:root {
+    --bg: #050508;
+    --luxury-white: #fdfdfd;
+    --luxury-dim: rgba(253, 253, 253, 0.4);
+    --accent-gold: #c5a059;
+    --accent-cyan: #00f2ff;
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-heavy: rgba(255, 255, 255, 0.07);
+    
+    /* APPLE EASE-OUT PHYSICS */
+    --ease-apple: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+body.luxe-mode {
+    background: var(--bg);
+    color: var(--luxury-white);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+/* ── TACTILE NOISE OVERLAY (The Luxury "Grain") ── */
+body.luxe-mode::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.04;
+    z-index: 9999;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* ── SPATIAL GLASS LAYERING ── */
+.luxe-panel {
+    background: var(--glass);
+    backdrop-filter: blur(40px) saturate(150%);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 40px;
+    padding: 3rem;
+    transition: transform 0.8s var(--ease-apple), opacity 0.8s var(--ease-apple);
+    animation: luxe-fade-in 1.2s var(--ease-apple) both;
+}
+
+@keyframes luxe-fade-in {
+    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── FASHION TYPOGRAPHY ── */
+.luxe-headline {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: 3.5rem;
+    line-height: 0.95;
+    letter-spacing: -0.06em;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+}
+
+.luxe-accent-text {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 400;
+    text-transform: lowercase;
+    color: var(--accent-gold);
+    display: block;
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ── MINIMALIST DATA FEED ── */
+.luxe-stats {
+    display: flex;
+    gap: 4rem;
+    margin: 3rem 0;
+}
+
+.stat-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-val {
+    font-family: 'Inter', sans-serif;
+    font-weight: 200;
+    font-size: 2.5rem;
+    letter-spacing: -0.04em;
+}
+
+.stat-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--luxury-dim);
+    margin-top: 0.5rem;
+}
+
+/* ── LUXE BUTTON (Tesla Minimalist Style) ── */
+.luxe-btn {
+    background: var(--luxury-white);
+    color: var(--bg);
+    border: none;
+    padding: 1.5rem 3rem;
+    border-radius: 100px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    transition: all 0.4s var(--ease-apple);
+    box-shadow: 0 20px 40px rgba(255, 255, 255, 0.1);
+}
+
+.luxe-btn:hover {
+    transform: scale(1.02) translateY(-2px);
+    box-shadow: 0 30px 60px rgba(255, 255, 255, 0.2);
+}
+
+/* ── PRISMATIC ORB ── */
+.luxe-orb {
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle at center, rgba(0, 242, 255, 0.08) 0%, transparent 70%);
+    filter: blur(80px);
+    z-index: -1;
+    animation: orb-drift 20s infinite alternate;
+}
+
+@keyframes orb-drift {
+    from { transform: translate(0, 0); }
+    to { transform: translate(-50px, 50px); }
+}
