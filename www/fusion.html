@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus Fusion-X v11.0 | Cyber-Vibrant AI</title>
+    <link rel="stylesheet" href="fusion.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Outfit:wght@900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="fusion-x">
+
+    <div style="padding: 2rem; min-height: 100vh; display: flex; flex-direction: column; gap: 1.5rem; max-width: 600px; margin: 0 auto;">
+        
+        <!-- Header -->
+        <header style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h1 class="fusion-title">FUSION-X</h1>
+                <div class="fusion-sub">PROTOCOL ACTIVE [v11.0.4]</div>
+            </div>
+            <div style="font-size: 0.6rem; color: var(--text-dim); text-align: right;">
+                LAT: 51.5074 N<br>LON: 0.1278 W
+            </div>
+        </header>
+
+        <!-- Main Card -->
+        <div class="fusion-card">
+            <div class="corner-tag">ID: NEURAL_CORE_01</div>
+            
+            <div class="neural-core">
+                <canvas id="core-canvas"></canvas>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
+                <div>
+                    <div style="font-size: 0.5rem; color: var(--text-dim);">ENTROPY_FLUX</div>
+                    <div style="font-size: 1.2rem; color: var(--cyber-green);">98.42%</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.5rem; color: var(--text-dim);">SYNAPSE_LOAD</div>
+                    <div style="font-size: 1.2rem; color: var(--cyber-green);">0.04ms</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Command Card -->
+        <div class="fusion-card">
+            <div class="corner-tag">SYS: INPUT_SHELL</div>
+            <div style="margin-bottom: 1rem; font-size: 0.7rem; color: var(--text-dim);">
+                <span style="color: var(--cyber-green);">></span> INITIATING COGNITIVE SCAN...
+            </div>
+            
+            <textarea placeholder="Enter command sequence..." style="width: 100%; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; padding: 1rem; outline: none; min-height: 100px; resize: none;"></textarea>
+            
+            <button class="fusion-btn" style="margin-top: 1.5rem;">
+                EXECUTE SYNTHESIS_
+            </button>
+        </div>
+
+        <footer style="margin-top: auto; font-size: 0.5rem; color: var(--text-dim); display: flex; justify-content: space-between;">
+            <div>&copy; 2026 NEXUS CORE</div>
+            <div style="color: var(--cyber-green);">ENCRYPTION: ENABLED</div>
+        </footer>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('core-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        function resize() {
+            width = canvas.width = canvas.offsetWidth;
+            height = canvas.height = canvas.offsetHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let particles = [];
+        const colors = ['#ff00c8', '#00f2ff', '#a100ff', '#00ff41'];
+
+        for(let i=0; i<50; i++) {
+            particles.push({
+                x: width/2,
+                y: height/2,
+                r: Math.random() * 3 + 1,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                angle: Math.random() * Math.PI * 2,
+                speed: Math.random() * 0.05 + 0.02,
+                dist: Math.random() * 80 + 20
+            });
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(3, 3, 5, 0.2)';
+            ctx.fillRect(0, 0, width, height);
+
+            const time = Date.now() * 0.002;
+
+            particles.forEach((p, i) => {
+                p.angle += p.speed;
+                const wave = Math.sin(time + i) * 10;
+                const x = width/2 + Math.cos(p.angle) * (p.dist + wave);
+                const y = height/2 + Math.sin(p.angle) * (p.dist + wave);
+
+                ctx.beginPath();
+                ctx.arc(x, y, p.r, 0, Math.PI*2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+
+                // Connect to center with faint lines
+                ctx.strokeStyle = p.color;
+                ctx.globalAlpha = 0.1;
+                ctx.beginPath();
+                ctx.moveTo(width/2, height/2);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+            });
+
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+/* ═══════════════════════════════════════════════
+   NEXUS FUSION-X v11.0 — THE CYBER-VIBRANT HYBRID
+   Technical Structure × Liquid Energy
+   ═══════════════════════════════════════════════ */
+
+:root {
+    --bg: #030305;
+    --panel: rgba(10, 10, 15, 0.8);
+    --accent-prismatic: linear-gradient(90deg, #ff00c8, #ffb000, #00ff41, #00f2ff, #a100ff);
+    --cyber-green: #00ff41;
+    --text: #ffffff;
+    --text-dim: rgba(255, 255, 255, 0.3);
+}
+
+body.fusion-x {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+/* ── GRID BACKGROUND ── */
+body.fusion-x::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -1;
+}
+
+/* ── CYBER-VIBRANT CARDS ── */
+.fusion-card {
+    background: var(--panel);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    padding: 2rem;
+    overflow: hidden;
+    /* Brutalist Sharp Edges */
+    border-radius: 0; 
+}
+
+/* Prismatic Flowing Border */
+.fusion-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--accent-prismatic);
+    background-size: 200% 100%;
+    animation: flow 3s linear infinite;
+}
+
+@keyframes flow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+/* ── TECHNICAL DECORATIONS ── */
+.corner-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.5rem;
+    color: var(--cyber-green);
+    letter-spacing: 0.1em;
+    opacity: 0.6;
+}
+
+/* ── THE LIQUID NEURAL CORE ── */
+.neural-core {
+    width: 300px;
+    height: 300px;
+    margin: 2rem auto;
+    position: relative;
+}
+
+#core-canvas {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 20px rgba(0, 242, 255, 0.3));
+}
+
+/* ── TYPOGRAPHY ── */
+.fusion-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    margin: 0;
+    background: var(--accent-prismatic);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% 100%;
+    animation: flow 5s linear infinite;
+}
+
+.fusion-sub {
+    font-size: 0.7rem;
+    color: var(--cyber-green);
+    letter-spacing: 0.3em;
+    margin-top: 0.5rem;
+}
+
+/* ── FUSION BUTTON ── */
+.fusion-btn {
+    width: 100%;
+    padding: 1.2rem;
+    background: none;
+    border: 1px solid var(--cyber-green);
+    color: var(--cyber-green);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.fusion-btn:hover {
+    background: var(--cyber-green);
+    color: black;
+    box-shadow: 0 0 30px var(--cyber-green);
+}
