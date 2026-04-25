@@ -243,9 +243,22 @@ loadMCPServers();
 
 const app = express();
 const server = http.createServer(app);
+
+// ── MIDDLEWARE (MUST be before routes) ───────────────────────────────────────
+// Harden CORS to allow website and mobile native origins
+app.use(cors({
+    origin: ["http://localhost:3000", /\.onrender\.com$/, "https://agentmaximize.onrender.com", "capacitor://localhost", "https://localhost"],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Client-ID"],
+    credentials: true
+}));
+
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 const io = new Server(server, { 
     cors: { 
-        origin: ["http://localhost:3000", /\.onrender\.com$/, "https://agentmaximize.onrender.com"],
+        origin: ["http://localhost:3000", /\.onrender\.com$/, "https://agentmaximize.onrender.com", "capacitor://localhost", "https://localhost"],
         methods: ["GET", "POST"],
         credentials: true
     } 
@@ -378,14 +391,13 @@ app.post('/api/subscription/start-trial', aiLimiter, async (req, res) => {
         res.status(500).json({ error: 'TRIAL_FAILED', message: e.message });
     }
 });
-// ─────────────────────────────────────────────────────────────────────────────
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
 // Request Logger
 app.use((req, res, next) => {
-    console.log(`[REQ] ${req.method} ${req.url}`);
+    if (req.url.includes('/api/subscription')) {
+        console.log(`[SUBS-LOG] ${req.method} ${req.url} - Client: ${req.headers['x-client-id']}`);
+    } else {
+        console.log(`[REQ] ${req.method} ${req.url}`);
+    }
     next();
 });
 

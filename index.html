@@ -565,7 +565,8 @@
                     }
                 }
             } catch (e) {
-                alert("Network error starting trial.");
+                console.error("TRIAL_ERROR:", e);
+                alert("Network error starting trial. This usually means the backend server is waking up or blocked by security settings. Please check your internet and try again in 30 seconds.");
             }
         };
 
