@@ -49,6 +49,7 @@ dotenv.config();
 const DATA_BASE = process.env.DATA_DIR || __dirname;
 const AGENTS_DB_PATH = path.join(DATA_BASE, 'agents-db.json');
 const SUBS_DB_PATH = path.join(DATA_BASE, 'data', 'subscriptions.json');
+const ANALYTICS_DB_PATH = path.join(DATA_BASE, 'data', 'analytics.json');
 const BUILDS_DIR = path.join(DATA_BASE, 'builds');
 
 fs.ensureDirSync(path.join(DATA_BASE, 'data'));
@@ -57,6 +58,7 @@ fs.ensureDirSync(path.join(DATA_BASE, 'system_agents'));
 
 if (!fs.existsSync(AGENTS_DB_PATH)) fs.writeJsonSync(AGENTS_DB_PATH, { agents: [] });
 if (!fs.existsSync(SUBS_DB_PATH)) fs.writeJsonSync(SUBS_DB_PATH, { subscriptions: {} });
+if (!fs.existsSync(ANALYTICS_DB_PATH)) fs.writeJsonSync(ANALYTICS_DB_PATH, { users: {} });
 
 // ── SYSTEM AGENTS — Permanent entries ────────────────────────────────
 const SYSTEM_AGENTS = [
@@ -436,6 +438,7 @@ app.get('/health', (req, res) => res.json({ status: 'HEALTHY', timestamp: new Da
 // Serving Legal Docs for App Store Compliance
 app.get('/privacy', (req, res) => res.sendFile(path.join(__dirname, 'privacy.html')));
 app.get('/terms', (req, res) => res.sendFile(path.join(__dirname, 'terms.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'www', 'admin.html')));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GEMINI CLIENT
@@ -1855,6 +1858,63 @@ app.get('/api/subscription/status', async (req, res) => {
     if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
     const sub = await getSubscription(clientId);
     res.json({ success: true, ...sub });
+});
+
+// ── ANALYTICS & INSTALLATION TRACKING ────────────────────────────────────────
+app.post('/api/analytics/heartbeat', async (req, res) => {
+    const clientId = req.headers['x-client-id'] || req.body.clientId;
+    if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
+
+    try {
+        const db = await fs.readJson(ANALYTICS_DB_PATH);
+        const now = new Date().toISOString();
+        
+        if (!db.users[clientId]) {
+            db.users[clientId] = {
+                first_seen_at: now,
+                last_seen_at: now,
+                sessions: 1
+            };
+            console.log(`[ANALYTICS] New installation detected: ${clientId}`);
+        } else {
+            db.users[clientId].last_seen_at = now;
+            db.users[clientId].sessions = (db.users[clientId].sessions || 0) + 1;
+        }
+
+        await fs.writeJson(ANALYTICS_DB_PATH, db, { spaces: 2 });
+        res.json({ success: true });
+    } catch (e) {
+        console.error('[ANALYTICS] Heartbeat failed:', e.message);
+        res.status(500).json({ error: 'ANALYTICS_FAILED' });
+    }
+});
+
+app.get('/api/analytics/stats', async (req, res) => {
+    try {
+        const db = await fs.readJson(ANALYTICS_DB_PATH);
+        const users = Object.entries(db.users).map(([id, data]) => {
+            const first = new Date(data.first_seen_at);
+            const last = new Date(data.last_seen_at);
+            const diffDays = Math.floor((new Date() - first) / (1000 * 60 * 60 * 24));
+            
+            return {
+                id,
+                ...data,
+                daysInstalled: diffDays,
+                isActive: (new Date() - last) < (24 * 60 * 60 * 1000) // Active in last 24h
+            };
+        });
+
+        res.json({
+            success: true,
+            totalUsers: users.length,
+            activeUsers: users.filter(u => u.isActive).length,
+            readyUsers: users.filter(u => u.daysInstalled >= 14).length,
+            users: users.sort((a, b) => new Date(b.last_seen_at) - new Date(a.last_seen_at))
+        });
+    } catch (e) {
+        res.status(500).json({ error: 'STATS_FAILED' });
+    }
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

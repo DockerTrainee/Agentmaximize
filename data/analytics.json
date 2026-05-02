@@ -1,0 +1,9 @@
+{
+  "users": {
+    "mock-tester-123": {
+      "first_seen_at": "2026-04-17T18:33:48.320Z",
+      "last_seen_at": "2026-05-02T18:33:48.321Z",
+      "sessions": 42
+    }
+  }
+}

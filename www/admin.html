@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Agent Maximize</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #6366F1;
+            --secondary: #a855f7;
+            --accent-cyan: #00f2ff;
+            --bg: #020205;
+            --surface: rgba(15, 15, 25, 0.6);
+            --glass: backdrop-filter: blur(16px) saturate(180%);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 40%);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .badge {
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            padding: 24px;
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--primary), transparent);
+            opacity: 0.05;
+        }
+
+        .kpi-label {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .kpi-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .kpi-trend {
+            font-size: 0.75rem;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Table */
+        .table-container {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 16px 24px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .user-id {
+            font-family: monospace;
+            color: var(--accent-cyan);
+            background: rgba(0, 242, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .status-inactive { background: rgba(148, 163, 184, 0.1); color: var(--text-dim); }
+        .status-ready { background: rgba(99, 102, 241, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+
+        .days-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .refresh-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            filter: brightness(1.2);
+            transform: scale(1.05);
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .spinning {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Nexus Analytics</h1>
+                <p style="color: var(--text-dim);">Monitoring Play Store 15-Day Installation Period</p>
+            </div>
+            <button id="refresh-btn" class="refresh-btn">
+                <i data-lucide="refresh-cw"></i> Refresh Data
+            </button>
+        </header>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label"><i data-lucide="users"></i> Total Installations</div>
+                <div id="total-users" class="kpi-value">0</div>
+                <div class="kpi-trend">Live connections tracked</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label"><i data-lucide="activity"></i> Active Testers (24h)</div>
+                <div id="active-users" class="kpi-value">0</div>
+                <div id="active-percent" class="kpi-trend">0% Retention</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label"><i data-lucide="check-circle"></i> Production Ready</div>
+                <div id="ready-users" class="kpi-value">0</div>
+                <div class="kpi-trend" style="color: var(--accent-cyan);">Passed 14-day threshold</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tester ID</th>
+                        <th>First Seen</th>
+                        <th>Last Active</th>
+                        <th>Sessions</th>
+                        <th>Days Installed</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body">
+                    <!-- Data will be injected here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function fetchData() {
+            const btn = document.getElementById('refresh-btn');
+            const icon = btn.querySelector('i');
+            icon.classList.add('spinning');
+            
+            try {
+                const res = await fetch('/api/analytics/stats');
+                const data = await res.json();
+                
+                if (data.success) {
+                    updateUI(data);
+                }
+            } catch (e) {
+                console.error('Failed to fetch analytics:', e);
+            } finally {
+                setTimeout(() => icon.classList.remove('spinning'), 500);
+            }
+        }
+
+        function updateUI(data) {
+            document.getElementById('total-users').textContent = data.totalUsers;
+            document.getElementById('active-users').textContent = data.activeUsers;
+            document.getElementById('ready-users').textContent = data.readyUsers;
+            
+            const activePercent = data.totalUsers > 0 ? Math.round((data.activeUsers / data.totalUsers) * 100) : 0;
+            document.getElementById('active-percent').textContent = `${activePercent}% Retention`;
+
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '';
+
+            data.users.forEach(user => {
+                const tr = document.createElement('tr');
+                
+                const firstSeen = new Date(user.first_seen_at).toLocaleDateString();
+                const lastSeen = formatRelativeTime(new Date(user.last_seen_at));
+                
+                const progress = Math.min(100, (user.daysInstalled / 14) * 100);
+                const statusClass = user.daysInstalled >= 14 ? 'status-ready' : (user.isActive ? 'status-active' : 'status-inactive');
+                const statusText = user.daysInstalled >= 14 ? 'READY' : (user.isActive ? 'ACTIVE' : 'INACTIVE');
+
+                tr.innerHTML = `
+                    <td><span class="user-id">${user.id.substring(0, 13)}...</span></td>
+                    <td style="color: var(--text-dim)">${firstSeen}</td>
+                    <td>${lastSeen}</td>
+                    <td>${user.sessions || 1}</td>
+                    <td>
+                        <div class="days-badge">
+                            <i data-lucide="clock" style="width:14px; height:14px"></i>
+                            ${user.daysInstalled} / 14
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%; background: ${user.daysInstalled >= 14 ? 'var(--success)' : 'var(--primary)'}"></div>
+                        </div>
+                    </td>
+                    <td><span class="status-pill ${statusClass}">${statusText}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            lucide.createIcons();
+        }
+
+        function formatRelativeTime(date) {
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            return date.toLocaleDateString();
+        }
+
+        document.getElementById('refresh-btn').addEventListener('click', fetchData);
+        
+        // Initial fetch
+        fetchData();
+        
+        // Auto-refresh every 30s
+        setInterval(fetchData, 30000);
+    </script>
+</body>
+</html>
