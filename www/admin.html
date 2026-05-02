@@ -268,7 +268,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Tester ID</th>
+                        <th>Tester Email / ID</th>
                         <th>First Seen</th>
                         <th>Last Active</th>
                         <th>Sessions</th>
@@ -325,7 +325,10 @@
                 const statusText = user.daysInstalled >= 14 ? 'READY' : (user.isActive ? 'ACTIVE' : 'INACTIVE');
 
                 tr.innerHTML = `
-                    <td><span class="user-id">${user.id.substring(0, 13)}...</span></td>
+                    <td>
+                        ${user.email ? `<div style="font-weight: 600; color: var(--text-main); margin-bottom: 4px;">${user.email}</div>` : ''}
+                        <span class="user-id">${user.id.substring(0, 13)}...</span>
+                    </td>
                     <td style="color: var(--text-dim)">${firstSeen}</td>
                     <td>${lastSeen}</td>
                     <td>${user.sessions || 1}</td>

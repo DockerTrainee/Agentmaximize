@@ -1863,6 +1863,7 @@ app.get('/api/subscription/status', async (req, res) => {
 // ── ANALYTICS & INSTALLATION TRACKING ────────────────────────────────────────
 app.post('/api/analytics/heartbeat', async (req, res) => {
     const clientId = req.headers['x-client-id'] || req.body.clientId;
+    const email = req.body.email; // Optional email identifier
     if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
 
     try {
@@ -1873,12 +1874,14 @@ app.post('/api/analytics/heartbeat', async (req, res) => {
             db.users[clientId] = {
                 first_seen_at: now,
                 last_seen_at: now,
-                sessions: 1
+                sessions: 1,
+                email: email || null
             };
-            console.log(`[ANALYTICS] New installation detected: ${clientId}`);
+            console.log(`[ANALYTICS] New installation detected: ${clientId} ${email ? `(${email})` : ''}`);
         } else {
             db.users[clientId].last_seen_at = now;
             db.users[clientId].sessions = (db.users[clientId].sessions || 0) + 1;
+            if (email) db.users[clientId].email = email; // Update email if provided
         }
 
         await fs.writeJson(ANALYTICS_DB_PATH, db, { spaces: 2 });

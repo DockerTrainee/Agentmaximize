@@ -421,6 +421,16 @@
                 </div>
             </section>
 
+            <section class="aon-module-card" id="aon-tester-card">
+                <h3>Tester Identification</h3>
+                <div style="background: rgba(0, 242, 255, 0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(0, 242, 255, 0.1);">
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Please enter your tester email to verify your 15-day participation.</p>
+                    <input type="email" id="tester-email-input" placeholder="Your Google Play Email" 
+                        style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; padding: 8px; color: white; font-size: 12px; margin-bottom: 8px; outline: none;">
+                    <button id="save-tester-btn" class="aon-primary-btn" style="width: 100%; font-size: 12px; padding: 8px; background: var(--accent-cyan); color: #000;">Save Identification</button>
+                </div>
+            </section>
+
             <section class="aon-module-card" id="aon-sub-card">
                 <h3>Elite Access</h3>
                 <div id="sub-card-content" style="background: rgba(99, 102, 241, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2);">
@@ -577,9 +587,8 @@
                     alert("Elite Trial Activated! \n\nYou now have 7 days of unlimited high-fidelity AI access.");
                     await checkSubscription();
                 } else {
-                    // Fail gracefully - don't show technical errors if possible
                     if (data.error === 'Missing clientId') {
-                        location.reload(); // Force a fresh identity
+                        location.reload();
                     } else {
                         alert(data.error || "Trial activation failed.");
                     }
@@ -588,6 +597,21 @@
                 console.error("TRIAL_ERROR:", e);
                 alert("Network error starting trial. This usually means the backend server is waking up or blocked by security settings. Please check your internet and try again in 30 seconds.");
             }
+        };
+
+        const sendHeartbeat = async () => {
+            const id = getOrGenerateId();
+            const email = localStorage.getItem('tester_email');
+            try {
+                await fetch(`${BACKEND_URL}/api/analytics/heartbeat`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Client-ID': id 
+                    },
+                    body: JSON.stringify({ clientId: id, email: email })
+                });
+            } catch (e) { console.warn("[ANALYTICS] Signal lost"); }
         };
 
         const checkSubscription = async () => {
@@ -606,6 +630,7 @@
 
         await initIdentity();
         await checkSubscription();
+        sendHeartbeat();
 
         const updateSubscriptionUI = (data) => {
             console.log("[SUBS] UI Update Data:", data);
@@ -777,6 +802,40 @@
         const modalBtn = document.getElementById('start-trial-modal-btn');
         if (sidebarBtn) sidebarBtn.onclick = startTrial;
         if (modalBtn) modalBtn.onclick = startTrial;
+
+        // 📊 TESTER IDENTIFICATION HANDLER
+        const testerInput = document.getElementById('tester-email-input');
+        const testerBtn = document.getElementById('save-tester-btn');
+        const testerCard = document.getElementById('aon-tester-card');
+        
+        const savedEmail = localStorage.getItem('tester_email');
+        if (savedEmail) {
+            testerCard.innerHTML = `
+                <h3>Tester Identified</h3>
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                    <p style="font-size: 11px; color: var(--secondary); font-weight: 600;">Verified: ${savedEmail}</p>
+                    <p style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Your participation is being tracked.</p>
+                    <button id="change-tester-btn" style="background:none; border:none; color:var(--primary); font-size:10px; text-decoration:underline; cursor:pointer; padding:0; margin-top:8px;">Change Email</button>
+                </div>
+            `;
+            document.getElementById('change-tester-btn').onclick = () => {
+                localStorage.removeItem('tester_email');
+                location.reload();
+            };
+        }
+
+        if (testerBtn) {
+            testerBtn.onclick = () => {
+                const email = testerInput.value.trim();
+                if (email && email.includes('@')) {
+                    localStorage.setItem('tester_email', email);
+                    sendHeartbeat(); // Send immediately with email
+                    location.reload();
+                } else {
+                    alert("Please enter a valid email address.");
+                }
+            };
+        }
 
         renderHistory();
         if (typeof lucide !== 'undefined') lucide.createIcons();
