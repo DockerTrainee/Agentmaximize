@@ -419,6 +419,39 @@ app.use((err, req, res, next) => {
 // Auth Middleware — password system removed, open access
 const authMiddleware = (req, res, next) => next();
 
+/**
+ * 🛡️ SUBSCRIPTION ENFORCEMENT MIDDLEWARE
+ * Hard-blocks access to AI features if trial is expired.
+ */
+const enforceSubscription = async (req, res, next) => {
+    const clientId = req.headers['x-client-id'] || req.body.clientId || req.query.clientId;
+    if (!clientId) {
+        return res.status(401).json({ error: 'IDENTITY_REQUIRED', message: 'Identity missing. Please refresh.' });
+    }
+
+    try {
+        const sub = await getSubscription(clientId);
+        
+        // If they have no sub at all, we allow them to pass for NOW (the frontend will auto-start trial)
+        // but if they have a sub record and it's NOT premium (i.e., expired), block them.
+        if (sub.status === 'expired') {
+            return res.status(403).json({ 
+                error: 'PAYMENT_REQUIRED', 
+                message: 'Your 7-day trial has ended. Please upgrade to Prime to continue.' 
+            });
+        }
+        
+        // Additional Gate: If they are on 'none' status but somehow reached here, 
+        // we could potentially auto-start trial here too, but it's cleaner on frontend.
+        
+        req.subscription = sub; // Attach to request for downstream use
+        next();
+    } catch (e) {
+        console.error('[SUBS-MIDDLEWARE] Check failed:', e.message);
+        next(); // Fail open for safety, but log it
+    }
+};
+
 app.use('/builds', express.static(path.join(DATA_BASE, 'builds')));
 app.use('/system_agents', express.static(path.join(DATA_BASE, 'system_agents')));
 app.use(express.static(__dirname));
@@ -1206,7 +1239,7 @@ async function saveAgentToRegistry(agentData) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ORCHESTRATION API — Returns job ID immediately (non-blocking)
 // ─────────────────────────────────────────────────────────────────────────────
-app.post('/orchestrate', aiLimiter, async (req, res) => {
+app.post('/orchestrate', aiLimiter, enforceSubscription, async (req, res) => {
     const { goal } = req.body;
     const clientId = req.headers['x-client-id'] || `anon-${Date.now()}`;
     if (!process.env.GEMINI_API_KEY) {
@@ -1994,7 +2027,7 @@ app.post('/api/self-heal-dashboard', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // SEARCH BRIDGE
 // ─────────────────────────────────────────────────────────────────────────────
-app.post('/search', async (req, res) => {
+app.post('/search', enforceSubscription, async (req, res) => {
     try {
         const r = await axios.get(`https://api.duckduckgo.com/?q=${encodeURIComponent(req.body.query)}&format=json&no_html=1`, { timeout: 5000 });
         const results = (r.data.RelatedTopics || []).slice(0, 5).map(t => t.Text).filter(Boolean);
@@ -2009,28 +2042,12 @@ app.post('/search', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // CHAT BRIDGE (for generated chatbot agents)
 // ─────────────────────────────────────────────────────────────────────────────
-app.post('/chat', async (req, res) => {
+app.post('/chat', enforceSubscription, async (req, res) => {
     const { message, mission, context, clientId } = req.body;
     
-    // 🛡️ SUBSCRIPTION ENFORCEMENT
-    if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
-    
-    try {
-        const db = await fs.readJson(SUBS_DB_PATH);
-        const sub = db.subscriptions[clientId];
-        
-        if (!sub) {
-            return res.status(403).json({ error: 'NO_TRIAL', message: 'Please activate your free trial to continue.' });
-        }
-        
-        const now = new Date();
-        const expiresAt = new Date(sub.expiresAt);
-        if (now > expiresAt && sub.status !== 'pro' && sub.status !== 'unlimited') {
-            return res.status(403).json({ error: 'TRIAL_EXPIRED', message: 'Your 7-day trial has ended. Please upgrade to continue.' });
-        }
-    } catch (e) {
-        console.error('[CHAT] Sub check fail:', e.message);
-    }
+    // Identity check is still good, but handled by middleware now.
+    // Middleware already attached 'req.subscription'
+    const sub = req.subscription;
 
     const jobId = 'job-' + Date.now();
     const prompt = `You are an expert AI assistant for: "${mission}". Respond helpfully and naturally. User says: ${message}`;
@@ -2054,7 +2071,7 @@ app.post('/chat', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // VISION ENDPOINT
 // ─────────────────────────────────────────────────────────────────────────────
-app.post('/vision-analyze', async (req, res) => {
+app.post('/vision-analyze', enforceSubscription, async (req, res) => {
     const { imageBase64 } = req.body;
     if (!imageBase64) return res.status(400).json({ error: 'No image provided' });
 
@@ -2122,7 +2139,7 @@ If the image is blurry or text is not clearly visible, describe what you can see
 // ─────────────────────────────────────────────────────────────────────────────
 // LEGACY: Simple agent generation (kept for backwards compat)
 // ─────────────────────────────────────────────────────────────────────────────
-app.post('/generate-agent', async (req, res) => {
+app.post('/generate-agent', enforceSubscription, async (req, res) => {
     const { mission } = req.body;
     try {
         const code = await callAI(`Build a complete single-file HTML/CSS/JS ${mission} app. Use dark theme, glassmorphism, Inter/Outfit fonts, Lucide icons. Output raw HTML only.`, 'HTML');

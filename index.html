@@ -578,7 +578,14 @@
                 });
                 const data = await res.json();
                 state.subscription = data;
-                updateSubscriptionUI(data);
+                
+                // 🎁 AUTOMATIC TRIAL START FOR NEW USERS
+                if (data.status === 'none' && data.trialAvailable) {
+                    console.log("[SUBS] New user detected. Auto-starting 7-day trial...");
+                    await startTrial();
+                } else {
+                    updateSubscriptionUI(data);
+                }
             } catch (e) {
                 console.error('Sub check fail:', e);
             }
