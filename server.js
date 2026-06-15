@@ -471,6 +471,9 @@ app.get('/health', (req, res) => res.json({ status: 'HEALTHY', timestamp: new Da
 // Serving Legal Docs for App Store Compliance
 app.get('/privacy', (req, res) => res.sendFile(path.join(__dirname, 'privacy.html')));
 app.get('/terms', (req, res) => res.sendFile(path.join(__dirname, 'terms.html')));
+app.get('/pricing', (req, res) => res.sendFile(path.join(__dirname, 'pricing.html')));
+app.get('/delete-data', (req, res) => res.sendFile(path.join(__dirname, 'delete-data.html')));
+app.get('/factory', (req, res) => res.sendFile(path.join(__dirname, 'factory.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'www', 'admin.html')));
 
 // ─────────────────────────────────────────────────────────────────────────────
