@@ -9,27 +9,53 @@ export const BillingManager = {
 
     async init() {
         try {
-            const clientId = localStorage.getItem('nexus_client_id') || `anon-${Date.now()}`;
+            // Synchronize client ID keys
+            let clientId = localStorage.getItem('aon_client_id') || localStorage.getItem('nexus_client_id');
+            
+            // ── Native Device ID Lock ──
+            if (window.Capacitor && window.Capacitor.Plugins) {
+                try {
+                    const Device = window.Capacitor.Plugins.Device;
+                    if (Device) {
+                        const info = await Device.getId();
+                        if (info.identifier) {
+                            clientId = info.identifier;
+                            console.log('[BILLING] Native Device ID locked:', clientId);
+                        }
+                    }
+                } catch (err) {
+                    console.warn('[BILLING] Native ID retrieval failed, falling back to local/random ID:', err.message);
+                }
+            }
+
+            if (!clientId || clientId === 'null' || clientId === 'undefined') {
+                clientId = `pm-${Math.random().toString(36).substr(2, 9)}-${Date.now().toString(36)}`;
+            }
+            localStorage.setItem('aon_client_id', clientId);
             localStorage.setItem('nexus_client_id', clientId);
 
-            // ── 1. Check server-side status (Tamper-proof) ────────────────
+            // ── Check server-side status (Tamper-proof) ──
             await this.syncStatus();
 
-            // ── 2. If running inside Capacitor native app ────────────────
+            // ── If running inside Capacitor native app ──
             if (window.Capacitor && window.Capacitor.isNative) {
                 try {
-                    const { Purchases } = await import('@revenuecat/purchases-capacitor');
-                    const apiKey = "goog_SgNRYmUvIqWlpPzDxKcVqYvV"; // Placeholder — Replace with real RC Key
-                    await Purchases.configure({ apiKey });
-                    const info = await Purchases.getCustomerInfo();
-                    this.isPremium = info.entitlements.active['pro'] !== undefined;
-                    localStorage.setItem('nexus_is_premium', this.isPremium ? 'true' : 'false');
+                    const Purchases = window.Capacitor.Plugins?.Purchases;
+                    if (Purchases) {
+                        const apiKey = "goog_SgNRYmUvIqWlpPzDxKcVqYvV";
+                        await Purchases.configure({ apiKey });
+                        const info = await Purchases.getCustomerInfo();
+                        this.isPremium = info.entitlements.active['pro'] !== undefined;
+                        localStorage.setItem('nexus_is_premium', this.isPremium ? 'true' : 'false');
+                    } else {
+                        console.warn('[BILLING] Purchases plugin not found on window.Capacitor.Plugins');
+                    }
                 } catch (err) {
                     console.error('[BILLING] Native Purchases Init Failed:', err.message);
                 }
             }
 
-            console.log('[BILLING] Status:', this.isPremium ? 'PRO ✅' : 'FREE');
+            console.log('[BILLING] Status:', this.isPremium ? 'PRO 👑' : 'FREE');
         } catch (e) {
             console.warn('[BILLING] Init failed:', e.message);
         }
@@ -51,9 +77,12 @@ export const BillingManager = {
     },
 
     async purchasePro() {
+        const clientId = localStorage.getItem('aon_client_id') || localStorage.getItem('nexus_client_id');
         if (window.Capacitor && window.Capacitor.isNative) {
             try {
-                const { Purchases } = await import('@revenuecat/purchases-capacitor');
+                const Purchases = window.Capacitor.Plugins?.Purchases;
+                if (!Purchases) throw new Error("RevenueCat Purchases plugin not initialized.");
+                
                 const offerings = await Purchases.getOfferings();
                 if (offerings.current?.availablePackages?.length) {
                     const result = await Purchases.purchasePackage({
@@ -62,8 +91,22 @@ export const BillingManager = {
                     if (result.customerInfo.entitlements.active['pro'] !== undefined) {
                         this.isPremium = true;
                         localStorage.setItem('nexus_is_premium', 'true');
+                        
+                        // Sync with backend server
+                        try {
+                            await fetch('/api/subscription/activate-native', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'x-client-id': clientId },
+                                body: JSON.stringify({ clientId })
+                            });
+                        } catch (err) {
+                            console.error('[BILLING] Backend activation sync failed:', err);
+                        }
+                        
                         return true;
                     }
+                } else {
+                    throw new Error("No active subscription packages found.");
                 }
             } catch (e) {
                 console.error('[BILLING] Native Purchase Error:', e);
@@ -71,9 +114,7 @@ export const BillingManager = {
             }
             return false;
         } else {
-            // 🌐 WEB FLOW: Razorpay
-            const clientId = localStorage.getItem('nexus_client_id');
-            
+            // ── WEB FLOW: Razorpay ──
             try {
                 // 1. Create Order
                 const orderRes = await fetch('/api/payment/create-order', {
@@ -162,6 +203,45 @@ export const BillingManager = {
         } catch (e) {
             console.error('[BILLING] Trial Error:', e);
             alert(e.message);
+            return false;
+        }
+    },
+
+    async restorePurchases() {
+        const clientId = localStorage.getItem('aon_client_id') || localStorage.getItem('nexus_client_id');
+        if (window.Capacitor && window.Capacitor.isNative) {
+            try {
+                const Purchases = window.Capacitor.Plugins?.Purchases;
+                if (!Purchases) throw new Error("RevenueCat Purchases plugin not initialized.");
+                
+                const result = await Purchases.restorePurchases();
+                if (result.customerInfo.entitlements.active['pro'] !== undefined) {
+                    this.isPremium = true;
+                    localStorage.setItem('nexus_is_premium', 'true');
+                    
+                    // Sync with backend server
+                    try {
+                        await fetch('/api/subscription/activate-native', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-client-id': clientId },
+                            body: JSON.stringify({ clientId })
+                        });
+                    } catch (err) {
+                        console.error('[BILLING] Backend activation sync failed:', err);
+                    }
+                    
+                    alert('Purchases restored successfully!');
+                    return true;
+                } else {
+                    alert('No active Pro subscriptions found to restore.');
+                }
+            } catch (e) {
+                console.error('[BILLING] Restore Purchases Error:', e);
+                alert('Restore Failed: ' + e.message);
+            }
+            return false;
+        } else {
+            alert('Restore Purchases is only supported on native mobile devices.');
             return false;
         }
     }

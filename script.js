@@ -14,6 +14,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const clientId = localStorage.getItem('nexus_client_id');
     console.log('[NEXUS] Operational with ID:', clientId);
 
+    // ── 📊 Installation Tracking (Play Store 15-Day Monitoring) ──
+    const sendHeartbeat = async () => {
+        if (!clientId) return;
+        try {
+            await fetch('/api/analytics/heartbeat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-client-id': clientId },
+                body: JSON.stringify({ clientId })
+            });
+        } catch (e) {
+            console.warn('[ANALYTICS] Heartbeat signal failed.');
+        }
+    };
+    sendHeartbeat();
+
     // ═══════════════════════════════════════════════════════════════
     // NEXUS ELITE ENGINE: Haptics & Reasoning (v6.0)
     // ═══════════════════════════════════════════════════════════════

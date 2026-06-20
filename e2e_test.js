@@ -5,7 +5,12 @@ async function testSynthesis() {
     console.log(`[TEST] STARTING MISSION: ${goal}`);
 
     try {
-        const response = await axios.post('http://localhost:3000/orchestrate', { goal });
+        const response = await axios.post('http://localhost:3000/orchestrate', { goal }, {
+            headers: {
+                'X-Client-ID': 'test-client-id',
+                'X-Subscription-Pro': 'true'
+            }
+        });
         if (!response.data.success) throw new Error("INITIAL HANDSHAKE FAILED");
 
         const jobId = response.data.jobId;

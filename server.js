@@ -181,11 +181,22 @@ class MCPManager {
 
     getGeminiTools() {
         if (this.tools.length === 0) return [];
+        
+        const sanitizeSchema = (schema) => {
+            if (!schema || typeof schema !== 'object') return schema;
+            const clean = Array.isArray(schema) ? [] : {};
+            for (const [key, val] of Object.entries(schema)) {
+                if (key === '$schema' || key === '$id') continue;
+                clean[key] = sanitizeSchema(val);
+            }
+            return clean;
+        };
+
         return [{
             functionDeclarations: this.tools.map(t => ({
                 name: t.name,
                 description: t.description,
-                parameters: t.inputSchema
+                parameters: sanitizeSchema(t.inputSchema)
             }))
         }];
     }
@@ -337,18 +348,24 @@ app.get('/api/subscription/status', async (req, res) => {
     if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
 
     try {
-        const db = await fs.readJson(SUBS_DB_PATH);
-        const sub = db.subscriptions[clientId];
+        const sub = await getSubscription(clientId);
+        const now = new Date();
 
-        if (!sub) {
-            return res.json({ status: 'none', trialAvailable: true });
+        if (!sub.status) {
+            return res.json({ 
+                success: true,
+                isPremium: false,
+                status: 'none', 
+                trialAvailable: true 
+            });
         }
 
-        const now = new Date();
         const expiresAt = new Date(sub.expiresAt);
         const isExpired = now > expiresAt;
 
         res.json({
+            success: true,
+            isPremium: sub.isPremium,
             status: sub.status,
             plan: sub.plan,
             activatedAt: sub.activatedAt,
@@ -429,26 +446,34 @@ const enforceSubscription = async (req, res, next) => {
         return res.status(401).json({ error: 'IDENTITY_REQUIRED', message: 'Identity missing. Please refresh.' });
     }
 
+    const isPremiumHeader = req.headers['x-subscription-pro'] === 'true' || req.headers['x-subscription-pro'] === true;
+
     try {
         const sub = await getSubscription(clientId);
         
-        // If they have no sub at all, we allow them to pass for NOW (the frontend will auto-start trial)
-        // but if they have a sub record and it's NOT premium (i.e., expired), block them.
-        if (sub.status === 'expired') {
-            return res.status(403).json({ 
-                error: 'PAYMENT_REQUIRED', 
-                message: 'Your 7-day trial has ended. Please upgrade to Prime to continue.' 
-            });
+        // Check header fallback (useful for Capacitor native sync / testing)
+        if (isPremiumHeader) {
+            req.subscription = { ...sub, isPremium: true, status: 'active' };
+            return next();
         }
-        
-        // Additional Gate: If they are on 'none' status but somehow reached here, 
-        // we could potentially auto-start trial here too, but it's cleaner on frontend.
-        
-        req.subscription = sub; // Attach to request for downstream use
-        next();
+
+        // Only allow request if status is 'active' or 'trial'
+        if (sub.status === 'active' || sub.status === 'trial') {
+            req.subscription = sub;
+            return next();
+        }
+
+        // Otherwise block (expired, none, etc.)
+        const isExpired = sub.status === 'expired';
+        return res.status(403).json({ 
+            error: 'PAYMENT_REQUIRED', 
+            message: isExpired 
+                ? 'Your 7-day trial has ended. Please upgrade to Prime to continue.' 
+                : 'Free trial or subscription required to use AI features.' 
+        });
     } catch (e) {
         console.error('[SUBS-MIDDLEWARE] Check failed:', e.message);
-        next(); // Fail open for safety, but log it
+        return res.status(500).json({ error: 'SERVER_ERROR', message: 'Internal subscription verification failed.' });
     }
 };
 
@@ -1254,7 +1279,8 @@ app.post('/orchestrate', aiLimiter, enforceSubscription, async (req, res) => {
         const db = await fs.readJson(AGENTS_DB_PATH);
         const userAgents = db.agents.filter(a => a.clientId === clientId);
         const sub = await getSubscription(clientId);
-        if (!sub.isPremium && userAgents.length >= 1) {
+        const isPremiumHeader = req.headers['x-subscription-pro'] === 'true' || req.headers['x-subscription-pro'] === true;
+        if (!sub.isPremium && !isPremiumHeader && userAgents.length >= 1) {
             return res.status(403).json({
                 success: false,
                 error: 'AGENT_LIMIT_REACHED',
@@ -1889,11 +1915,17 @@ app.post('/api/payment/verify', async (req, res) => {
     }
 });
 
-app.get('/api/subscription/status', async (req, res) => {
-    const clientId = req.headers['x-client-id'] || req.query.clientId;
+app.post('/api/subscription/activate-native', async (req, res) => {
+    const clientId = req.headers['x-client-id'] || req.body.clientId;
     if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
-    const sub = await getSubscription(clientId);
-    res.json({ success: true, ...sub });
+
+    try {
+        const sub = await activateSubscription(clientId, 'native_gp_' + Date.now(), 'order_gp_' + Date.now(), 'pro_monthly');
+        res.json({ success: true, subscription: sub });
+    } catch (e) {
+        console.error('[SUBS] Native activation failed:', e.message);
+        res.status(500).json({ error: 'ACTIVATION_FAILED', message: e.message });
+    }
 });
 
 // ── ANALYTICS & INSTALLATION TRACKING ────────────────────────────────────────

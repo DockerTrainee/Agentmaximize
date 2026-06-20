@@ -422,6 +422,16 @@
                 </div>
             </section>
 
+            <section class="aon-module-card" id="aon-tester-card">
+                <h3>Tester Identification</h3>
+                <div style="background: rgba(0, 242, 255, 0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(0, 242, 255, 0.1);">
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Please enter your tester email to verify your 15-day participation.</p>
+                    <input type="email" id="tester-email-input" placeholder="Your Google Play Email" 
+                        style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px; padding: 8px; color: white; font-size: 12px; margin-bottom: 8px; outline: none;">
+                    <button id="save-tester-btn" class="aon-primary-btn" style="width: 100%; font-size: 12px; padding: 8px; background: var(--accent-cyan); color: #000;">Save Identification</button>
+                </div>
+            </section>
+
             <section class="aon-module-card" id="aon-sub-card">
                 <h3>Elite Access</h3>
                 <div id="sub-card-content" style="background: rgba(99, 102, 241, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2);">
@@ -497,8 +507,20 @@
 
     <div class="aon-watermark">⚡ Prompt Maximize v1.0</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@revenuecat/purchases-capacitor@latest/dist/capacitor-purchases.js"></script>
+    <!-- Native Bridge Mocks for Browser Testing -->
+    <script src="/capacitor.js"></script>
     <script>
+    // 🛡️ CRASH REPORTER & ERROR HANDLING
+    window.onerror = function(msg, url, line, col, error) {
+        console.error("CRASH DETECTED:", msg, "at", url, ":", line);
+        alert("CRASH DETECTED!\n\nMessage: " + msg + "\nLine: " + line + "\n\nThis usually happens due to missing native plugins. Please ensure you are running the latest version from Play Store.");
+        return false;
+    };
+    window.onunhandledrejection = function(event) {
+        console.error("UNHANDLED REJECTION:", event.reason);
+        // alert("ASYNC ERROR: " + event.reason);
+    };
+
     document.addEventListener('DOMContentLoaded', async () => {
         const BACKEND_URL = "https://agent-maximize-nexus.onrender.com";
         const state = {
@@ -531,15 +553,23 @@
 
         const initIdentity = async () => {
             getOrGenerateId();
-            // Optional: Upgrade to hardware ID if available
-            try {
-                const { Device } = await import('https://cdn.jsdelivr.net/npm/@capacitor/device@latest/dist/esm/index.js');
-                const info = await Device.getId();
-                if (info.identifier) {
-                    state.clientId = info.identifier;
-                    localStorage.setItem('aon_client_id', state.clientId);
+            
+            // 🛡️ NATIVE PLUGIN BRIDGE (v2.0)
+            if (window.Capacitor && window.Capacitor.Plugins) {
+                try {
+                    const { Device } = window.Capacitor.Plugins;
+                    if (Device) {
+                        const info = await Device.getId();
+                        if (info.identifier) {
+                            state.clientId = info.identifier;
+                            localStorage.setItem('aon_client_id', state.clientId);
+                            console.log("[NEXUS] Native Device ID locked:", state.clientId);
+                        }
+                    }
+                } catch (e) { 
+                    console.warn("Native ID retrieval failed, falling back to browser ID", e); 
                 }
-            } catch (e) { console.warn("Native ID unavailable, using browser ID"); }
+            }
         };
 
         const startTrial = async () => {
@@ -558,9 +588,8 @@
                     alert("Elite Trial Activated! \n\nYou now have 7 days of unlimited high-fidelity AI access.");
                     await checkSubscription();
                 } else {
-                    // Fail gracefully - don't show technical errors if possible
                     if (data.error === 'Missing clientId') {
-                        location.reload(); // Force a fresh identity
+                        location.reload();
                     } else {
                         alert(data.error || "Trial activation failed.");
                     }
@@ -571,6 +600,21 @@
             }
         };
 
+        const sendHeartbeat = async () => {
+            const id = getOrGenerateId();
+            const email = localStorage.getItem('tester_email');
+            try {
+                await fetch(`${BACKEND_URL}/api/analytics/heartbeat`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Client-ID': id 
+                    },
+                    body: JSON.stringify({ clientId: id, email: email })
+                });
+            } catch (e) { console.warn("[ANALYTICS] Signal lost"); }
+        };
+
         const checkSubscription = async () => {
             const id = getOrGenerateId();
             try {
@@ -579,14 +623,7 @@
                 });
                 const data = await res.json();
                 state.subscription = data;
-                
-                // 🎁 AUTOMATIC TRIAL START FOR NEW USERS
-                if (data.status === 'none' && data.trialAvailable) {
-                    console.log("[SUBS] New user detected. Auto-starting 7-day trial...");
-                    await startTrial();
-                } else {
-                    updateSubscriptionUI(data);
-                }
+                updateSubscriptionUI(data);
             } catch (e) {
                 console.error('Sub check fail:', e);
             }
@@ -594,52 +631,75 @@
 
         await initIdentity();
         await checkSubscription();
+        sendHeartbeat();
 
         const updateSubscriptionUI = (data) => {
             console.log("[SUBS] UI Update Data:", data);
-            document.getElementById('debug-id').innerText = state.clientId.substring(0, 8);
+            const debugIdEl = document.getElementById('debug-id');
+            if (debugIdEl) debugIdEl.innerText = state.clientId.substring(0, 8);
             
             const sidebarBtn = document.getElementById('start-trial-sidebar-btn');
             const sidebarDetails = document.getElementById('sub-card-details');
             const modalTrialBtn = document.getElementById('start-trial-modal-btn');
-            
-            if (data.isExpired === true && data.status !== 'pro' && data.status !== 'unlimited') {
-                elements.paywall.style.display = 'flex';
-                elements.subTag.innerText = "Trial Expired";
-                elements.subTag.className = "sub-badge sub-expired";
-                elements.transformBtn.disabled = true;
-                elements.transformBtn.innerText = "Subscription Required";
-                
-                document.getElementById('paywall-title').innerText = "Trial Period Over";
-                document.getElementById('paywall-desc').innerText = "Your 7-day trial has concluded. Upgrade for unlimited high-fidelity prompt synthesis.";
-                if(modalTrialBtn) modalTrialBtn.style.display = 'none';
-                if(sidebarBtn) sidebarBtn.style.display = 'none';
-                if(sidebarDetails) sidebarDetails.innerText = "Trial concluded. Upgrade for full access.";
-            } else {
-                elements.paywall.style.display = 'none';
-                if (data.status === 'trial') {
-                    elements.subTag.innerText = `Trial: ${data.daysLeft} days left`;
-                    elements.subTag.className = "sub-badge sub-trial";
-                    if(sidebarBtn) sidebarBtn.style.display = 'none';
-                    if(modalTrialBtn) modalTrialBtn.style.display = 'none';
-                    if(sidebarDetails) sidebarDetails.innerText = `Active Trial: ${data.daysLeft} days remaining.`;
-                } else if (data.status === 'pro' || data.status === 'unlimited') {
-                    elements.subTag.innerText = "Prime Plan";
-                    elements.subTag.className = "sub-badge sub-pro";
-                    if(sidebarBtn) sidebarBtn.style.display = 'none';
-                    if(modalTrialBtn) modalTrialBtn.style.display = 'none';
-                    if(sidebarDetails) sidebarDetails.innerText = "Prime membership is active. Unlimited access enabled.";
-                } else {
-                    elements.subTag.innerText = "Free Tier";
-                    elements.subTag.className = "sub-badge";
-                    if (data.trialAvailable) {
-                        if(sidebarBtn) sidebarBtn.style.display = 'block';
-                        if(modalTrialBtn) modalTrialBtn.style.display = 'block';
-                        if(sidebarDetails) sidebarDetails.innerText = "Unlock a 7-day free trial of our elite AI model.";
-                    } else {
-                        if(sidebarBtn) sidebarBtn.style.display = 'none';
-                        if(sidebarDetails) sidebarDetails.innerText = "Upgrade to Prime for 10x better prompt accuracy.";
+            const pwTitle = document.getElementById('paywall-title');
+            const pwDesc = document.getElementById('paywall-desc');
+
+            const hasActiveAccess = data.status === 'trial' || data.status === 'pro' || data.status === 'unlimited';
+
+            if (!hasActiveAccess) {
+                // Show paywall if they don't have active access (either expired or none)
+                if (elements.paywall) elements.paywall.style.display = 'flex';
+                if (elements.transformBtn) {
+                    elements.transformBtn.disabled = true;
+                    elements.transformBtn.innerText = "Subscription Required";
+                }
+
+                if (data.status === 'expired' || data.isExpired === true) {
+                    if (elements.subTag) {
+                        elements.subTag.innerText = "Trial Expired";
+                        elements.subTag.className = "sub-badge sub-expired";
                     }
+                    if (pwTitle) pwTitle.innerText = "Trial Period Over";
+                    if (pwDesc) pwDesc.innerText = "Your 7-day trial has concluded. Upgrade for unlimited high-fidelity prompt synthesis.";
+                    if (modalTrialBtn) modalTrialBtn.style.display = 'none';
+                    if (sidebarBtn) sidebarBtn.style.display = 'none';
+                    if (sidebarDetails) sidebarDetails.innerText = "Trial concluded. Upgrade for full access.";
+                } else {
+                    // Status is 'none' - trial available
+                    if (elements.subTag) {
+                        elements.subTag.innerText = "Free Tier";
+                        elements.subTag.className = "sub-badge";
+                    }
+                    if (pwTitle) pwTitle.innerText = "Start Your Free Trial";
+                    if (pwDesc) pwDesc.innerText = "Unlock a 7-day free trial of our elite AI models and features.";
+                    if (modalTrialBtn) modalTrialBtn.style.display = 'block';
+                    if (sidebarBtn) sidebarBtn.style.display = 'block';
+                    if (sidebarDetails) sidebarDetails.innerText = "Unlock a 7-day free trial of our elite AI model.";
+                }
+            } else {
+                // User has active access (trial, pro, or unlimited)
+                if (elements.paywall) elements.paywall.style.display = 'none';
+                if (elements.transformBtn) {
+                    elements.transformBtn.disabled = false;
+                    elements.transformBtn.innerText = "Maximize Instruction";
+                }
+
+                if (elements.subTag) {
+                    if (data.status === 'trial') {
+                        elements.subTag.innerText = `Trial: ${data.daysLeft} days left`;
+                        elements.subTag.className = "sub-badge sub-trial";
+                    } else {
+                        elements.subTag.innerText = "Prime Plan";
+                        elements.subTag.className = "sub-badge sub-pro";
+                    }
+                }
+
+                if (sidebarBtn) sidebarBtn.style.display = 'none';
+                if (modalTrialBtn) modalTrialBtn.style.display = 'none';
+                if (sidebarDetails) {
+                    sidebarDetails.innerText = data.status === 'trial' 
+                        ? `Active Trial: ${data.daysLeft} days remaining.` 
+                        : "Prime membership is active.";
                 }
             }
         };
@@ -710,7 +770,90 @@
         };
 
         elements.upgradeBtn.onclick = async () => {
-            alert("Redirecting to Google Play Store...");
+            const clientId = getOrGenerateId();
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Purchases) {
+                try {
+                    const { Purchases } = window.Capacitor.Plugins;
+                    const offerings = await Purchases.getOfferings();
+                    if (offerings.current?.availablePackages?.length) {
+                        alert("Initializing Secure Purchase via Google Play...");
+                        const result = await Purchases.purchasePackage({
+                            aPackage: offerings.current.availablePackages[0]
+                        });
+                        if (result.customerInfo.entitlements.active['pro'] !== undefined) {
+                            // Sync with backend server
+                            try {
+                                await fetch(`${BACKEND_URL}/api/subscription/activate-native`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'x-client-id': clientId },
+                                    body: JSON.stringify({ clientId })
+                                });
+                            } catch (err) {
+                                console.error('Backend activation sync failed:', err);
+                            }
+                            alert("✅ Pro Activated successfully!");
+                            await checkSubscription();
+                        }
+                    } else {
+                        throw new Error("No active subscription packages found.");
+                    }
+                } catch (e) {
+                    console.error("Native Purchase Error:", e);
+                    if (!e.userCancelled) alert('Purchase Failed: ' + e.message);
+                }
+            } else {
+                // Browser fallback checkout (Razorpay)
+                try {
+                    const res = await fetch(`${BACKEND_URL}/api/payment/create-order`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-client-id': clientId }
+                    });
+                    const orderData = await res.json();
+                    if (!res.ok) throw new Error(orderData.message || 'Order creation failed');
+
+                    if (window.Razorpay) {
+                        const options = {
+                            key: orderData.keyId,
+                            amount: orderData.amount,
+                            currency: orderData.currency,
+                            name: "AgentMaximize Pro",
+                            description: "Monthly Subscription",
+                            order_id: orderData.orderId,
+                            handler: async (response) => {
+                                try {
+                                    const verifyRes = await fetch(`${BACKEND_URL}/api/payment/verify`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json', 'x-client-id': clientId },
+                                        body: JSON.stringify({
+                                            razorpay_order_id: response.razorpay_order_id,
+                                            razorpay_payment_id: response.razorpay_payment_id,
+                                            razorpay_signature: response.razorpay_signature,
+                                            clientId
+                                        })
+                                    });
+                                    const verifyData = await verifyRes.json();
+                                    if (verifyData.success) {
+                                        alert("✅ Subscription activated successfully!");
+                                        await checkSubscription();
+                                    } else {
+                                        throw new Error(verifyData.message);
+                                    }
+                                } catch (err) {
+                                    alert("Verification failed: " + err.message);
+                                }
+                            },
+                            prefill: { name: "User", email: "support@aon.ai" },
+                            theme: { color: "#00f2ff" }
+                        };
+                        const rzp = new window.Razorpay(options);
+                        rzp.open();
+                    } else {
+                        alert("Razorpay payment gateway not loaded.");
+                    }
+                } catch (e) {
+                    alert("Checkout error: " + e.message);
+                }
+            }
         };
 
         window.copyToClipboard = (text) => {
@@ -743,6 +886,73 @@
         const modalBtn = document.getElementById('start-trial-modal-btn');
         if (sidebarBtn) sidebarBtn.onclick = startTrial;
         if (modalBtn) modalBtn.onclick = startTrial;
+
+        const restoreBtn = document.getElementById('restore-btn');
+        if (restoreBtn) {
+            restoreBtn.onclick = async (e) => {
+                e.preventDefault();
+                const clientId = getOrGenerateId();
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Purchases) {
+                    try {
+                        const { Purchases } = window.Capacitor.Plugins;
+                        const result = await Purchases.restorePurchases();
+                        if (result.customerInfo.entitlements.active['pro'] !== undefined) {
+                            try {
+                                await fetch(`${BACKEND_URL}/api/subscription/activate-native`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'x-client-id': clientId },
+                                    body: JSON.stringify({ clientId })
+                                });
+                            } catch (err) {
+                                console.error('Backend activation sync failed:', err);
+                            }
+                            alert('Purchases restored successfully!');
+                            await checkSubscription();
+                        } else {
+                            alert('No active Pro subscriptions found to restore.');
+                        }
+                    } catch (e) {
+                        alert('Restore Failed: ' + e.message);
+                    }
+                } else {
+                    alert('Restore Purchases is only supported on native mobile devices.');
+                }
+            };
+        }
+
+        // 📊 TESTER IDENTIFICATION HANDLER
+        const testerInput = document.getElementById('tester-email-input');
+        const testerBtn = document.getElementById('save-tester-btn');
+        const testerCard = document.getElementById('aon-tester-card');
+        
+        const savedEmail = localStorage.getItem('tester_email');
+        if (savedEmail) {
+            testerCard.innerHTML = `
+                <h3>Tester Identified</h3>
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                    <p style="font-size: 11px; color: var(--secondary); font-weight: 600;">Verified: ${savedEmail}</p>
+                    <p style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Your participation is being tracked.</p>
+                    <button id="change-tester-btn" style="background:none; border:none; color:var(--primary); font-size:10px; text-decoration:underline; cursor:pointer; padding:0; margin-top:8px;">Change Email</button>
+                </div>
+            `;
+            document.getElementById('change-tester-btn').onclick = () => {
+                localStorage.removeItem('tester_email');
+                location.reload();
+            };
+        }
+
+        if (testerBtn) {
+            testerBtn.onclick = () => {
+                const email = testerInput.value.trim();
+                if (email && email.includes('@')) {
+                    localStorage.setItem('tester_email', email);
+                    sendHeartbeat(); // Send immediately with email
+                    location.reload();
+                } else {
+                    alert("Please enter a valid email address.");
+                }
+            };
+        }
 
         renderHistory();
         if (typeof lucide !== 'undefined') lucide.createIcons();
