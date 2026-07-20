@@ -470,14 +470,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         initBtn.querySelector('span').textContent = 'RUNNING';
 
         try {
+            const email = localStorage.getItem('nexus_user_email') || localStorage.getItem('aon_user_email');
+            const headers = { 
+                'Content-Type': 'application/json',
+                'x-client-id': clientId
+            };
+            if (email) headers['x-client-email'] = email;
+
             const res = await fetch('/orchestrate', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'x-client-id': clientId,
-                    'x-subscription-pro': BillingManager.isPremium ? 'true' : 'false'
-                },
-                body: JSON.stringify({ goal })
+                headers,
+                body: JSON.stringify({ goal, email })
             });
 
             const data = await res.json();

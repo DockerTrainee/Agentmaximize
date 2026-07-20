@@ -301,15 +301,22 @@ app.get('/api/mcp-status', (req, res) => {
 });
 
 // ── Subscription Helpers ─────────────────────────────────────────────────────
-async function getSubscription(clientId) {
+async function getSubscription(clientId, email = null) {
     try {
         const db = await fs.readJson(SUBS_DB_PATH);
-        const sub = db.subscriptions[clientId];
+        let sub = db.subscriptions[clientId];
+        
+        if (!sub && email) {
+            const cleanEmail = email.toLowerCase().trim();
+            sub = db.subscriptions[cleanEmail] || Object.values(db.subscriptions).find(s => s.email === cleanEmail);
+        }
+
         if (!sub) return { isPremium: false };
         // Check expiry
         if (sub.expiresAt && Date.now() > new Date(sub.expiresAt).getTime()) {
             sub.status = 'expired';
             db.subscriptions[clientId] = sub;
+            if (email) db.subscriptions[email.toLowerCase().trim()] = sub;
             await fs.writeJson(SUBS_DB_PATH, db, { spaces: 2 });
             return { isPremium: false, status: 'expired', ...sub };
         }
@@ -322,19 +329,25 @@ async function getSubscription(clientId) {
     }
 }
 
-async function activateSubscription(clientId, paymentId, orderId, plan = 'pro_monthly') {
+async function activateSubscription(clientId, paymentId, orderId, plan = 'pro_monthly', email = null) {
     const db = await fs.readJson(SUBS_DB_PATH);
-    db.subscriptions[clientId] = {
+    const cleanEmail = email ? email.toLowerCase().trim() : null;
+    const subData = {
         status: 'active',
         plan,
         paymentId,
         orderId,
+        email: cleanEmail || undefined,
         activatedAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
     };
+    db.subscriptions[clientId] = subData;
+    if (cleanEmail) {
+        db.subscriptions[cleanEmail] = subData;
+    }
     await fs.writeJson(SUBS_DB_PATH, db, { spaces: 2 });
-    console.log(`[SUBS] Activated ${plan} for ${clientId}`);
-    return db.subscriptions[clientId];
+    console.log(`[SUBS] Activated ${plan} for ${clientId} ${cleanEmail ? `(${cleanEmail})` : ''}`);
+    return subData;
 }
 
 console.log(`[STORAGE] Persistence Mode: ${process.env.DATA_DIR ? 'DISK-BASED' : 'EPHEMERAL'}`);
@@ -345,10 +358,11 @@ global.IS_ON_QUOTA_RESTRICTION = false;
 
 app.get('/api/subscription/status', async (req, res) => {
     const clientId = req.headers['x-client-id'] || req.query.clientId;
+    const email = req.headers['x-client-email'] || req.query.email;
     if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
 
     try {
-        const sub = await getSubscription(clientId);
+        const sub = await getSubscription(clientId, email);
         const now = new Date();
 
         if (!sub.status) {
@@ -381,29 +395,38 @@ app.get('/api/subscription/status', async (req, res) => {
 
 app.post('/api/subscription/start-trial', aiLimiter, async (req, res) => {
     const clientId = req.headers['x-client-id'] || req.query.clientId;
+    const email = req.headers['x-client-email'] || req.body?.email || req.query?.email;
     if (!clientId) return res.status(400).json({ error: 'Missing clientId' });
 
     try {
         const db = await fs.readJson(SUBS_DB_PATH);
-        const existing = db.subscriptions[clientId];
+        const cleanEmail = email ? email.toLowerCase().trim() : null;
 
-        if (existing) {
+        const existingByClient = db.subscriptions[clientId];
+        const existingByEmail = cleanEmail ? (db.subscriptions[cleanEmail] || Object.values(db.subscriptions).find(s => s.email === cleanEmail)) : null;
+
+        if (existingByClient || existingByEmail) {
             return res.status(400).json({ 
                 error: 'TRIAL_ALREADY_USED', 
-                message: 'A trial or subscription has already been activated for this account.' 
+                message: 'A trial or subscription has already been activated for this account or device.' 
             });
         }
 
         const trialExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-        db.subscriptions[clientId] = {
+        const subData = {
             status: 'trial',
             plan: '7_day_trial',
+            email: cleanEmail || undefined,
             activatedAt: new Date().toISOString(),
             expiresAt: trialExpiry
         };
+        db.subscriptions[clientId] = subData;
+        if (cleanEmail) {
+            db.subscriptions[cleanEmail] = subData;
+        }
 
         await fs.writeJson(SUBS_DB_PATH, db, { spaces: 2 });
-        console.log(`[SUBS] 🎁 7-Day Trial activated for ${clientId}`);
+        console.log(`[SUBS] 🎁 7-Day Trial activated for ${clientId} ${cleanEmail ? `(${cleanEmail})` : ''}`);
         res.json({ success: true, expiresAt: trialExpiry });
     } catch (e) {
         console.error('[SUBS] Trial activation error:', e.message);
@@ -442,21 +465,14 @@ const authMiddleware = (req, res, next) => next();
  */
 const enforceSubscription = async (req, res, next) => {
     const clientId = req.headers['x-client-id'] || req.body.clientId || req.query.clientId;
+    const email = req.headers['x-client-email'] || req.body.email || req.query.email;
     if (!clientId) {
         return res.status(401).json({ error: 'IDENTITY_REQUIRED', message: 'Identity missing. Please refresh.' });
     }
 
-    const isPremiumHeader = req.headers['x-subscription-pro'] === 'true' || req.headers['x-subscription-pro'] === true;
-
     try {
-        const sub = await getSubscription(clientId);
+        const sub = await getSubscription(clientId, email);
         
-        // Check header fallback (useful for Capacitor native sync / testing)
-        if (isPremiumHeader) {
-            req.subscription = { ...sub, isPremium: true, status: 'active' };
-            return next();
-        }
-
         // Only allow request if status is 'active' or 'trial'
         if (sub.status === 'active' || sub.status === 'trial') {
             req.subscription = sub;
@@ -2129,7 +2145,7 @@ app.post('/vision-analyze', enforceSubscription, async (req, res) => {
 // BOOK NOTES EXTRACTOR — Gemini Vision multimodal endpoint
 // Extracts structured, editable notes from a photographed book page
 // ─────────────────────────────────────────────────────────────────────────────
-app.post('/vision-book-extract', async (req, res) => {
+app.post('/vision-book-extract', enforceSubscription, async (req, res) => {
     const { imageBase64 } = req.body;
     if (!imageBase64) return res.status(400).json({ error: 'No image provided' });
 

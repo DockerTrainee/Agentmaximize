@@ -63,9 +63,13 @@ export const BillingManager = {
 
     async syncStatus() {
         const clientId = localStorage.getItem('nexus_client_id');
+        const email = localStorage.getItem('nexus_user_email') || localStorage.getItem('aon_user_email');
         if (!clientId) return;
         try {
-            const res = await fetch(`/api/subscription/status?clientId=${clientId}`);
+            const url = `/api/subscription/status?clientId=${clientId}${email ? `&email=${encodeURIComponent(email)}` : ''}`;
+            const res = await fetch(url, {
+                headers: email ? { 'x-client-email': email } : {}
+            });
             const data = await res.json();
             if (data.success) {
                 this.isPremium = data.isPremium;
